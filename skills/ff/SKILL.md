@@ -1,6 +1,6 @@
 ---
 name: ff
-description: Fast-forward through Beat artifact creation. Use when the user wants to quickly create all artifacts needed for implementation in one go, or create a new change and generate everything at once. Triggers on /beat:ff.
+description: Fast-forward through Beat artifact creation. Use when the user wants to quickly create all artifacts at once (e.g., small fixes or well-understood scope). For step-by-step control over each artifact, use /beat:continue instead. Triggers on /beat:ff.
 ---
 
 Fast-forward -- create a change (if needed) and generate all artifacts in one go.

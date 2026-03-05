@@ -1,6 +1,6 @@
 ---
 name: apply
-description: Implement code based on Beat feature files. Use when the user wants to start or continue implementation of a change, write tests and code for Gherkin scenarios. Triggers on /beat:apply.
+description: Implement code based on Beat feature files. Requires Gherkin features to be created first (gherkin status must be done). Use when the user wants to start or continue implementation of a change, write tests and code for Gherkin scenarios. Triggers on /beat:apply.
 ---
 
 Implement code based on the feature files in a change. By default, every scenario MUST have a corresponding automated test — but this is configurable via `testing` in config and `@no-test` tags.
