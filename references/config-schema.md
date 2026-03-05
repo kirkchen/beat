@@ -94,7 +94,7 @@ rules:
 ## Rules
 
 1. **Config is always optional** — skills must work without it
-2. **Never write to config** — only `/beat:init` creates it, users edit it manually
+2. **Never write to config** — only `/beat:setup` creates it, users edit it manually
 3. **Context is injected, not stored** — don't copy context into artifacts, use it to inform generation
 4. **Rules are additive** — they supplement skill instructions, never override them
 5. **Fail gracefully** — if config is malformed, warn and proceed without it

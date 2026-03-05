@@ -18,7 +18,7 @@ claude --plugin-dir /path/to/beat
 | `/beat:ff` | Fast-forward — create all artifacts at once |
 | `/beat:apply` | Implement code with TDD for each scenario |
 | `/beat:verify` | 3-dimension verification against artifacts |
-| `/beat:init` | Initialize Beat config in a project |
+| `/beat:setup` | Initialize Beat config in a project |
 | `/beat:sync` | Sync features to persistent `beat/features/` |
 | `/beat:archive` | Archive a completed change |
 | `/beat:distill` | Reverse-engineer features from existing code |

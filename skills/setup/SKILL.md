@@ -1,6 +1,6 @@
 ---
-name: init
-description: Initialize Beat in a project. Creates beat/config.yaml with project context and rules. Use when the user wants to set up Beat for the first time, configure project preferences, or create a beat config. Triggers on /beat:init or when user says "initialize beat", "set up beat", or similar.
+name: setup
+description: Initialize Beat in a project. Creates beat/config.yaml with project context and rules. Use when the user wants to set up Beat for the first time, configure project preferences, or create a beat config. Triggers on /beat:setup or when user says "initialize beat", "set up beat", or similar.
 ---
 
 Initialize Beat configuration in the current project.
@@ -79,7 +79,7 @@ Initialize Beat configuration in the current project.
    Your config will be used when creating artifacts.
    Edit beat/config.yaml anytime to update preferences.
 
-   Ready to start? Run `/beat:new` or `/beat:explore`.
+   Ready to start? Run `/beat:new` or `/beat:explore`
    ```
 
 **Guardrails**
