@@ -18,7 +18,8 @@ claude --plugin-dir /path/to/beat
 | `/beat:ff` | Fast-forward — create all artifacts at once |
 | `/beat:apply` | Implement code with TDD for each scenario |
 | `/beat:verify` | 3-dimension verification against artifacts |
-| `/beat:sync` | Sync features to persistent `specs/` |
+| `/beat:init` | Initialize Beat config in a project |
+| `/beat:sync` | Sync features to persistent `beat/features/` |
 | `/beat:archive` | Archive a completed change |
 | `/beat:distill` | Reverse-engineer features from existing code |
 
@@ -29,7 +30,7 @@ explore → new → [proposal] → gherkin → [design] → [tasks] → apply �
                  optional     REQUIRED   optional   optional
 ```
 
-Each change lives in `beat/changes/<name>/` with a `status.yaml` tracking progress.
+Each change lives in `beat/changes/<name>/` with a `status.yaml` tracking progress. Optional project config in `beat/config.yaml`.
 
 ## Artifacts
 

@@ -31,7 +31,7 @@ pipeline:
 | `tasks` | `/beat:continue` | Tasks artifact created |
 | `implement` | `/beat:continue`, `/beat:ff` | All artifacts done, ready for coding |
 | `verify` | `/beat:apply` | Implementation complete, ready for verification |
-| `sync` | `/beat:sync` | Features synced to specs/ |
+| `sync` | `/beat:sync` | Features synced to beat/features/ |
 | `archive` | `/beat:archive` | Archived (terminal state) |
 
 **Phase advances forward only.** It reflects the LATEST completed step.

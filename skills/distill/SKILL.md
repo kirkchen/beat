@@ -41,6 +41,8 @@ Use this to bring existing codebases into the Beat workflow. The output is draft
 
 4. **Generate draft artifacts**
 
+   Read `beat/config.yaml` if it exists (schema: `references/config-schema.md`). Inject `context` as project background and apply matching `rules` per artifact type.
+
    **features/*.feature (mandatory):**
    - Write feature files describing CURRENT behavior (not desired behavior)
    - Each scenario must accurately reflect what the code actually does
@@ -85,7 +87,7 @@ Use this to bring existing codebases into the Beat workflow. The output is draft
    - All generated feature files
    - Verification report summary
    - Any remaining uncertainties
-   - Prompt: "Review these drafts. Tell me what to fix, or run `/beat:sync` to sync to specs/."
+   - Prompt: "Review these drafts. Tell me what to fix, or run `/beat:sync` to sync to beat/features/."
 
 **Distill vs Normal Flow**
 

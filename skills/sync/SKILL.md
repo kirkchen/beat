@@ -1,11 +1,11 @@
 ---
 name: sync
-description: Sync features and docs from a Beat change to the persistent specs/ directory. Use when the user wants to update the project's living documentation after implementation. Triggers on /beat:sync.
+description: Sync features and docs from a Beat change to the persistent beat/features/ directory. Use when the user wants to update the project's living documentation after implementation. Triggers on /beat:sync.
 ---
 
-Sync features and documentation from a change to the project's persistent `specs/` directory.
+Sync features and documentation from a change to the project's persistent `beat/features/` directory.
 
-This is an **agent-driven** operation -- you read change files and organize them into the specs/ structure.
+This is an **agent-driven** operation -- you read change files and organize them into the beat/features/ structure.
 
 **Input**: Optionally specify a change name. If omitted, infer from context or prompt.
 
@@ -33,7 +33,7 @@ This is an **agent-driven** operation -- you read change files and organize them
    For each feature file, the user decides which capability directory it belongs to.
 
    Use **AskUserQuestion tool**:
-   > "Where should each feature be synced? Existing capabilities: [list from specs/]. Or enter a new name."
+   > "Where should each feature be synced? Existing capabilities: [list from beat/features/]. Or enter a new name."
 
    If only one feature file and the mapping is obvious from context, suggest a default.
 
@@ -41,19 +41,21 @@ This is an **agent-driven** operation -- you read change files and organize them
 
    For each mapping:
 
+   If `beat/features/` doesn't exist, create it: `mkdir -p beat/features`
+
    **Feature files:**
-   - Copy `features/<file>.feature` -> `specs/<capability>/<file>.feature`
-   - If file already exists in specs/: update with new content
+   - Copy `features/<file>.feature` -> `beat/features/<capability>/<file>.feature`
+   - If file already exists in beat/features/: update with new content
    - If new: create
 
    **Proposal:**
-   - Copy `proposal.md` -> `specs/<capability>/proposal.md`
+   - Copy `proposal.md` -> `beat/features/<capability>/proposal.md`
 
    **Design:**
-   - Copy `design.md` -> `specs/<capability>/design.md`
+   - Copy `design.md` -> `beat/features/<capability>/design.md`
 
    **Capability README:**
-   - If `specs/<capability>/README.md` doesn't exist, create:
+   - If `beat/features/<capability>/README.md` doesn't exist, create:
      ```markdown
      # <Capability Name>
 
@@ -61,7 +63,7 @@ This is an **agent-driven** operation -- you read change files and organize them
      ```
 
    **Global README:**
-   - If `specs/README.md` doesn't exist: create with global navigation
+   - If `beat/features/README.md` doesn't exist: create with global navigation
    - If it exists: update to include the new capability
 
 5. **Update status.yaml** (schema: `references/status-schema.md`)
@@ -71,27 +73,27 @@ This is an **agent-driven** operation -- you read change files and organize them
 6. **Show summary**
 
    ```
-   ## Specs Synced: <change-name>
+   ## Features Synced: <change-name>
 
    **<capability>/**:
    - Synced: login.feature, session.feature
    - Added: proposal.md, design.md
    - Created: README.md
 
-   Specs are now updated. Run `/beat:archive` to archive the change.
+   Features are now updated. Run `/beat:archive` to archive the change.
    ```
 
 **Sync Rules**
 
-| Source (change) | Target (specs/) | Behavior |
-|-----------------|-----------------|----------|
-| `features/*.feature` | `specs/<capability>/` | Add or update feature files |
-| `proposal.md` | `specs/<capability>/proposal.md` | Copy to capability |
-| `design.md` | `specs/<capability>/design.md` | Copy to capability |
+| Source (change) | Target (beat/features/) | Behavior |
+|-----------------|------------------------|----------|
+| `features/*.feature` | `beat/features/<capability>/` | Add or update feature files |
+| `proposal.md` | `beat/features/<capability>/proposal.md` | Copy to capability |
+| `design.md` | `beat/features/<capability>/design.md` | Copy to capability |
 
 **Guardrails**
 - Always ask user for capability mapping -- don't guess
 - If capability directory doesn't exist, create it
-- Preserve existing content in specs/ not related to this change
+- Preserve existing content in beat/features/ not related to this change
 - Show what's being synced before doing it
 - The operation should be idempotent -- running twice gives same result

@@ -38,8 +38,8 @@ Archive a completed change. Checks completion, offers sync if needed, then moves
 
 4. **Assess sync state**
 
-   Check if `features/*.feature` files have been synced to `specs/`.
-   Look for corresponding files in `specs/` directories.
+   Check if `features/*.feature` files have been synced to `beat/features/`.
+   Look for corresponding files in `beat/features/` directories.
 
    **If feature files exist but not synced:**
    - Use **AskUserQuestion tool**:
@@ -72,7 +72,7 @@ Archive a completed change. Checks completion, offers sync if needed, then moves
 
    **Change:** <change-name>
    **Archived to:** beat/changes/archive/YYYY-MM-DD-<name>/
-   **Specs:** Synced to specs/ (or "Sync skipped" or "No features to sync")
+   **Features:** Synced to beat/features/ (or "Sync skipped" or "No features to sync")
    **Artifacts:** N done, M skipped
    **Tasks:** X/Y complete (or "No tasks file")
    ```

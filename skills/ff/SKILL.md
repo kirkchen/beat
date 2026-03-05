@@ -34,6 +34,8 @@ Fast-forward -- create a change (if needed) and generate all artifacts in one go
 
 4. **Create artifacts in pipeline order**
 
+   Read `beat/config.yaml` if it exists (schema: `references/config-schema.md`). Inject `context` and apply matching `rules` per artifact type throughout creation.
+
    For each artifact to create (pipeline order: proposal -> gherkin -> design -> tasks):
    - Read all completed artifacts for context
    - Create the artifact (same logic as beat:continue step 5)

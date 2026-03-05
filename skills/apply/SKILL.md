@@ -84,7 +84,7 @@ Implement code based on the feature files in a change. Every scenario MUST have 
 
    Suggested next steps:
    - `/beat:verify` -- validate implementation against artifacts
-   - `/beat:sync` -- sync features to specs/
+   - `/beat:sync` -- sync features to beat/features/
    - `/beat:archive` -- archive the change
    ```
 
