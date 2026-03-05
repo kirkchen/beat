@@ -49,6 +49,10 @@ Each change lives in `beat/changes/<name>/` with a `status.yaml` tracking progre
 | Medium feature | `new → proposal → gherkin → apply → verify → sync → archive` |
 | Large feature | `new → proposal → gherkin → design → tasks → apply → verify → sync → archive` |
 
+## Dependencies
+
+Requires [superpowers](https://github.com/anthropics/superpowers) plugin for TDD, brainstorming, and debugging integrations referenced by `continue`, `apply`, and `explore` skills.
+
 ## License
 
 MIT

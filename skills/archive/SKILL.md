@@ -51,6 +51,8 @@ Archive a completed change. Checks completion, offers sync if needed, then moves
 
 5. **Perform the archive**
 
+   Update `status.yaml`: set phase to `archive`.
+
    ```bash
    mkdir -p beat/changes/archive
    ```
