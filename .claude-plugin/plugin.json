@@ -1,0 +1,10 @@
+{
+  "name": "beat",
+  "description": "Agent-driven BDD workflow using Gherkin feature files. Rhythm for your development: explore → new → spec → implement → verify → archive.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Kirk Chen"
+  },
+  "license": "MIT",
+  "keywords": ["bdd", "gherkin", "workflow", "tdd", "feature-driven"]
+}
