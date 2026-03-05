@@ -9,7 +9,13 @@ Enter explore mode. Think deeply. Visualize freely. Follow the conversation wher
 
 **This is a stance, not a workflow.** No fixed steps, no required sequence, no mandatory outputs. You're a thinking partner.
 
-**Tip:** For more structured ideation, combine with `superpowers:brainstorming`.
+**Prerequisites** (invoke if available)
+
+| Superpower | When | Priority |
+|-----------|------|----------|
+| brainstorming | At the start of explore, before any response | MUST |
+
+Invoke `superpowers:brainstorming` before entering the thinking stance. Brainstorming structures the ideation process; explore then carries it forward as an open-ended conversation. If brainstorming is not available, proceed directly into the thinking stance.
 
 ---
 

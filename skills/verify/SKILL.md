@@ -16,7 +16,7 @@ Verify implementation against change artifacts using three dimensions. Uses an i
    - If only one exists, use it
    - If multiple exist, use **AskUserQuestion tool** to let user select
 
-2. **Read all artifacts**
+2. **Read all artifacts and determine testing context**
 
    Read from `beat/changes/<name>/`:
    - `status.yaml` (schema: `references/status-schema.md`)
@@ -24,6 +24,13 @@ Verify implementation against change artifacts using three dimensions. Uses an i
    - `proposal.md` (if exists)
    - `design.md` (if exists)
    - `tasks.md` (if exists)
+
+   Read `beat/config.yaml` (if exists, schema: `references/config-schema.md`).
+
+   **Determine testing context** (three-layer priority: tag > source > config):
+   - **Config layer**: Is `testing.required` set to `false`? If yes, skip test existence checks globally.
+   - **Source layer**: Does `status.yaml` contain `source: distill`? If yes, Dimension 1 switches to **accuracy mode** (see below).
+   - **Tag layer**: Scenarios tagged `@no-test` are always excluded from test existence checks, regardless of other settings.
 
 3. **Dispatch verification subagent**
 
@@ -35,11 +42,29 @@ Verify implementation against change artifacts using three dimensions. Uses an i
    - The three verification dimensions (below)
    - The report format template (below)
 
-   **Dimension 1: Gherkin Coverage**
-   For each Scenario in .feature files:
+   **Dimension 1: Gherkin Coverage** (testing-context-aware)
+
+   The behavior of this dimension depends on testing context:
+
+   **Default mode (coverage):** `testing.required` is true (or unset), source is not `distill`.
+   For each Scenario in .feature files (excluding `@no-test`):
    - Does a corresponding automated test exist? (search for step definitions, test files)
    - Is the test executable (not a skeleton)?
    - Does the implementation handle the scenario's behavior?
+   - Missing test → CRITICAL. Non-executable test → WARNING.
+
+   **Accuracy mode:** `source: distill` in status.yaml.
+   For each Scenario in .feature files (excluding `@no-test`):
+   - Does the code actually behave as the scenario describes? (cite specific file:line)
+   - Are there behaviors in the code NOT captured by any scenario?
+   - Are there scenarios that don't match the code?
+   - If existing tests are found, map them to corresponding scenarios.
+   - Missing test → SUGGESTION (not CRITICAL). Inaccurate scenario → CRITICAL.
+
+   **Skipped mode:** `testing.required: false` in config.
+   - Skip test existence checks entirely.
+   - Still verify that the implementation handles each scenario's behavior.
+   - Note in report: "Test existence checks skipped (testing.required: false)."
 
    **Dimension 2: Proposal Alignment** (if proposal.md exists)
    For each goal in the proposal:
@@ -79,6 +104,11 @@ Verify implementation against change artifacts using three dimensions. Uses an i
    - [Dimension] Description
      Recommendation: specific action
 
+   ### Testing Context
+   - Config: testing.required = true/false/unset
+   - Source: normal/distill
+   - @no-test scenarios: N excluded
+
    ### Final Assessment
    - "X critical issue(s) found. Fix before archiving."
    - "No critical issues. Y warning(s) to consider. Ready for archive."
@@ -86,9 +116,9 @@ Verify implementation against change artifacts using three dimensions. Uses an i
    ```
 
 **Issue Classification**
-- CRITICAL: Must fix (missing scenario test, unimplemented goal, design violation)
-- WARNING: Should fix (partial coverage, possible divergence)
-- SUGGESTION: Nice to fix (pattern inconsistency, minor improvement)
+- CRITICAL: Must fix (missing scenario test [in coverage mode], inaccurate scenario [in accuracy mode], unimplemented goal, design violation)
+- WARNING: Should fix (partial coverage, possible divergence, non-executable test)
+- SUGGESTION: Nice to fix (pattern inconsistency, minor improvement, missing test in distill mode)
 
 **Graceful Degradation**
 - Only features exist: verify Gherkin coverage only

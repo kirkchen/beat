@@ -57,35 +57,30 @@ Use this to bring existing codebases into the Beat workflow. The output is draft
 
    Update `status.yaml` for each artifact created.
 
-5. **Dispatch verification subagent**
+5. **Verify using /beat:verify logic**
 
-   Use **Agent tool** (subagent_type: `Explore`) to dispatch an independent subagent:
+   Execute the verification logic from `/beat:verify` inline (not as a separate skill invocation). Because `status.yaml` contains `source: distill`, verify automatically switches Dimension 1 to **accuracy mode**:
 
-   ```
-   You are a verification agent. Compare these draft .feature files against
-   the actual code. For each scenario:
-   - Does the code actually behave this way? (cite specific file:line)
-   - Are there behaviors in the code NOT captured by any scenario?
-   - Are there scenarios that don't match the code?
+   - Checks whether each scenario accurately describes code behavior (not test existence)
+   - Cites specific file:line as evidence
+   - Flags behaviors in the code NOT captured by any scenario
+   - Flags scenarios that don't match the code
+   - Missing tests are reported as SUGGESTION (not CRITICAL)
 
-   Artifacts:
-   [include all draft feature file contents]
-
-   Code scope:
-   [include the code paths to verify against]
-
-   Report inaccuracies and omissions with specific evidence.
-   ```
+   Dispatch the verification subagent as specified in `/beat:verify` step 3 (Agent tool, subagent_type: `Explore`), including all artifacts and the code scope.
 
 6. **Fix drafts based on verification feedback**
 
-   Address inaccuracies and omissions identified by the subagent.
+   Address inaccuracies and omissions identified by the verification report:
+   - Fix scenarios that don't match code behavior
+   - Add scenarios for uncovered behaviors
+   - Note remaining uncertainties
 
 7. **Present to user for review**
 
    Show:
    - All generated feature files
-   - Verification report summary
+   - Verification report summary (from verify logic)
    - Any remaining uncertainties
    - Prompt: "Review these drafts. Tell me what to fix, or run `/beat:sync` to sync to beat/features/."
 
@@ -102,7 +97,7 @@ Distill: Code -> Spec   (extract spec from existing code)
 
 **Guardrails**
 - Feature files must describe CURRENT behavior, not desired behavior
-- Always use verification subagent -- never self-verify distilled specs
+- Always verify using /beat:verify logic (accuracy mode) -- never self-verify distilled specs
 - Mark distilled features with `@distilled` tag for traceability
 - If behavior is ambiguous, note it as uncertain rather than guessing
 - The user has final say on accuracy -- always present for review

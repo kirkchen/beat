@@ -5,6 +5,14 @@ description: Archive a completed Beat change. Use when the user wants to finaliz
 
 Archive a completed change. Checks completion, offers sync if needed, then moves to archive.
 
+**Prerequisites** (invoke if available)
+
+| Superpower | When | Priority |
+|-----------|------|----------|
+| finishing-a-development-branch | After archive is complete | MUST |
+
+If not available, skip and show archive summary only.
+
 **Input**: Optionally specify a change name. If omitted, infer from context or prompt.
 
 **Steps**
@@ -78,6 +86,10 @@ Archive a completed change. Checks completion, offers sync if needed, then moves
    **Artifacts:** N done, M skipped
    **Tasks:** X/Y complete (or "No tasks file")
    ```
+
+7. **Finish the development branch**
+
+   After showing the summary, invoke `superpowers:finishing-a-development-branch` (if available) to guide the user through merge, PR creation, or cleanup. If not available, skip this step.
 
 **Guardrails**
 - Always prompt for change selection if not provided

@@ -43,7 +43,30 @@ Initialize Beat configuration in the current project.
    - Check for linter/formatter configs
    - Summarize findings and confirm with user
 
-4. **Ask about artifact rules** (optional)
+4. **Ask about testing** (optional)
+
+   Use **AskUserQuestion tool**:
+   > "How should Beat handle automated testing?"
+
+   Provide options:
+   1. "Require tests (TDD)" -- default, every scenario needs a test
+   2. "No tests required" -- for projects without test frameworks (e.g., docs, config, infra)
+   3. "Let me specify framework" -- set a specific test framework
+
+   **If user chooses "Require tests":**
+   - If codebase detection was done in step 3, use detected framework for `testing.framework`
+   - Otherwise, ask: "What test framework does your project use?" (e.g., vitest, jest, pytest, go test)
+
+   **If user chooses "No tests required":**
+   - Set `testing.required: false`
+
+   **If user chooses "Let me specify":**
+   - Ask for the framework name
+   - Set `testing.framework` to the specified value
+
+   This sets the `testing` field in config.
+
+5. **Ask about artifact rules** (optional)
 
    Use **AskUserQuestion tool**:
    > "Want to set rules for how artifacts are generated?"
@@ -51,7 +74,7 @@ Initialize Beat configuration in the current project.
    1. "Yes, let me specify" -- ask per-artifact rules
    2. "Skip for now" -- create config with context only
 
-5. **Write config**
+6. **Write config**
 
    Create `beat/config.yaml` following the schema in `references/config-schema.md`.
 
@@ -61,14 +84,14 @@ Initialize Beat configuration in the current project.
 
    Write the file with the gathered context and rules.
 
-6. **Create directory structure** (if not exists)
+7. **Create directory structure** (if not exists)
 
    ```bash
    mkdir -p beat/changes
    mkdir -p beat/features
    ```
 
-7. **Show summary**
+8. **Show summary**
 
    ```
    ## Beat Initialized

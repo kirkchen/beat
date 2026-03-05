@@ -5,6 +5,15 @@ description: Continue working on a Beat change by creating or skipping the next 
 
 Continue working on a change by creating or skipping the next artifact in the pipeline.
 
+**Prerequisites** (invoke if available)
+
+| Superpower | When | Priority |
+|-----------|------|----------|
+| brainstorming | Before creating proposal or design | MUST |
+| writing-plans | When creating tasks | MUST |
+
+If a prerequisite skill is not available, skip it and continue normally.
+
 **Pipeline order:** `proposal -> gherkin -> design -> tasks`
 
 - `proposal`, `design`, `tasks` are **optional** (user can skip)
@@ -138,7 +147,18 @@ Continue working on a change by creating or skipping the next artifact in the pi
 
    **Tasks** (`tasks.md`):
 
-   Read all previous artifacts. Write:
+   Read all previous artifacts (proposal, gherkin, design).
+
+   Invoke `superpowers:writing-plans` (if available) to generate a detailed implementation plan. Adapt its output into tasks.md format:
+   - Keep the bite-sized step granularity (2-5 min per step)
+   - Include exact file paths and code snippets where possible
+   - Include test commands and expected results
+   - Use `- [ ]` checkbox format for each step (Beat progress tracking)
+   - Group steps under `### Task N: <Component Name>` headings
+   - Save to `tasks.md` (not `docs/plans/`)
+   - Skip the execution handoff section (Beat's `/beat:apply` handles execution)
+
+   If `superpowers:writing-plans` is not available, fall back to a simple checklist:
    ```markdown
    # <Change Name> -- Tasks
 
@@ -161,13 +181,6 @@ Continue working on a change by creating or skipping the next artifact in the pi
    - Current progress (N/4 done, M skipped)
    - What's next in the pipeline
    - Prompt: "Run `/beat:continue` to proceed, or tell me what to do next."
-
-**Superpowers Integration**
-
-Remind the user of available tools at each stage:
-- **Proposal**: "Tip: `superpowers:brainstorming` can help clarify scope if it's unclear."
-- **Gherkin**: "Tip: `superpowers:brainstorming` can help co-define acceptance criteria."
-- **Design**: "Tip: `superpowers:brainstorming` can help explore architectural trade-offs."
 
 **Guardrails**
 - Create ONE artifact per invocation

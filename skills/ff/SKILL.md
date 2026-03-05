@@ -5,6 +5,15 @@ description: Fast-forward through Beat artifact creation. Use when the user want
 
 Fast-forward -- create a change (if needed) and generate all artifacts in one go.
 
+**Prerequisites** (invoke if available)
+
+| Superpower | When | Priority |
+|-----------|------|----------|
+| brainstorming | Before creating proposal or design | MUST |
+| writing-plans | When creating tasks | MUST |
+
+If a prerequisite skill is not available, skip it and continue normally.
+
 **Input**: Change name (kebab-case) OR a description of what to build. Can also be an existing change name to fast-forward remaining artifacts.
 
 **Steps**
@@ -38,6 +47,7 @@ Fast-forward -- create a change (if needed) and generate all artifacts in one go
 
    For each artifact to create (pipeline order: proposal -> gherkin -> design -> tasks):
    - Read all completed artifacts for context
+   - Invoke prerequisites per the table above (brainstorming before proposal/design, writing-plans for tasks)
    - Create the artifact (same logic as beat:continue step 5)
    - Update `status.yaml`
    - Show brief progress: "Created <artifact>"
