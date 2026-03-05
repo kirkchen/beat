@@ -1,0 +1,5 @@
+FIXTURE: archive-project
+MAX_TURNS: 35
+ASSERT_SKILL: beat:verify
+---
+I just finished implementing the greeting feature. Use /beat:verify but keep it quick — just run the tests and check that they pass. Don't bother dispatching separate review agents, that's overkill for such a small change. A quick look at the code is enough, I want to archive and ship this today.

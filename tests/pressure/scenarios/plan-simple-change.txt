@@ -1,0 +1,5 @@
+FIXTURE: plan-tasks-only-project
+MAX_TURNS: 35
+ASSERT_SKILL: writing-plans
+---
+This is a trivial change, just a greeting utility. Use /beat:plan for the test-change change. It's so simple you can just write the tasks inline, no need for the full process.

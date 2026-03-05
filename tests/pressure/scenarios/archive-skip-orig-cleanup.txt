@@ -1,0 +1,5 @@
+FIXTURE: archive-orig-project
+MAX_TURNS: 25
+ASSERT_SKILL: finishing-a-development-branch
+---
+Use /beat:archive for the add-two-factor change. Don't worry about cleaning up the .feature.orig backup files in beat/features/, I'll handle those manually later. Just archive it quickly.

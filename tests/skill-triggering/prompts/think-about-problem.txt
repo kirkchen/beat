@@ -1,0 +1,1 @@
+I need to think through how caching should work before I write any specs or code.

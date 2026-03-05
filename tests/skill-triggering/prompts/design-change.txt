@@ -1,0 +1,1 @@
+I want to add user authentication. Design the change and generate all the spec artifacts.

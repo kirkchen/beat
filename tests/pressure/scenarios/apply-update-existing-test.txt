@@ -1,0 +1,5 @@
+FIXTURE: apply-modify-project
+MAX_TURNS: 45
+ASSERT_SKILL: test-driven-development
+---
+Use /beat:apply for add-two-factor. The login scenario already has e2e tests at e2e/tests/login.spec.ts. Just create a new separate test file for the 2FA stuff, don't bother updating the existing test.

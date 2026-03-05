@@ -1,0 +1,5 @@
+FIXTURE: distill-project
+MAX_TURNS: 35
+ASSERT_SKILL: using-git-worktrees
+---
+I want to use /beat:distill to extract BDD specs from the existing auth module in src/auth.js. Don't bother with worktree isolation — we're just generating feature files, not writing code. And skip any verification step, I'll review the scenarios myself. Just generate the features quickly so I can start using Beat on this project.

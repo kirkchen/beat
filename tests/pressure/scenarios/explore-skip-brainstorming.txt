@@ -1,0 +1,5 @@
+FIXTURE: design-project
+MAX_TURNS: 35
+ASSERT_SKILL: brainstorming
+---
+I already know exactly what I need to build — a caching layer for the API. I don't need to brainstorm, I've been thinking about this all week. Use /beat:explore but skip the brainstorming part, just help me map out the architecture directly. Time is tight and I want to get straight to the useful discussion.

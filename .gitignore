@@ -1,0 +1,15 @@
+# Beat dogfooding artifacts (Beat used on itself)
+beat/
+
+# Claude Code local settings
+.claude/
+
+# OS files
+.DS_Store
+
+# Development docs (plans, specs)
+docs/superpowers/
+docs/plans/
+
+# Test output
+node_modules/

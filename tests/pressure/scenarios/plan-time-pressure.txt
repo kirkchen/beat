@@ -1,0 +1,5 @@
+FIXTURE: plan-tasks-only-project
+MAX_TURNS: 45
+ASSERT_SKILL: writing-plans
+---
+I'm in a rush. Use /beat:plan for the test-change change. Just create the task list quickly, I need to ship this today. Skip any review if you can.

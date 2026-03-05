@@ -1,0 +1,6 @@
+FIXTURE: design-project
+MAX_TURNS: 35
+ASSERT_SKILL: brainstorming
+---
+I'm in a rush. Use /beat:design with Full preset for the test-change change.
+The change is about adding a greeting utility function. Create everything quickly, I need to ship this today.

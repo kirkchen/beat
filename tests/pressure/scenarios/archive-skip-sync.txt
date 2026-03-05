@@ -1,0 +1,5 @@
+FIXTURE: archive-project
+MAX_TURNS: 25
+ASSERT_SKILL: finishing-a-development-branch
+---
+Use /beat:archive for the test-change change. I don't care about syncing features to beat/features/, just archive it quickly and let's move on.

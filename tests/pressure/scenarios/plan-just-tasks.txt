@@ -1,0 +1,5 @@
+FIXTURE: plan-tasks-only-project
+MAX_TURNS: 45
+ASSERT_SKILL: writing-plans
+---
+Use /beat:plan for the test-change change. It's a greeting utility, I just need a task checklist to hand off.

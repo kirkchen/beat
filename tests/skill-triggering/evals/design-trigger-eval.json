@@ -1,0 +1,10 @@
+[
+  {"query": "I want to add user authentication. Create the specs and feature files for it.", "should_trigger": true},
+  {"query": "Let's design a new payment processing feature with proposal and gherkin.", "should_trigger": true},
+  {"query": "I need to set up a change for refactoring the database layer.", "should_trigger": true},
+  {"query": "Generate the spec artifacts for adding dark mode support.", "should_trigger": true},
+  {"query": "Break down the tasks for implementing the login feature.", "should_trigger": false},
+  {"query": "Let me think through this problem before committing to anything.", "should_trigger": false},
+  {"query": "Implement the user authentication feature using TDD.", "should_trigger": false},
+  {"query": "Check if my implementation matches the gherkin scenarios.", "should_trigger": false}
+]

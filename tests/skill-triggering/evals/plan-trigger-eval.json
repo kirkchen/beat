@@ -1,0 +1,10 @@
+[
+  {"query": "The specs are ready. Break down the implementation into tasks.", "should_trigger": true},
+  {"query": "Create an execution plan for the payment feature change.", "should_trigger": true},
+  {"query": "I need a task breakdown with review before we start coding.", "should_trigger": true},
+  {"query": "Generate tasks.md from the existing gherkin and proposal.", "should_trigger": true},
+  {"query": "I want to add user authentication. Create the specs and feature files.", "should_trigger": false},
+  {"query": "Let me explore this problem and think through the options.", "should_trigger": false},
+  {"query": "Implement the first task from tasks.md using TDD.", "should_trigger": false},
+  {"query": "Verify the implementation against the spec artifacts.", "should_trigger": false}
+]

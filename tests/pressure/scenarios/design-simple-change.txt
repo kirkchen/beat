@@ -1,0 +1,5 @@
+FIXTURE: design-project
+MAX_TURNS: 35
+ASSERT_SKILL: brainstorming
+---
+This is just a one-line config fix to add a greeting function. Use /beat:design with Full preset for the test-change change, keep it simple and fast.
