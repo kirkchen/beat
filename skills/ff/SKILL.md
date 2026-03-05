@@ -48,10 +48,16 @@ If a superpower is unavailable (skill not installed), skip and continue.
    For each artifact to create (pipeline order: proposal -> gherkin -> design -> tasks):
    - Read all completed artifacts for context
    - Invoke prerequisites per the table above (brainstorming before proposal/design, writing-plans for tasks)
-   - Create the artifact (same logic as beat:continue step 5)
+   - Create the artifact following the patterns below
    - Update `status.yaml`
    - Show brief progress: "Created <artifact>"
    - If context is critically unclear, pause and ask
+
+   **Artifact patterns:**
+   - **Proposal**: Sections: `## Why`, `## What Changes`, `## Impact`
+   - **Gherkin**: SpecFlow style, tags `@happy-path`/`@error-handling`/`@edge-case`, Feature description carries PRD essence
+   - **Design**: Sections: `## Approach`, `## Key Decisions`, `## Components`
+   - **Tasks**: If writing-plans is invoked, adapt its output: use `- [ ]` checkboxes, `### Task N:` headings, save to `tasks.md` (not `docs/plans/`), skip execution handoff. If writing-plans unavailable, use simple checkbox checklist.
 
 5. **Show final status**
 
