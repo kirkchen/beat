@@ -41,7 +41,7 @@ Use this to bring existing codebases into the Beat workflow. The output is draft
 
 4. **Generate draft artifacts**
 
-   Read `beat/config.yaml` if it exists (schema: `references/config-schema.md`). Inject `context` as project background and apply matching `rules` per artifact type.
+   Read `beat/config.yaml` if it exists (schema: `references/config-schema.md`). Use `language` for artifact output language, inject `context` as project background, and apply matching `rules` per artifact type.
 
    **features/*.feature (mandatory):**
    - Write feature files describing CURRENT behavior (not desired behavior)

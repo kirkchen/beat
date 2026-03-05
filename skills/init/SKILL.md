@@ -15,10 +15,23 @@ Initialize Beat configuration in the current project.
    - If yes: read it, show current config, ask if user wants to update or keep it
    - If no: proceed to creation
 
-2. **Gather project context**
+2. **Ask artifact language**
+
+   Use **AskUserQuestion tool**:
+   > "What language should Beat use for artifacts (proposals, features, designs, tasks)?"
+
+   Provide options:
+   1. "English (en)" -- default
+   2. "繁體中文 (zh-TW)"
+   3. "简体中文 (zh-CN)"
+   4. Other -- let user specify a BCP 47 tag
+
+   This sets the `language` field in config.
+
+3. **Gather project context**
 
    Use **AskUserQuestion tool** to ask:
-   > "Describe your project so Beat can tailor its artifacts. Include: tech stack, test framework, language preferences, and any key conventions."
+   > "Describe your project so Beat can tailor its artifacts. Include: tech stack, test framework, and any key conventions."
 
    Provide example options:
    1. "Let me describe it" -- open-ended input
@@ -30,7 +43,7 @@ Initialize Beat configuration in the current project.
    - Check for linter/formatter configs
    - Summarize findings and confirm with user
 
-3. **Ask about artifact rules** (optional)
+4. **Ask about artifact rules** (optional)
 
    Use **AskUserQuestion tool**:
    > "Want to set rules for how artifacts are generated?"
@@ -38,7 +51,7 @@ Initialize Beat configuration in the current project.
    1. "Yes, let me specify" -- ask per-artifact rules
    2. "Skip for now" -- create config with context only
 
-4. **Write config**
+5. **Write config**
 
    Create `beat/config.yaml` following the schema in `references/config-schema.md`.
 
@@ -48,14 +61,14 @@ Initialize Beat configuration in the current project.
 
    Write the file with the gathered context and rules.
 
-5. **Create directory structure** (if not exists)
+6. **Create directory structure** (if not exists)
 
    ```bash
    mkdir -p beat/changes
    mkdir -p beat/features
    ```
 
-6. **Show summary**
+7. **Show summary**
 
    ```
    ## Beat Initialized

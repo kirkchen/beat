@@ -56,7 +56,7 @@ Continue working on a change by creating or skipping the next artifact in the pi
 
    Before creating, read all `done` artifacts for context.
 
-   Read `beat/config.yaml` if it exists (schema: `references/config-schema.md`). Inject `context` as project background and apply matching `rules` for this artifact type.
+   Read `beat/config.yaml` if it exists (schema: `references/config-schema.md`). Use `language` for artifact output language, inject `context` as project background, and apply matching `rules` for this artifact type.
 
    ---
 

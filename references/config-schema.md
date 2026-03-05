@@ -7,6 +7,8 @@ Single source of truth for the `beat/config.yaml` format.
 ## Full Schema
 
 ```yaml
+language: zh-TW                      # optional, BCP 47 tag (e.g. en, zh-TW, ja)
+
 context: |                           # optional, string (max 50KB)
   [Project context injected into all artifact generation]
 
@@ -22,6 +24,12 @@ rules:                               # optional, map
 ```
 
 ## Fields
+
+### `language`
+
+BCP 47 language tag controlling the output language of **all** artifacts. Common values: `en`, `zh-TW`, `zh-CN`, `ja`. When set, all skills produce artifacts (proposals, features, designs, tasks) in this language. Gherkin keywords follow the language's Cucumber translation when available.
+
+If not set, skills default to English.
 
 ### `context`
 
@@ -41,13 +49,19 @@ Insert this step **before creating any artifact**:
 
 1. Check if `beat/config.yaml` exists
 2. If yes, read and parse it
-3. Inject `context` (if present) as project background when generating the artifact
-4. Apply matching `rules` (if present) as additional constraints for the artifact being created
-5. If config doesn't exist, proceed normally — config is always optional
+3. Use `language` (if present) as the output language for the artifact
+4. Inject `context` (if present) as project background when generating the artifact
+5. Apply matching `rules` (if present) as additional constraints for the artifact being created
+6. If config doesn't exist, proceed normally — config is always optional
 
 ## Examples
 
 ### Minimal config
+```yaml
+language: zh-TW
+```
+
+### Context only
 ```yaml
 context: |
   TypeScript monorepo using Vitest for testing.
@@ -55,10 +69,11 @@ context: |
 
 ### Full config
 ```yaml
+language: zh-TW
+
 context: |
   Tech stack: TypeScript, React, PostgreSQL
   Testing: Vitest + React Testing Library
-  Language: English for code and docs
   Architecture: Feature-sliced design
 
 rules:
@@ -66,7 +81,6 @@ rules:
     - Include rollback plan
     - Identify affected microservices
   gherkin:
-    - Write scenarios in English
     - Each scenario must be independently executable
     - Use data tables for parameterized examples
   design:
