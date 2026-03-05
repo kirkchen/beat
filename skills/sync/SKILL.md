@@ -1,6 +1,6 @@
 ---
 name: sync
-description: Sync features and docs from a BDD change to the persistent specs/ directory. Use when the user wants to update the project's living documentation after implementation. Triggers on /beat:sync.
+description: Sync features and docs from a Beat change to the persistent specs/ directory. Use when the user wants to update the project's living documentation after implementation. Triggers on /beat:sync.
 ---
 
 Sync features and documentation from a change to the project's persistent `specs/` directory.

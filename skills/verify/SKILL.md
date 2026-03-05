@@ -1,6 +1,6 @@
 ---
 name: verify
-description: Three-dimensional verification of implementation against BDD artifacts. Use when the user wants to validate Gherkin coverage, proposal alignment, and design adherence before archiving. Triggers on /beat:verify.
+description: Three-dimensional verification of implementation against Beat artifacts. Use when the user wants to validate Gherkin coverage, proposal alignment, and design adherence before archiving. Triggers on /beat:verify.
 ---
 
 Verify implementation against change artifacts using three dimensions. Uses an independent subagent to eliminate context bias.

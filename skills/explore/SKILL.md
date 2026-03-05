@@ -1,6 +1,6 @@
 ---
 name: explore
-description: Enter explore mode -- a thinking partner for exploring ideas, investigating problems, and clarifying requirements before or during a BDD change. Use when the user wants to think through something, investigate the codebase, or brainstorm approaches. Triggers on /beat:explore.
+description: Enter explore mode -- a thinking partner for exploring ideas, investigating problems, and clarifying requirements before or during a Beat change. Use when the user wants to think through something, investigate the codebase, or brainstorm approaches. Triggers on /beat:explore.
 ---
 
 Enter explore mode. Think deeply. Visualize freely. Follow the conversation wherever it goes.
