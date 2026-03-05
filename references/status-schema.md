@@ -86,11 +86,11 @@ pipeline:
   tasks: { status: skipped }
 ```
 
-### Distilled from existing code
+### Distilled from existing code (after artifacts generated)
 ```yaml
 name: distill-auth-module
 created: 2026-03-05
-phase: gherkin
+phase: design
 source: distill
 pipeline:
   proposal: { status: done }

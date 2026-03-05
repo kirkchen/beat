@@ -30,7 +30,7 @@ Use this to bring existing codebases into the Beat workflow. The output is draft
    ```yaml
    name: distill-<scope-name>
    created: YYYY-MM-DD
-   phase: gherkin
+   phase: new
    source: distill
    pipeline:
      proposal: { status: pending }
