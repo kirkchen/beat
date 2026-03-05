@@ -5,14 +5,14 @@ description: Continue working on a Beat change by creating or skipping the next 
 
 Continue working on a change by creating or skipping the next artifact in the pipeline.
 
-**Prerequisites** (invoke if available)
+**Prerequisites** (invoke before proceeding)
 
 | Superpower | When | Priority |
 |-----------|------|----------|
 | brainstorming | Before creating proposal or design | MUST |
 | writing-plans | When creating tasks | MUST |
 
-If a prerequisite skill is not available, skip it and continue normally.
+If a superpower is unavailable (skill not installed), skip and continue.
 
 **Pipeline order:** `proposal -> gherkin -> design -> tasks`
 

@@ -5,13 +5,13 @@ description: Archive a completed Beat change. Use when the user wants to finaliz
 
 Archive a completed change. Checks completion, offers sync if needed, then moves to archive.
 
-**Prerequisites** (invoke if available)
+**Prerequisites** (invoke before proceeding)
 
 | Superpower | When | Priority |
 |-----------|------|----------|
 | finishing-a-development-branch | After archive is complete | MUST |
 
-If not available, skip and show archive summary only.
+If unavailable (skill not installed), skip and show archive summary only.
 
 **Input**: Optionally specify a change name. If omitted, infer from context or prompt.
 

@@ -5,7 +5,7 @@ description: Implement code based on Beat feature files. Use when the user wants
 
 Implement code based on the feature files in a change. By default, every scenario MUST have a corresponding automated test — but this is configurable via `testing` in config and `@no-test` tags.
 
-**Prerequisites** (invoke if available)
+**Prerequisites** (invoke before proceeding)
 
 | Superpower | When | Priority |
 |-----------|------|----------|
@@ -14,7 +14,7 @@ Implement code based on the feature files in a change. By default, every scenari
 | systematic-debugging | When stuck (3 failed attempts) | SHOULD |
 | subagent-driven-development | When tasks.md has multiple independent tasks | SHOULD |
 
-Invoke in order: worktrees first (isolate), then TDD (discipline). Debugging and subagent are conditional — only invoke when triggered. If a prerequisite skill is not available, skip it and continue normally.
+Invoke in order: worktrees first (isolate), then TDD (discipline). Debugging and subagent are conditional — only invoke when triggered. If a superpower is unavailable (skill not installed), skip and continue.
 
 **Input**: Optionally specify a change name. If omitted, infer from context or prompt.
 

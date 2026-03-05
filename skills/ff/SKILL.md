@@ -5,14 +5,14 @@ description: Fast-forward through Beat artifact creation. Use when the user want
 
 Fast-forward -- create a change (if needed) and generate all artifacts in one go.
 
-**Prerequisites** (invoke if available)
+**Prerequisites** (invoke before proceeding)
 
 | Superpower | When | Priority |
 |-----------|------|----------|
 | brainstorming | Before creating proposal or design | MUST |
 | writing-plans | When creating tasks | MUST |
 
-If a prerequisite skill is not available, skip it and continue normally.
+If a superpower is unavailable (skill not installed), skip and continue.
 
 **Input**: Change name (kebab-case) OR a description of what to build. Can also be an existing change name to fast-forward remaining artifacts.
 
