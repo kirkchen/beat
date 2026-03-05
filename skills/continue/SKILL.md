@@ -26,7 +26,7 @@ Continue working on a change by creating or skipping the next artifact in the pi
 
 2. **Read status.yaml**
 
-   Read `beat/changes/<name>/status.yaml` to understand:
+   Read `beat/changes/<name>/status.yaml` (schema: `references/status-schema.md`) to understand:
    - Current `phase`
    - Which artifacts are `done`, `pending`, or `skipped`
 

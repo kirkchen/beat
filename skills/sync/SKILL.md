@@ -64,7 +64,7 @@ This is an **agent-driven** operation -- you read change files and organize them
    - If `specs/README.md` doesn't exist: create with global navigation
    - If it exists: update to include the new capability
 
-5. **Update status.yaml**
+5. **Update status.yaml** (schema: `references/status-schema.md`)
 
    Update phase to `sync`.
 

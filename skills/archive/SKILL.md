@@ -19,7 +19,7 @@ Archive a completed change. Checks completion, offers sync if needed, then moves
 
 2. **Check artifact completion**
 
-   Read `beat/changes/<name>/status.yaml`.
+   Read `beat/changes/<name>/status.yaml` (schema: `references/status-schema.md`).
    Check which artifacts are `done` vs `pending` (not `skipped`).
 
    **If any non-skipped artifacts are still `pending`:**

@@ -33,7 +33,7 @@ Start a new change using the Beat workflow.
        └── .gitkeep
    ```
 
-   Write `status.yaml`:
+   Write `status.yaml` following the schema in `references/status-schema.md`:
    ```yaml
    name: <name>
    created: YYYY-MM-DD

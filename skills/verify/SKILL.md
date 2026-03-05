@@ -19,7 +19,7 @@ Verify implementation against change artifacts using three dimensions. Uses an i
 2. **Read all artifacts**
 
    Read from `beat/changes/<name>/`:
-   - `status.yaml`
+   - `status.yaml` (schema: `references/status-schema.md`)
    - `features/*.feature` (all Gherkin files) -- REQUIRED
    - `proposal.md` (if exists)
    - `design.md` (if exists)

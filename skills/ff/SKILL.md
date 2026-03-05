@@ -17,7 +17,7 @@ Fast-forward -- create a change (if needed) and generate all artifacts in one go
 2. **Create or select change**
 
    - If `beat/changes/<name>/` doesn't exist: create it (same as beat:new: directory + status.yaml + features/.gitkeep)
-   - If it exists: use it, read `status.yaml` to find remaining artifacts
+   - If it exists: use it, read `status.yaml` (schema: `references/status-schema.md`) to find remaining artifacts
 
 3. **Ask which optional artifacts to include**
 

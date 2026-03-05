@@ -16,7 +16,7 @@ Implement code based on the feature files in a change. Every scenario MUST have 
    - If only one exists, use it (announce: "Using change: <name>")
    - If multiple exist, use **AskUserQuestion tool** to let user select
 
-2. **Read status.yaml and verify readiness**
+2. **Read status.yaml and verify readiness** (schema: `references/status-schema.md`)
 
    Check that `gherkin` has `status: done`.
    If not: "Gherkin features are required before implementation. Run `/beat:continue` first." STOP.

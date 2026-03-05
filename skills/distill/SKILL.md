@@ -26,7 +26,7 @@ Use this to bring existing codebases into the Beat workflow. The output is draft
 
 3. **Create a change container**
 
-   Create `beat/changes/distill-<scope-name>/` with `status.yaml`:
+   Create `beat/changes/distill-<scope-name>/` with `status.yaml` (schema: `references/status-schema.md`):
    ```yaml
    name: distill-<scope-name>
    created: YYYY-MM-DD
