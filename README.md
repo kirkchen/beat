@@ -11,7 +11,7 @@ Agent-driven BDD workflow plugin for Claude Code. Uses Gherkin `.feature` files 
 /plugin marketplace add kirkchen/beat
 
 # Install the plugin
-/plugin install beat@beat-bdd
+/plugin install beat@beat
 ```
 
 ### Local Development
