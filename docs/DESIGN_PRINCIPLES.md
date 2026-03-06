@@ -48,7 +48,7 @@ The principle: **every layer uses the project's own tools**. Beat doesn't introd
 
 The connection between features and tests is maintained through lightweight text annotations:
 
-- **Feature -> Test**: `# @covered-by: path/to/test` (Gherkin comment in .feature)
+- **Feature -> Test**: `# @covered-by: path/to/test` (Gherkin comment in .feature, placed between tag and scenario line)
 - **Test -> Feature**: `@feature: file.feature` + `@scenario: name` (code comment in test file)
 
 These annotations are machine-checkable (by verify) but zero-cost (just comments). No framework dependency, no build step, works in any language.

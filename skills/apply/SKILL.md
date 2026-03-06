@@ -99,11 +99,11 @@ Invoke in order: worktrees first (isolate), then TDD (discipline). Debugging and
         @scenario: <exact scenario name>
         ```
         (Use the project language's comment syntax: `//` for JS/TS/Java/C#, `#` for Python/Ruby, etc.)
-      - After writing the test, update the .feature file with a `@covered-by` annotation:
+      - After writing the test, update the .feature file with a `@covered-by` annotation (placed between the tag and the scenario line):
         ```gherkin
         @behavior @happy-path
+        # @covered-by: <relative path to test file>
         Scenario: <name>
-          # @covered-by: <relative path to test file>
         ```
 
       **For proposal-driven units:**

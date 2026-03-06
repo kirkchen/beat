@@ -91,7 +91,7 @@ Beat supports a three-layer testing architecture that connects feature files to 
 **Layer 1: E2E Tests** — `@e2e` tagged scenarios → e2e tests or BDD step definitions (using project's e2e framework)
 
 **Layer 2: Behavior Tests** — `@behavior` tagged scenarios → tests with annotation linking (using project's test framework):
-- Feature files include `# @covered-by: <path/to/test.ts>` after each scenario
+- Feature files include `# @covered-by: <path/to/test.ts>` between the tag and scenario line
 - Test files include `// @feature: <file>.feature` and `// @scenario: <name>` comments
 - Verify checks these annotations for bidirectional traceability
 
@@ -99,11 +99,11 @@ Beat supports a three-layer testing architecture that connects feature files to 
 
 **Annotation conventions:**
 
-In .feature files:
+In .feature files (annotation placed between tag and scenario line):
 ```gherkin
 @behavior @happy-path
+# @covered-by: src/services/__tests__/date-calculation.test.ts
 Scenario: Monthly billing adjusts for short months
-  # @covered-by: src/services/__tests__/date-calculation.test.ts
 ```
 
 In test files (use the project language's comment syntax):
@@ -114,7 +114,7 @@ In test files (use the project language's comment syntax):
 
 **Granularity guidance** — Scenarios should describe behavior (what the system does), not function specs (how a function works). See `continue/SKILL.md` Granularity Assessment.
 
-**Proposal-driven testing** — When gherkin is skipped (technical changes), testing is driven by proposal.md risk points and success criteria. Tests use Vitest without feature file annotations.
+**Proposal-driven testing** — When gherkin is skipped (technical changes), testing is driven by proposal.md risk points and success criteria. Tests use the project's test framework without feature file annotations.
 
 ## Dependencies
 
