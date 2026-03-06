@@ -64,12 +64,12 @@ Verify implementation against change artifacts using three dimensions. Uses an i
    - Missing test/step definition → CRITICAL. Non-executable → WARNING.
 
    *`@behavior` scenarios:*
-   - Does the scenario have a `# @covered-by: <path>` annotation?
+   - Does the scenario have a `# @covered-by: <path>` annotation (between tag and scenario line)?
    - Does the referenced test file exist?
    - Does the test file contain a matching `// @scenario:` comment?
    - Missing `@covered-by` → WARNING.
    - `@covered-by` pointing to nonexistent file → CRITICAL.
-   - File exists but no matching describe/scenario → WARNING.
+   - File exists but no matching `@scenario` comment → WARNING.
 
    *Scenarios without `@e2e`/`@behavior` tag:* treat as `@behavior`.
 
