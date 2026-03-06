@@ -1,0 +1,18 @@
+{
+  "name": "beat-bdd",
+  "owner": {
+    "name": "Kirk Chen"
+  },
+  "metadata": {
+    "description": "Agent-driven BDD workflow plugin for Claude Code"
+  },
+  "plugins": [
+    {
+      "name": "beat",
+      "source": "./",
+      "description": "Agent-driven BDD workflow using Gherkin feature files",
+      "category": "workflow",
+      "tags": ["bdd", "gherkin", "tdd", "feature-driven", "behavior-driven"]
+    }
+  ]
+}

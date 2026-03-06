@@ -5,6 +5,8 @@
   "author": {
     "name": "Kirk Chen"
   },
+  "homepage": "https://github.com/kirkchen/beat",
+  "repository": "https://github.com/kirkchen/beat",
   "license": "MIT",
   "keywords": ["bdd", "gherkin", "workflow", "tdd", "feature-driven"]
 }
