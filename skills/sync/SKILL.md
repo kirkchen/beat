@@ -21,6 +21,10 @@ This is an **agent-driven** operation -- you read change files and organize them
 
 2. **Read change artifacts**
 
+   Read `beat/changes/<name>/status.yaml` first (schema: `references/status-schema.md`).
+
+   If `gherkin` status is `skipped`: inform user "No feature files to sync (gherkin was skipped for this technical change). Run `/beat:archive` to archive directly." STOP.
+
    Read from `beat/changes/<name>/`:
    - `features/*.feature` (all Gherkin files) -- REQUIRED for sync
    - `proposal.md` (if exists)

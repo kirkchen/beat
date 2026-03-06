@@ -47,7 +47,7 @@ When installed in a user's project, Beat creates this structure:
 │   ├── <change-name>/       # One directory per active change
 │   │   ├── status.yaml      # Change lifecycle state
 │   │   ├── proposal.md      # Optional: why this change exists
-│   │   ├── features/        # Gherkin feature files (mandatory)
+│   │   ├── features/        # Gherkin feature files (mandatory by default)
 │   │   │   └── *.feature
 │   │   ├── design.md        # Optional: technical decisions
 │   │   └── tasks.md         # Optional: implementation checklist
@@ -62,13 +62,16 @@ When installed in a user's project, Beat creates this structure:
 
 ```
 explore → new → [proposal] → gherkin → [design] → [tasks] → apply → verify → sync → archive
-                 optional     REQUIRED   optional   optional
+                 optional     default    optional   optional
+                              mandatory
 ```
+
+For purely technical changes (tooling, deps, refactor): gherkin can be skipped, proposal becomes the driver.
 
 - **new**: Creates the change container (directory + status.yaml)
 - **continue**: Builds one artifact at a time in pipeline order
 - **ff**: Creates all artifacts in one go (shortcut for continue × N)
-- **apply**: TDD implementation — every scenario must have a test
+- **apply**: TDD implementation — gherkin-driven (every scenario must have a test) or proposal-driven (when gherkin skipped)
 - **verify**: Dispatches independent subagent to verify against artifacts
 - **sync**: Copies features to `beat/features/` as living documentation
 - **archive**: Moves change to `beat/changes/archive/`
@@ -77,13 +80,49 @@ explore → new → [proposal] → gherkin → [design] → [tasks] → apply �
 
 - **status.yaml** is the state machine — schema defined in `references/status-schema.md`. Phase advances forward only. Pipeline entries use inline YAML flow style: `{ status: done }`.
 - **config.yaml** is optional project config — schema in `references/config-schema.md`. Controls artifact language, injects project context, and adds per-artifact rules.
-- **Gherkin is the only mandatory artifact**. Proposal, design, and tasks can be skipped.
+- **Gherkin is mandatory by default** but can be skipped for purely technical changes (tooling, deps, refactoring without behavior change). When skipped, proposal drives apply and verify.
 - **verify** and **distill** use independent subagents (Agent tool with `subagent_type: Explore`) to avoid context bias.
 - **distill** works in reverse (code → spec) and marks features with `@distilled` tag.
+
+### Testing Architecture
+
+Beat supports a three-layer testing architecture that connects feature files to tests at the appropriate level:
+
+**Layer 1: E2E Tests** — `@e2e` tagged scenarios → e2e tests or BDD step definitions (using project's e2e framework)
+
+**Layer 2: Behavior Tests** — `@behavior` tagged scenarios → tests with annotation linking (using project's test framework):
+- Feature files include `# @covered-by: <path/to/test.ts>` after each scenario
+- Test files include `// @feature: <file>.feature` and `// @scenario: <name>` comments
+- Verify checks these annotations for bidirectional traceability
+
+**Layer 3: Unit Tests** — No feature binding, driven by proposal risk points or developer judgment
+
+**Annotation conventions:**
+
+In .feature files:
+```gherkin
+@behavior @happy-path
+Scenario: Monthly billing adjusts for short months
+  # @covered-by: src/services/__tests__/date-calculation.test.ts
+```
+
+In test files (use the project language's comment syntax):
+```
+@feature: monthly-billing.feature
+@scenario: Monthly billing adjusts for short months
+```
+
+**Granularity guidance** — Scenarios should describe behavior (what the system does), not function specs (how a function works). See `continue/SKILL.md` Granularity Assessment.
+
+**Proposal-driven testing** — When gherkin is skipped (technical changes), testing is driven by proposal.md risk points and success criteria. Tests use Vitest without feature file annotations.
 
 ## Dependencies
 
 Requires the [superpowers](https://github.com/anthropics/superpowers) plugin for TDD, brainstorming, and debugging integrations referenced by `continue`, `apply`, and `explore` skills.
+
+## Design Philosophy
+
+See `docs/DESIGN_PRINCIPLES.md` for the full design philosophy — core beliefs, testing philosophy, pipeline design rationale, and what Beat is and isn't. Consult it when evaluating changes that affect multiple skills or the overall direction.
 
 ## Development Guidelines
 

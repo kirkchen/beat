@@ -17,7 +17,7 @@ If a superpower is unavailable (skill not installed), skip and continue.
 **Pipeline order:** `proposal -> gherkin -> design -> tasks`
 
 - `proposal`, `design`, `tasks` are **optional** (user can skip)
-- `gherkin` is **mandatory** (cannot be skipped)
+- `gherkin` is **mandatory by default** but can be skipped for purely technical changes (see Granularity Assessment)
 
 **Input**: Optionally specify a change name. If omitted, infer from context or prompt.
 
@@ -51,9 +51,10 @@ If a superpower is unavailable (skill not installed), skip and continue.
 
 4. **Present the artifact choice**
 
-   **If it's `gherkin` (mandatory):**
-   - Announce: "Next: Write Gherkin feature files (mandatory)"
-   - Proceed directly to creation
+   **If it's `gherkin`:**
+   - First, assess whether Gherkin is appropriate for this change (see **Granularity Assessment** below)
+   - If appropriate: announce "Next: Write Gherkin feature files" and proceed to creation
+   - If not appropriate (purely technical change): use **AskUserQuestion tool** offering to skip, explaining that proposal will drive testing instead
 
    **If it's optional (`proposal`, `design`, `tasks`):**
    - Use **AskUserQuestion tool** with options:
@@ -121,7 +122,46 @@ If a superpower is unavailable (skill not installed), skip and continue.
    - Language: follow project convention (English or Chinese keywords)
    - File organization: flat in `features/` or grouped by subdirectory
 
+   **Testing layer tags** — every scenario MUST have exactly one:
+   - `@e2e` — user journey requiring a running app (tested via the project's e2e framework)
+   - `@behavior` — business logic/rules testable without a full app (tested via the project's test framework with annotation linking)
+   - If neither tag fits, default to `@behavior`
+   - These tags coexist with other tags: `@e2e @happy-path`, `@behavior @edge-case`
+
+   Note: during apply, `@behavior` scenarios will get `# @covered-by` annotations linking to their test files. Test files will include `@feature` and `@scenario` annotations (as comments in the project's language) for bidirectional traceability.
+
    Update `status.yaml`: gherkin -> `done`, phase -> `gherkin`
+
+   ---
+
+   **Granularity Assessment** (evaluate before writing Gherkin):
+
+   | Signal | Write Gherkin | Skip Gherkin |
+   |--------|---------------|--------------|
+   | Describes user/system behavior | Yes | |
+   | PM or QA can understand the scenario | Yes | |
+   | Involves multiple component interaction | Yes | |
+   | Describes internal function behavior | | Yes |
+   | Only developers care about this | | Yes |
+   | Pure infrastructure/tooling change | | Yes |
+
+   **Write scenarios at behavior level, not function level:**
+
+   ```gherkin
+   # GOOD: describes WHAT the system does
+   @behavior @edge-case
+   Scenario: Monthly billing adjusts for short months
+     Given the billing day is 31
+     When the next billing falls in February
+     Then the billing date should be the last day of February
+
+   # BAD: describes HOW a function works
+   Scenario: calculateNextTransactionDate clamps to last day
+     When I call calculateNextTransactionDate(new Date("2024-01-15"), 31)
+     Then the result month should be 1
+   ```
+
+   When skipping gherkin: update `status.yaml`: gherkin -> `skipped`, advance phase to next non-skipped artifact or `implement`
 
    ---
 
@@ -185,7 +225,7 @@ If a superpower is unavailable (skill not installed), skip and continue.
 **Guardrails**
 - Create ONE artifact per invocation
 - Always read completed artifacts before creating a new one
-- Never skip `gherkin` -- it's the only mandatory artifact
+- Gherkin is mandatory by default -- only skip for purely technical changes after granularity assessment confirms no behavior change
 - If context is unclear, ask the user before creating
 - Update `status.yaml` immediately after creating or skipping
 - STOP after creating one artifact -- wait for user direction

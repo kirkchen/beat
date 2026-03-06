@@ -46,7 +46,7 @@ When an artifact is skipped, phase advances to the next non-skipped artifact, or
 | `done` | Created successfully |
 | `skipped` | User chose to skip this optional artifact |
 
-**`gherkin` can NEVER be `skipped`** — it is the only mandatory artifact.
+**`gherkin` is mandatory by default** but can be `skipped` for purely technical changes (e.g., setting up tooling, upgrading dependencies, refactoring without behavior change). When skipped, `proposal` becomes the primary driver for apply and verify.
 
 ## Examples
 
@@ -84,6 +84,18 @@ pipeline:
   gherkin: { status: done }
   design: { status: skipped }
   tasks: { status: skipped }
+```
+
+### Technical change (gherkin skipped)
+```yaml
+name: setup-vitest
+created: 2026-03-05
+phase: implement
+pipeline:
+  proposal: { status: done }
+  gherkin: { status: skipped }
+  design: { status: skipped }
+  tasks: { status: done }
 ```
 
 ### Distilled from existing code (after artifacts generated)

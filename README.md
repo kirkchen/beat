@@ -27,8 +27,11 @@ claude --plugin-dir /path/to/beat
 
 ```
 explore → new → [proposal] → gherkin → [design] → [tasks] → apply → verify → sync → archive
-                 optional     REQUIRED   optional   optional
+                 optional     default    optional   optional
+                              mandatory
 ```
+
+Gherkin can be skipped for purely technical changes (tooling, deps, refactor). See [Design Principles](docs/DESIGN_PRINCIPLES.md).
 
 Each change lives in `beat/changes/<name>/` with a `status.yaml` tracking progress. Optional project config in `beat/config.yaml`.
 
@@ -37,7 +40,7 @@ Each change lives in `beat/changes/<name>/` with a `status.yaml` tracking progre
 | Artifact | Required | Purpose |
 |----------|----------|---------|
 | `proposal.md` | Optional | Why this change exists |
-| `features/*.feature` | **Required** | Gherkin scenarios defining behavior |
+| `features/*.feature` | **Default** | Gherkin scenarios defining behavior |
 | `design.md` | Optional | Technical decisions |
 | `tasks.md` | Optional | Implementation checklist |
 
@@ -48,6 +51,10 @@ Each change lives in `beat/changes/<name>/` with a `status.yaml` tracking progre
 | Small fix | `new → gherkin → apply → archive` |
 | Medium feature | `new → proposal → gherkin → apply → verify → sync → archive` |
 | Large feature | `new → proposal → gherkin → design → tasks → apply → verify → sync → archive` |
+
+## Design Principles
+
+See [docs/DESIGN_PRINCIPLES.md](docs/DESIGN_PRINCIPLES.md) for Beat's design philosophy, testing architecture, and pipeline rationale.
 
 ## Dependencies
 

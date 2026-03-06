@@ -20,12 +20,16 @@ Verify implementation against change artifacts using three dimensions. Uses an i
 
    Read from `beat/changes/<name>/`:
    - `status.yaml` (schema: `references/status-schema.md`)
-   - `features/*.feature` (all Gherkin files) -- REQUIRED
+   - `features/*.feature` (all Gherkin files, if gherkin status is `done`)
    - `proposal.md` (if exists)
    - `design.md` (if exists)
    - `tasks.md` (if exists)
 
    Read `beat/config.yaml` (if exists, schema: `references/config-schema.md`).
+
+   **Determine drive mode:**
+   - If `gherkin` status is `done` → **Gherkin-driven verification**
+   - If `gherkin` status is `skipped` → **Proposal-driven verification**
 
    **Determine testing context** (three-layer priority: tag > source > config):
    - **Config layer**: Is `testing.required` set to `false`? If yes, skip test existence checks globally.
@@ -44,14 +48,30 @@ Verify implementation against change artifacts using three dimensions. Uses an i
 
    **Dimension 1: Gherkin Coverage** (testing-context-aware)
 
-   The behavior of this dimension depends on testing context:
+   The behavior of this dimension depends on testing context and drive mode:
+
+   **When gherkin is skipped (proposal-driven):**
+   - Skip Dimension 1 entirely.
+   - Note in report: "Gherkin coverage skipped (gherkin: skipped, proposal-driven mode)."
 
    **Default mode (coverage):** `testing.required` is true (or unset), source is not `distill`.
    For each Scenario in .feature files (excluding `@no-test`):
-   - Does a corresponding automated test exist? (search for step definitions, test files)
-   - Is the test executable (not a skeleton)?
-   - Does the implementation handle the scenario's behavior?
-   - Missing test → CRITICAL. Non-executable test → WARNING.
+
+   *`@e2e` scenarios:*
+   - Does an e2e test or step definition exist for this scenario?
+   - If the project uses a BDD runner: check for step definitions binding to the .feature
+   - If not: check for `@covered-by` annotation (same as `@behavior`)
+   - Missing test/step definition → CRITICAL. Non-executable → WARNING.
+
+   *`@behavior` scenarios:*
+   - Does the scenario have a `# @covered-by: <path>` annotation?
+   - Does the referenced test file exist?
+   - Does the test file contain a matching `// @scenario:` comment?
+   - Missing `@covered-by` → WARNING.
+   - `@covered-by` pointing to nonexistent file → CRITICAL.
+   - File exists but no matching describe/scenario → WARNING.
+
+   *Scenarios without `@e2e`/`@behavior` tag:* treat as `@behavior`.
 
    **Accuracy mode:** `source: distill` in status.yaml.
    For each Scenario in .feature files (excluding `@no-test`):
@@ -70,6 +90,8 @@ Verify implementation against change artifacts using three dimensions. Uses an i
    For each goal in the proposal:
    - Is there implementation evidence?
    - Are there goals mentioned but not implemented?
+
+   *When proposal-driven:* strengthen this dimension — check that every risk point and success criterion has corresponding test coverage. Missing coverage for a risk point → CRITICAL (elevated from WARNING).
 
    **Dimension 3: Design Adherence** (if design.md exists)
    For each decision in the design:
@@ -105,8 +127,11 @@ Verify implementation against change artifacts using three dimensions. Uses an i
      Recommendation: specific action
 
    ### Testing Context
+   - Drive mode: gherkin-driven/proposal-driven
    - Config: testing.required = true/false/unset
    - Source: normal/distill
+   - @e2e scenarios: N (checked for e2e tests/step definitions)
+   - @behavior scenarios: N (checked for @covered-by annotations)
    - @no-test scenarios: N excluded
 
    ### Final Assessment
@@ -121,6 +146,7 @@ Verify implementation against change artifacts using three dimensions. Uses an i
 - SUGGESTION: Nice to fix (pattern inconsistency, minor improvement, missing test in distill mode)
 
 **Graceful Degradation**
+- Gherkin skipped: skip Dimension 1, strengthen Dimension 2 (proposal alignment)
 - Only features exist: verify Gherkin coverage only
 - Features + proposal: verify coverage + alignment
 - Features + proposal + design: verify all three dimensions

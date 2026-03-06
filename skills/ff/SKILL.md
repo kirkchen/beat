@@ -33,11 +33,12 @@ If a superpower is unavailable (skill not installed), skip and continue.
    Read `status.yaml`. For artifacts still `pending`, ask user once upfront:
 
    Use **AskUserQuestion tool**:
-   > "Which optional artifacts do you want? (Gherkin is always created)"
+   > "Which optional artifacts do you want?"
    > 1. Full: Proposal + Gherkin + Design + Tasks (recommended for large features)
    > 2. Standard: Proposal + Gherkin (recommended for medium features)
    > 3. Minimal: Gherkin only (recommended for small bug fixes)
-   > 4. Custom: Let me choose each one
+   > 4. Technical: Proposal + Tasks, no Gherkin (for tooling/infra/refactor changes with no behavior change)
+   > 5. Custom: Let me choose each one
 
    Mark skipped artifacts as `skipped` in `status.yaml`.
 
@@ -55,7 +56,7 @@ If a superpower is unavailable (skill not installed), skip and continue.
 
    **Artifact patterns:**
    - **Proposal**: Sections: `## Why`, `## What Changes`, `## Impact`
-   - **Gherkin**: SpecFlow style, tags `@happy-path`/`@error-handling`/`@edge-case`, Feature description carries PRD essence
+   - **Gherkin**: SpecFlow style, tags `@happy-path`/`@error-handling`/`@edge-case`, Feature description carries PRD essence. Every scenario MUST have a testing layer tag (`@e2e` for user journeys needing a running app, or `@behavior` for business logic testable without a full app; default `@behavior`). Write scenarios at behavior level — describe what the system does ("Monthly billing adjusts for short months"), not how a function works ("calculateNextTransactionDate clamps to last day"). If option 4 (Technical) was chosen, skip gherkin entirely.
    - **Design**: Sections: `## Approach`, `## Key Decisions`, `## Components`
    - **Tasks**: If writing-plans is invoked, adapt its output: use `- [ ]` checkboxes, `### Task N:` headings, save to `tasks.md` (not `docs/plans/`), skip execution handoff. If writing-plans unavailable, use simple checkbox checklist.
 
@@ -68,7 +69,7 @@ If a superpower is unavailable (skill not installed), skip and continue.
 
    Created:
    - proposal.md (or skipped)
-   - features/*.feature
+   - features/*.feature (or skipped if Technical option)
    - design.md (or skipped)
    - tasks.md (or skipped)
 
@@ -76,7 +77,7 @@ If a superpower is unavailable (skill not installed), skip and continue.
    ```
 
 **Guardrails**
-- Always create gherkin -- it's mandatory
+- Gherkin is mandatory by default -- only skip for purely technical changes (option 4: Technical)
 - Ask upfront which optional artifacts to include (don't ask per artifact)
 - If change already exists with some artifacts done, only create remaining
 - If context is critically unclear, ask -- but prefer reasonable defaults to keep momentum

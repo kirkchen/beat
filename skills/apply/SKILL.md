@@ -1,9 +1,12 @@
 ---
 name: apply
-description: Implement code based on Beat feature files. Requires Gherkin features to be created first (gherkin status must be done). Use when the user wants to start or continue implementation of a change, write tests and code for Gherkin scenarios. Triggers on /beat:apply.
+description: Implement code based on Beat feature files. Requires Gherkin features to be created first (gherkin status must be done), or proposal when gherkin is skipped. Use when the user wants to start or continue implementation of a change, write tests and code for Gherkin scenarios. Triggers on /beat:apply.
 ---
 
-Implement code based on the feature files in a change. By default, every scenario MUST have a corresponding automated test — but this is configurable via `testing` in config and `@no-test` tags.
+Implement code based on the change artifacts. Supports two modes:
+
+- **Gherkin-driven** (default): feature files drive implementation and testing
+- **Proposal-driven**: when gherkin is skipped (technical changes), proposal drives testing
 
 **Prerequisites** (invoke before proceeding)
 
@@ -29,14 +32,17 @@ Invoke in order: worktrees first (isolate), then TDD (discipline). Debugging and
 
 2. **Read status.yaml and verify readiness** (schema: `references/status-schema.md`)
 
-   Check that `gherkin` has `status: done`.
-   If not: "Gherkin features are required before implementation. Run `/beat:continue` first." STOP.
+   Check that either:
+   - `gherkin` has `status: done` → **Gherkin-driven mode**
+   - `gherkin` has `status: skipped` AND `proposal` has `status: done` → **Proposal-driven mode**
+
+   If neither condition is met: "Features or proposal are required before implementation. Run `/beat:continue` first." STOP.
 
 3. **Read all artifacts and determine testing mode**
 
    Read in order:
-   - `proposal.md` (if exists) -- business context
-   - `features/*.feature` (all files) -- implementation targets
+   - `proposal.md` (if exists) -- business context and risk points
+   - `features/*.feature` (all files, if gherkin is done) -- implementation targets
    - `design.md` (if exists) -- technical decisions
    - `tasks.md` (if exists) -- implementation checklist
 
@@ -54,14 +60,17 @@ Invoke in order: worktrees first (isolate), then TDD (discipline). Debugging and
    - **Detailed format** (contains `### Task N:` headings with Steps): Enter **executor mode** — follow each step exactly as written, don't re-plan.
    - **Simple format** (only `- [ ]` checkboxes): Enter **planner mode** — plan each task's implementation yourself (existing behavior).
 
-   **If no tasks.md:** Extract each Scenario from feature files as a unit of work (planner mode).
+   **If no tasks.md and Gherkin-driven:** Extract each Scenario from feature files as a unit of work (planner mode).
+
+   **If no tasks.md and Proposal-driven:** Extract success criteria and risk points from proposal.md as units of work (planner mode).
 
 5. **Show implementation overview**
 
    ```
    ## Implementing: <change-name>
 
-   ### Mode: executor / planner
+   ### Drive mode: gherkin-driven / proposal-driven
+   ### Execution mode: executor / planner
    ### Tasks/Scenarios to implement:
    1. [source] <name>
    2. [source] <name>
@@ -70,15 +79,36 @@ Invoke in order: worktrees first (isolate), then TDD (discipline). Debugging and
 
 6. **Implement (loop)**
 
-   For each task (from tasks.md) or scenario (from features):
+   For each task (from tasks.md) or scenario (from features) or risk point (from proposal):
 
    a. **Announce**: "Working on: <description>"
 
    b. **Write automated test first** (TDD mode only):
       - Skip this step if **no-test mode** or scenario is tagged `@no-test`
-      - Create or update test file with a test covering the scenario
       - The test framework: use `testing.framework` from config, or detect from codebase
-      - The test should correspond to the Given/When/Then steps
+
+      **For `@e2e` scenarios (Gherkin-driven):**
+      - Generate e2e test or step definitions using the project's e2e framework
+      - If the project uses a BDD runner (Cucumber, pytest-bdd, etc.), generate step definitions that bind to the .feature file
+      - If no BDD runner, generate a regular e2e test with `@feature`/`@scenario` annotations (same as `@behavior`)
+
+      **For `@behavior` scenarios (Gherkin-driven):**
+      - Generate a test file (using `testing.framework` from config, or auto-detect) with annotation comments:
+        ```
+        @feature: <feature-filename>.feature
+        @scenario: <exact scenario name>
+        ```
+        (Use the project language's comment syntax: `//` for JS/TS/Java/C#, `#` for Python/Ruby, etc.)
+      - After writing the test, update the .feature file with a `@covered-by` annotation:
+        ```gherkin
+        @behavior @happy-path
+        Scenario: <name>
+          # @covered-by: <relative path to test file>
+        ```
+
+      **For proposal-driven units:**
+      - Generate test files covering the risk point using the project's test framework
+      - No annotation conventions needed (no features to link to)
 
    c. **Write implementation code**:
       - Follow design.md decisions if available
@@ -113,8 +143,16 @@ Invoke in order: worktrees first (isolate), then TDD (discipline). Debugging and
 
 **In TDD mode** (default when `testing.required` is true or unset):
 - For every Scenario in every .feature file (excluding `@no-test`): there MUST be a corresponding automated test
+- `@e2e` scenarios → e2e test or step definitions (using project's e2e framework)
+- `@behavior` scenarios → test with `@feature`/`@scenario` annotations + `@covered-by` comment in .feature
 - The test MUST be executable (not just a skeleton)
-- The test framework is `testing.framework` from config, or the project's choice (Cucumber, pytest-bdd, Jest, etc.)
+- The test framework: `testing.framework` from config, or auto-detect from codebase
+- If the project has a BDD runner (Cucumber, pytest-bdd, etc.), generate step definitions that bind directly to .feature files
+
+**In proposal-driven mode** (gherkin skipped):
+- Tests are driven by proposal.md success criteria and risk points
+- Each risk point should have corresponding test coverage
+- No annotation conventions (no features to link to)
 
 **In no-test mode** (`testing.required: false`):
 - Tests are not required. Implementation code is written directly.
@@ -125,8 +163,10 @@ Invoke in order: worktrees first (isolate), then TDD (discipline). Debugging and
 - Announce when skipping: "Skipping TDD for <scenario> (@no-test)".
 
 **Guardrails**
-- Never implement without reading feature files first
+- Never implement without reading artifacts first (features in gherkin-driven, proposal in proposal-driven)
 - In TDD mode: always write test before implementation (unless @no-test)
+- For `@behavior` scenarios: always add `@covered-by` annotation to .feature after writing the test
+- For `@behavior` scenarios: always add `@feature`/`@scenario` annotations in the test file
 - Keep each change scoped to one scenario/task
 - Update task checkbox immediately after completing each task
 - Pause on errors, blockers, or unclear requirements -- don't guess
