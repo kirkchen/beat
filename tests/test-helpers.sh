@@ -20,17 +20,45 @@ GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 NC='\033[0m'
 
+# --- Timeout helper (macOS compatible) ---
+
+_run_with_timeout() {
+    local secs="$1"
+    shift
+    if command -v gtimeout &>/dev/null; then
+        gtimeout "$secs" "$@"
+    elif command -v timeout &>/dev/null; then
+        timeout "$secs" "$@"
+    else
+        # Perl-based fallback for macOS
+        perl -e '
+            use POSIX ":sys_wait_h";
+            my $timeout = shift @ARGV;
+            my $pid = fork();
+            if ($pid == 0) { exec @ARGV; die "exec failed: $!"; }
+            eval {
+                local $SIG{ALRM} = sub { kill "TERM", $pid; die "timeout\n"; };
+                alarm $timeout;
+                waitpid($pid, 0);
+                alarm 0;
+            };
+            if ($@ eq "timeout\n") { waitpid($pid, WNOHANG); exit 124; }
+            exit ($? >> 8);
+        ' "$secs" "$@"
+    fi
+}
+
 # --- Core Functions ---
 
 run_claude() {
     local prompt="$1"
-    local timeout="${2:-120}"
+    local secs="${2:-120}"
     local max_turns="${3:-3}"
     local extra_args="${4:-}"
     local output_file
     output_file=$(mktemp)
 
-    timeout "$timeout" claude -p "$prompt" \
+    _run_with_timeout "$secs" claude -p "$prompt" \
         --plugin-dir "$BEAT_DIR" \
         --max-turns "$max_turns" \
         --output-format stream-json \

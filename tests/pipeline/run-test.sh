@@ -31,7 +31,7 @@ LOG_FILE="$OUTPUT_BASE/pipeline-node-todo/session.json"
 cd "$PROJECT_DIR"
 echo "Running claude -p (max-turns 60, timeout 1800s)..."
 echo "Output: $LOG_FILE"
-timeout 1800 claude -p "$PROMPT" \
+_run_with_timeout 1800 claude -p "$PROMPT" \
     --plugin-dir "$BEAT_DIR" \
     --max-turns 60 \
     --output-format stream-json \

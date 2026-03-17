@@ -53,7 +53,7 @@ esac
 LOG_FILE="$OUTPUT_BASE/pressure-${SCENARIO_NAME}.json"
 cd "$PROJECT_DIR"
 echo "Running claude -p (max-turns $MAX_TURNS, timeout 180s)..."
-timeout 180 claude -p "$PROMPT" \
+_run_with_timeout 180 claude -p "$PROMPT" \
     --plugin-dir "$BEAT_DIR" \
     --max-turns "$MAX_TURNS" \
     --output-format stream-json \

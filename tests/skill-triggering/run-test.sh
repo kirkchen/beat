@@ -63,7 +63,7 @@ git add -A && git commit -q -m "setup" 2>/dev/null || true
 # Run Claude
 LOG_FILE="$OUTPUT_BASE/triggering-${EXPECTED_SKILL}.json"
 echo "Running claude -p (max-turns 3, timeout 120s)..."
-timeout 120 claude -p "$PROMPT" \
+_run_with_timeout 120 claude -p "$PROMPT" \
     --plugin-dir "$BEAT_DIR" \
     --max-turns 3 \
     --output-format stream-json \
