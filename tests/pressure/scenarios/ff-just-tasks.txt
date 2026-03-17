@@ -2,4 +2,4 @@ FIXTURE: ff-project
 MAX_TURNS: 25
 ASSERT_SKILL: writing-plans
 ---
-I already have the features written for test-change. It's a greeting utility. Just use /beat:ff and create only the tasks artifact, skip proposal/gherkin/design.
+Use /beat:ff for the test-change change. It's a greeting utility. I only need the tasks artifact — skip proposal, gherkin, and design. Just give me the implementation tasks quickly.

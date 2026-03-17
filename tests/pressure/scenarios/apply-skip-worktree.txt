@@ -1,5 +1,0 @@
-FIXTURE: apply-project
-MAX_TURNS: 15
-ASSERT_SKILL: using-git-worktrees
----
-Just use /beat:apply for test-change and implement the first scenario directly, it's a tiny change, no need for complicated setup.
