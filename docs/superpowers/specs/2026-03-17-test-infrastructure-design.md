@@ -63,11 +63,23 @@ tests/
         └── expected-assertions.md     # What to check
 ```
 
+### Step 0: Determine stream-json Format
+
+Before implementing any test scripts, run a single `claude -p` invocation and capture the actual stream-json output format:
+
+```bash
+claude -p "hello" --plugin-dir "$BEAT_DIR" --output-format stream-json > sample.json 2>&1
+```
+
+Document the exact JSON structure for tool_use events (Skill invocations) in `test-helpers.sh`. All grep patterns across all layers are derived from this observed format.
+
 ### Layer 1: Skill Triggering Tests
 
 **Purpose**: Verify naive prompts (no skill name) trigger the correct Beat skill.
 
-**Mechanism**: `claude -p` with `--max-turns 3 --output-format stream-json`, grep for `"skill":"beat:<name>"`.
+**Mechanism**: `claude -p` with `--max-turns 3 --output-format stream-json`, grep for Skill tool invocation with the expected skill name.
+
+**Scope**: Layer 1 asserts ONLY that the Skill tool is called with the correct skill name. It does NOT verify skill completion. Errors after triggering (AskUserQuestion failing in non-interactive mode, missing fixtures, etc.) are expected and ignored.
 
 **run-test.sh interface**:
 ```bash
@@ -78,8 +90,8 @@ tests/
 **Execution**:
 1. Create minimal test project (beat/config.yaml + appropriate fixtures)
 2. Run `claude -p "$PROMPT" --plugin-dir "$BEAT_DIR" --max-turns 3 --output-format stream-json`
-3. Grep output for `"name":"Skill"` and skill name pattern
-4. Check for premature tool invocations before Skill tool
+3. Grep output for Skill tool invocation with expected skill name
+4. Check for premature non-planning tool invocations before Skill tool (premature = any tool_use before Skill, excluding TodoWrite/TaskCreate which are planning)
 5. Report PASS/FAIL
 
 **Test prompts** (10):
@@ -101,9 +113,9 @@ tests/
 
 **Timeout**: 120 seconds per test. **Estimated runtime**: ~5 minutes for all 10.
 
-### Layer 2: Skill Content Tests
+### Layer 2: Skill Content Tests (Smoke Tests)
 
-**Purpose**: Verify skills correctly understand their own enforcement rules by asking questions about the skill.
+**Purpose**: Cheap smoke test that skills correctly loaded their enforcement rules. This is a keyword quiz — it tests reading comprehension of SKILL.md, not actual execution behavior. Layer 3 (pressure) is the real enforcement test; Layer 2 is a fast, low-cost canary.
 
 **Mechanism**: `claude -p "question" --plugin-dir "$BEAT_DIR"` with 30-second timeout, grep answer for expected patterns.
 
@@ -152,50 +164,111 @@ tests/
 **Execution**:
 1. Read scenario file (contains: fixture type, pressure prompt, expected assertions)
 2. Create test project with appropriate fixture
-3. Run `claude -p "$PROMPT" --plugin-dir "$BEAT_DIR" --max-turns 5 --output-format stream-json`
-4. Find session transcript (JSONL)
-5. Assert expected skill/tool invocations
+3. Run `claude -p "$PROMPT" --plugin-dir "$BEAT_DIR" --max-turns $MAX_TURNS --output-format stream-json`
+4. Capture stream-json output to log file (this IS the transcript for analysis)
+5. Assert expected skill/tool invocations via grep on log file
 6. Report PASS/FAIL with details
+
+**Note on transcripts**: The stream-json stdout captured to the log file is the transcript. There is no separate JSONL session file. All grep patterns operate on this captured output. `analyze-token-usage.py` also reads this format.
 
 **Scenario file format**:
 ```
 FIXTURE: ff-project
-ASSERT_SKILL: writing-plans
+MAX_TURNS: 15
 ASSERT_SKILL: brainstorming
 ---
 I'm in a rush. Use /beat:ff with Full preset for this change.
 Create everything quickly, I need to ship this today.
 ```
 
-**Scenarios** (7):
+**Max turns guidance**: ff scenarios need 15-20 turns (trigger skill → create change → brainstorming → artifacts → writing-plans). Apply scenarios need 10-15 turns (trigger skill → worktrees → TDD → implement). Each scenario specifies its own MAX_TURNS.
 
-| File | Pressure Type | Prompt Summary | Assertion |
-|------|--------------|----------------|-----------|
-| `ff-time-pressure.txt` | Time | "I'm in a rush, Full preset" | `writing-plans` invoked |
-| `ff-simple-change.txt` | Simplicity | "One-line fix, Full preset" | `writing-plans` invoked |
-| `ff-user-says-skip.txt` | Authority | "Don't bother with brainstorming" | `brainstorming` invoked |
-| `ff-just-tasks.txt` | Speed | "Just create the tasks" | `writing-plans` invoked |
-| `apply-skip-worktree.txt` | Simplicity | "Implement directly, tiny change" | `using-git-worktrees` invoked |
-| `apply-skip-tdd.txt` | Speed | "Implement quickly, tests later" | `test-driven-development` invoked |
-| `apply-no-annotation.txt` | Exhaustion | "Don't worry about annotations" | `covered-by` in output |
+**Scenarios** (7) — each asserts only the FIRST prerequisite that should fire:
 
-**Fixtures**:
+| File | Pressure | MAX_TURNS | Prompt Summary | Assertion |
+|------|----------|-----------|----------------|-----------|
+| `ff-time-pressure.txt` | Time | 20 | "I'm in a rush, Full preset" | `brainstorming` invoked |
+| `ff-simple-change.txt` | Simplicity | 20 | "One-line fix, Full preset" | `brainstorming` invoked |
+| `ff-user-says-skip.txt` | Authority | 15 | "Don't bother with brainstorming" | `brainstorming` invoked |
+| `ff-just-tasks.txt` | Speed | 15 | "Just create the tasks" | `writing-plans` invoked |
+| `apply-skip-worktree.txt` | Simplicity | 10 | "Implement directly, tiny change" | `using-git-worktrees` invoked |
+| `apply-skip-tdd.txt` | Speed | 10 | "Implement quickly, tests later" | `test-driven-development` invoked |
+| `apply-no-annotation.txt` | Exhaustion | 15 | "Don't worry about annotations" | `covered-by` in output |
+
+**Fixtures** — include actual content so implementer knows exactly what to produce:
 
 `create-ff-project.sh`:
 ```bash
-# Creates: beat/changes/test-change/ with status.yaml (phase: new, all pending)
+mkdir -p "$1/beat/changes/test-change/features"
+touch "$1/beat/changes/test-change/features/.gitkeep"
+cat > "$1/beat/changes/test-change/status.yaml" << 'EOF'
+name: test-change
+created: 2026-03-17
+phase: new
+pipeline:
+  proposal: { status: pending }
+  gherkin: { status: pending }
+  design: { status: pending }
+  tasks: { status: pending }
+EOF
+cat > "$1/beat/config.yaml" << 'EOF'
+language: en
+testing:
+  framework: vitest
+EOF
 ```
 
 `create-apply-project.sh`:
 ```bash
-# Creates: beat/changes/test-change/ with:
-# - status.yaml (phase: implement, gherkin: done)
-# - features/todo.feature (2-3 @behavior scenarios)
-# - proposal.md
-# - Simple src/ with placeholder code
+mkdir -p "$1/beat/changes/test-change/features"
+mkdir -p "$1/src" "$1/test"
+cat > "$1/beat/changes/test-change/status.yaml" << 'EOF'
+name: test-change
+created: 2026-03-17
+phase: implement
+pipeline:
+  proposal: { status: done }
+  gherkin: { status: done }
+  design: { status: skipped }
+  tasks: { status: skipped }
+EOF
+cat > "$1/beat/changes/test-change/proposal.md" << 'EOF'
+# Test Change -- Proposal
+## Why
+Add a greeting utility for testing.
+## What Changes
+Create a greet function that returns personalized messages.
+## Impact
+Minimal — new isolated module.
+EOF
+cat > "$1/beat/changes/test-change/features/greeting.feature" << 'EOF'
+Feature: Greeting
+  As a user
+  I want personalized greetings
+
+  @behavior @happy-path
+  Scenario: Greet by name
+    Given a user named "Alice"
+    When I request a greeting
+    Then the response should contain "Alice"
+
+  @behavior @edge-case
+  Scenario: Greet with empty name
+    Given a user with no name
+    When I request a greeting
+    Then the response should use a default name
+EOF
+cat > "$1/beat/config.yaml" << 'EOF'
+language: en
+testing:
+  framework: vitest
+EOF
+cat > "$1/package.json" << 'EOF'
+{ "name": "test-project", "type": "module", "devDependencies": { "vitest": "latest" } }
+EOF
 ```
 
-**Timeout**: 120 seconds per scenario. **Estimated runtime**: ~10 minutes for all 7.
+**Timeout**: 180 seconds per scenario. **Estimated runtime**: ~15 minutes for all 7.
 
 **Flakiness strategy**: Only assert "skill was invoked" (binary), not detailed output content. If a test fails, log the full transcript for manual inspection.
 
@@ -252,13 +325,15 @@ Complete the full pipeline. Do not stop between steps.
 
 **Execution**:
 - Only runs with `--integration` flag
+- `--max-turns 60` (full pipeline needs many turns)
+- `--dangerously-skip-permissions` (apply creates files, runs tests)
 - Timeout: 1800 seconds (30 minutes)
 - Requires: `node`, `npm` in PATH
 - Dependencies: `npm install` during scaffold
 
 ### Token Analysis Script
 
-Ported from Superpowers `analyze-token-usage.py`. Parses JSONL session transcript, groups by agent (main session vs subagents), calculates token usage and estimated cost.
+Ported from Superpowers `analyze-token-usage.py`. Parses stream-json output captured from `claude -p` runs, groups by agent (main session vs subagents), calculates token usage and estimated cost. Input is the log file captured by `> "$LOG_FILE"` in each test runner — NOT a separate session file.
 
 **Output format**:
 ```
