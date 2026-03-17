@@ -1,0 +1,1 @@
+I want to create BDD specs from the existing auth module code

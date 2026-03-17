@@ -1,0 +1,1 @@
+I have a clear idea for a config migration, let's create all the specs
