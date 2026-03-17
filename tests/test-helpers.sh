@@ -5,8 +5,11 @@
 set -euo pipefail
 
 # --- Configuration ---
-BEAT_DIR="${BEAT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
-TESTS_DIR="$(cd "$(dirname "$0")" && pwd)"
+# Use BASH_SOURCE[0] to resolve paths relative to test-helpers.sh itself,
+# not the calling script ($0 points to the caller when sourced).
+_HELPERS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BEAT_DIR="${BEAT_DIR:-$(cd "$_HELPERS_DIR/.." && pwd)}"
+TESTS_DIR="$_HELPERS_DIR"
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 OUTPUT_BASE="/tmp/beat-tests/${TIMESTAMP}"
 mkdir -p "$OUTPUT_BASE"
