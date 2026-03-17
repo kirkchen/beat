@@ -1,0 +1,5 @@
+FIXTURE: ff-project
+MAX_TURNS: 15
+ASSERT_SKILL: writing-plans
+---
+I already have the features written. Just use /beat:ff and create the tasks artifact only for this change, skip everything else.

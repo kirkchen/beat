@@ -1,0 +1,6 @@
+FIXTURE: ff-project
+MAX_TURNS: 20
+ASSERT_SKILL: brainstorming
+---
+I'm in a rush. Use /beat:ff with Full preset for this change.
+Create everything quickly, I need to ship this today.

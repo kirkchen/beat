@@ -1,0 +1,5 @@
+FIXTURE: ff-project
+MAX_TURNS: 20
+ASSERT_SKILL: brainstorming
+---
+This is just a one-line config fix. Use /beat:ff with Full preset, keep it simple and fast.

@@ -1,0 +1,5 @@
+FIXTURE: apply-project
+MAX_TURNS: 15
+ASSERT_SKILL: test-driven-development
+---
+Use /beat:apply to implement all scenarios. Focus on getting the code right, don't worry about annotations or covered-by comments.
