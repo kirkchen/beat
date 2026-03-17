@@ -58,6 +58,7 @@ _run_with_timeout 180 claude -p "$PROMPT" \
     --max-turns "$MAX_TURNS" \
     --output-format stream-json \
     --verbose \
+    --dangerously-skip-permissions \
     > "$LOG_FILE" 2>&1 || true
 
 # Assert expected skills

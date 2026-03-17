@@ -1,1 +1,1 @@
-I have a clear idea for a config migration, let's create all the specs
+I have a clear idea for a config migration. Let's fast-forward and create all the artifacts at once, I don't need step-by-step control.
