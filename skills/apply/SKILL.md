@@ -1,12 +1,20 @@
 ---
 name: apply
-description: Implement code based on Beat feature files. Requires Gherkin features to be created first (gherkin status must be done), or proposal when gherkin is skipped. Use when the user wants to start or continue implementation of a change, write tests and code for Gherkin scenarios. Triggers on /beat:apply.
+description: Use when implementing a Beat change — requires gherkin or proposal artifact to be done first
 ---
 
 Implement code based on the change artifacts. Supports two modes:
 
 - **Gherkin-driven** (default): feature files drive implementation and testing
 - **Proposal-driven**: when gherkin is skipped (technical changes), proposal drives testing
+
+<HARD-GATE>
+Before any code changes: you MUST invoke superpowers:using-git-worktrees.
+In TDD mode: you MUST invoke superpowers:test-driven-development.
+Invoke in order: worktrees first (isolate), then TDD (discipline).
+If a prerequisite skill is unavailable (not installed), continue without it — but NEVER skip
+because you judged it unnecessary.
+</HARD-GATE>
 
 **Prerequisites** (invoke before proceeding)
 
@@ -18,6 +26,67 @@ Implement code based on the change artifacts. Supports two modes:
 | subagent-driven-development | When tasks.md has multiple independent tasks | SHOULD |
 
 Invoke in order: worktrees first (isolate), then TDD (discipline). Debugging and subagent are conditional — only invoke when triggered. If a superpower is unavailable (skill not installed), skip and continue.
+
+## Rationalization Prevention
+
+| Thought | Reality |
+|---------|---------|
+| "The change is small, I don't need a worktree" | Worktrees protect against contamination. Small changes in dirty workspaces cause mysterious failures. |
+| "I'll write the test after the implementation, same result" | TDD is about design feedback, not just test coverage. Writing tests after loses the design signal. |
+| "This is a refactor, TDD doesn't apply" | Refactors need tests most — they prove behavior is preserved. If testing.required is false, TDD is already skipped. |
+| "I'll add @covered-by annotations at the end for all scenarios" | Annotations must be added per-scenario immediately after writing the test. Batching them leads to forgetting. |
+| "The e2e test setup is too complex, I'll write a unit test instead" | The scenario is tagged @e2e for a reason. If e2e setup is genuinely blocked, announce the blocker and ask — don't silently downgrade. |
+| "This @behavior test is obvious, a skeleton is enough" | Every test must be executable. A skeleton that doesn't run is not a test. |
+
+## Red Flags — STOP if you catch yourself:
+
+- Writing implementation code before invoking using-git-worktrees
+- Writing implementation code before writing a failing test (in TDD mode)
+- Thinking "I'll set up the worktree after this first file"
+- Skipping TDD because "the test would be trivial"
+- Moving to the next scenario without adding `@covered-by` to the .feature file
+- Skipping e2e test creation because "the e2e framework is complex to set up"
+- Writing a test skeleton instead of an executable test
+- Thinking "I'll add the annotations at the end after all scenarios are done"
+
+## Process Flow
+
+```dot
+digraph apply {
+    "Select change, read artifacts" [shape=box];
+    "Invoke using-git-worktrees" [shape=box, style=bold];
+    "testing.required false?" [shape=diamond];
+    "No-test mode" [shape=box];
+    "Invoke test-driven-development" [shape=box, style=bold];
+    "Gherkin done?" [shape=diamond];
+    "Gherkin-driven" [shape=box];
+    "Proposal-driven" [shape=box];
+    "tasks.md exists?" [shape=diamond];
+    "Has Task N headings?" [shape=diamond];
+    "Executor mode\nfollow tasks exactly" [shape=box];
+    "Planner mode\nextract scenarios/criteria" [shape=box];
+    "Implementation loop" [shape=box];
+    "All tasks complete" [shape=doublecircle];
+
+    "Select change, read artifacts" -> "Invoke using-git-worktrees";
+    "Invoke using-git-worktrees" -> "testing.required false?";
+    "testing.required false?" -> "No-test mode" [label="yes"];
+    "testing.required false?" -> "Invoke test-driven-development" [label="no"];
+    "No-test mode" -> "Gherkin done?";
+    "Invoke test-driven-development" -> "Gherkin done?";
+    "Gherkin done?" -> "Gherkin-driven" [label="yes"];
+    "Gherkin done?" -> "Proposal-driven" [label="gherkin skipped"];
+    "Gherkin-driven" -> "tasks.md exists?";
+    "Proposal-driven" -> "tasks.md exists?";
+    "tasks.md exists?" -> "Has Task N headings?" [label="yes"];
+    "tasks.md exists?" -> "Planner mode\nextract scenarios/criteria" [label="no"];
+    "Has Task N headings?" -> "Executor mode\nfollow tasks exactly" [label="yes"];
+    "Has Task N headings?" -> "Planner mode\nextract scenarios/criteria" [label="no"];
+    "Executor mode\nfollow tasks exactly" -> "Implementation loop";
+    "Planner mode\nextract scenarios/criteria" -> "Implementation loop";
+    "Implementation loop" -> "All tasks complete";
+}
+```
 
 **Input**: Optionally specify a change name. If omitted, infer from context or prompt.
 
@@ -109,6 +178,7 @@ Invoke in order: worktrees first (isolate), then TDD (discipline). Debugging and
       **For proposal-driven units:**
       - Generate test files covering the risk point using the project's test framework
       - No annotation conventions needed (no features to link to)
+      Follow the conventions in `references/testing-conventions.md` for annotation format and e2e test style.
 
    c. **Write implementation code**:
       - Follow design.md decisions if available
@@ -118,6 +188,24 @@ Invoke in order: worktrees first (isolate), then TDD (discipline). Debugging and
    d. **If using tasks.md**: Mark task complete `- [ ]` -> `- [x]`
 
    e. **Continue to next**
+
+   f. **Scenario completion checklist** (verify before moving to next scenario):
+
+      **For `@e2e` scenarios (TDD mode):**
+      - [ ] E2e test or step definition exists and is executable
+      - [ ] Test references the scenario (`@feature`/`@scenario` annotations or BDD binding)
+      - [ ] `# @covered-by: <path>` annotation added to .feature file (between tag and Scenario line)
+
+      **For `@behavior` scenarios (TDD mode):**
+      - [ ] Test file exists with `@feature` and `@scenario` comments
+      - [ ] `# @covered-by: <path>` annotation added to .feature file (between tag and Scenario line)
+      - [ ] Test is executable (not a skeleton)
+
+      **For all scenarios:**
+      - [ ] Implementation code handles the scenario's behavior
+      - [ ] Task checkbox marked complete (if using tasks.md)
+
+      Do NOT move to the next scenario until all applicable items are checked.
 
    **Pause if:**
    - Task/scenario is unclear -> ask for clarification
