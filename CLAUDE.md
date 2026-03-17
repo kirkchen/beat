@@ -32,7 +32,19 @@ beat/
 │   └── distill/SKILL.md         # /beat:distill — reverse-engineer specs from code
 ├── references/                  # Schemas referenced by skills
 │   ├── status-schema.md         # status.yaml format (single source of truth)
-│   └── config-schema.md         # config.yaml format (single source of truth)
+│   ├── config-schema.md         # config.yaml format (single source of truth)
+│   └── testing-conventions.md   # Annotation format and e2e test style reference
+├── hooks/                       # Claude Code hooks
+│   ├── hooks.json               # SessionStart hook config
+│   └── session-start            # Detects Beat project, injects workflow context
+├── tests/                       # Automated skill tests (claude -p headless)
+│   ├── test-helpers.sh          # Shared assertion framework
+│   ├── run-all.sh               # Run all fast tests (--integration for pipeline)
+│   ├── analyze-token-usage.py   # Token analysis for test sessions
+│   ├── skill-triggering/        # Layer 1: Description CSO validation
+│   ├── skill-content/           # Layer 2: Enforcement awareness smoke tests
+│   ├── pressure/                # Layer 3: Anti-rationalization under pressure
+│   └── pipeline/                # Layer 4: End-to-end pipeline (--integration)
 └── README.md
 ```
 
@@ -118,7 +130,11 @@ In test files (use the project language's comment syntax):
 
 ## Dependencies
 
-Requires the [superpowers](https://github.com/anthropics/superpowers) plugin for TDD, brainstorming, and debugging integrations referenced by `continue`, `apply`, and `explore` skills.
+Requires the [superpowers](https://github.com/obra/superpowers) plugin for TDD, brainstorming, and debugging integrations referenced by `continue`, `apply`, and `explore` skills.
+
+### Superpowers Integration
+
+Beat cooperates with Superpowers via a SessionStart hook (`hooks/session-start`). When `beat/config.yaml` or `beat/changes/` exists, the hook injects context telling Claude to transition to Beat workflow after brainstorming instead of `writing-plans` directly. Skills reference Superpowers via `MUST invoke` prerequisites with anti-rationalization enforcement (Hard Gate, Rationalization Table, Red Flags).
 
 ## Design Philosophy
 
@@ -136,7 +152,39 @@ Each skill is a single SKILL.md file with YAML frontmatter (`name`, `description
 
 ### Testing Changes
 
-There is no automated test suite for Beat itself. To test a skill change:
+Beat has a four-layer automated test suite using `claude -p` headless mode. Tests are in `tests/`.
+
+**Run fast tests (~20 min):**
+```bash
+cd tests && ./run-all.sh
+```
+
+**Run all tests including pipeline integration (~50 min):**
+```bash
+cd tests && ./run-all.sh --integration
+```
+
+**Four test layers:**
+
+| Layer | What it tests | Scripts |
+|-------|--------------|---------|
+| Skill Triggering | Naive prompts trigger correct Beat skill | `skill-triggering/` |
+| Skill Content | Skills know their enforcement rules (smoke test) | `skill-content/` |
+| Pressure | Anti-rationalization holds under implicit pressure | `pressure/` |
+| Pipeline Integration | End-to-end new → ff → apply → verify | `pipeline/` (--integration only) |
+
+**When to run tests:**
+- After changing any skill description → run `skill-triggering/run-all.sh`
+- After changing enforcement rules (Hard Gate, Rationalization Table) → run `pressure/run-all.sh`
+- After changing skill content → run `skill-content/run-all.sh`
+
+**Notes:**
+- Tests use `claude -p --output-format stream-json --verbose` and grep for tool invocations
+- Some tests are non-deterministic (LLM behavior varies) — a single flaky fail doesn't indicate a real problem
+- Pressure tests assert Beat's responsibility boundary only (did it invoke the Superpowers skill?), not Superpowers' execution
+- macOS compatible (Perl-based timeout fallback, no GNU coreutils needed)
+
+**Manual testing** is still useful for verifying the full user experience:
 1. Install the plugin in a test project
 2. Run the skill command (e.g., `/beat:new`)
 3. Verify the skill produces correct artifacts and status.yaml updates
