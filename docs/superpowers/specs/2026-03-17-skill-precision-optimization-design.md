@@ -18,9 +18,24 @@ Beat skills rely on a single "MUST invoke" instruction without anti-rationalizat
 
 Add three enforcement layers to `ff`, `continue`, and `apply` — the skills with Superpowers prerequisites.
 
+**Section ordering within SKILL.md** — new sections are inserted in this order:
+
+```
+[existing frontmatter]
+[existing opening line]
+<HARD-GATE>              ← Layer 1: Hard Gate (new)
+[existing Prerequisites table]
+Rationalization Prevention ← Layer 2 (new)
+Red Flags                  ← Layer 3 (new)
+[Flowchart]              ← Change 3 (new, ff and apply only)
+[Tasks Gate]             ← Change 5 (new, ff only)
+[existing Steps]
+[existing Guardrails]
+```
+
 #### Layer 1: Hard Gate
 
-Place at the top of each skill, before any steps. Uses `<HARD-GATE>` tag (proven effective in Superpowers brainstorming skill).
+Place immediately after the opening line, before the Prerequisites table. Uses `<HARD-GATE>` tag (proven effective in Superpowers brainstorming skill).
 
 **ff** — before Steps section:
 
@@ -152,11 +167,12 @@ Add DOT flowcharts to `ff` and `apply` — the two skills with non-obvious routi
 digraph ff {
     "Select or create change" [shape=box];
     "Ask artifact preset" [shape=box];
-    "Includes proposal or design?" [shape=diamond];
+    "Includes proposal?" [shape=diamond];
     "Invoke brainstorming" [shape=box, style=bold];
     "Create proposal" [shape=box];
     "Includes gherkin?" [shape=diamond];
     "Create gherkin" [shape=box];
+    "Includes design?" [shape=diamond];
     "Create design" [shape=box];
     "Includes tasks?" [shape=diamond];
     "Invoke writing-plans" [shape=box, style=bold];
@@ -165,14 +181,17 @@ digraph ff {
     "Show summary" [shape=doublecircle];
 
     "Select or create change" -> "Ask artifact preset";
-    "Ask artifact preset" -> "Includes proposal or design?";
-    "Includes proposal or design?" -> "Invoke brainstorming" [label="yes"];
-    "Includes proposal or design?" -> "Includes gherkin?" [label="no"];
+    "Ask artifact preset" -> "Includes proposal?";
+    "Includes proposal?" -> "Invoke brainstorming" [label="yes"];
+    "Includes proposal?" -> "Includes gherkin?" [label="no"];
     "Invoke brainstorming" -> "Create proposal";
     "Create proposal" -> "Includes gherkin?";
     "Includes gherkin?" -> "Create gherkin" [label="yes"];
-    "Includes gherkin?" -> "Includes tasks?" [label="no"];
-    "Create gherkin" -> "Create design";
+    "Includes gherkin?" -> "Includes design?" [label="no"];
+    "Create gherkin" -> "Includes design?";
+    "Includes design?" -> "Invoke brainstorming" [label="yes, if not\nalready invoked"];
+    "Includes design?" -> "Includes tasks?" [label="no"];
+    "Invoke brainstorming" -> "Create design" [label="for design"];
     "Create design" -> "Includes tasks?";
     "Includes tasks?" -> "Invoke writing-plans" [label="yes"];
     "Includes tasks?" -> "Advance phase to implement" [label="no"];
@@ -181,6 +200,13 @@ digraph ff {
     "Advance phase to implement" -> "Show summary";
 }
 ```
+
+Note: The flowchart handles all 5 presets correctly:
+- **Full** (proposal+gherkin+design+tasks): follows the full path through all diamonds
+- **Standard** (proposal+gherkin): exits at "Includes design? no" then "Includes tasks? no"
+- **Minimal** (gherkin only): exits at "Includes proposal? no", enters at "Includes gherkin? yes"
+- **Technical** (proposal+tasks, no gherkin): "Includes gherkin? no" → "Includes design? no" → "Includes tasks? yes"
+- **Custom**: any combination works because each artifact has its own decision diamond
 
 **apply flowchart** — placed after the Hard Gate, before Steps:
 
@@ -267,7 +293,28 @@ Contains:
    - Do NOT pass conversation history or session context.
 ```
 
-The dimension descriptions, mode logic, and report template move to the prompt file. SKILL.md retains the issue classification, graceful degradation, and guardrails sections (these guide the dispatcher, not the subagent).
+**What moves vs. stays in verify/SKILL.md:**
+
+| Section | Stays in SKILL.md | Moves to prompt file |
+|---------|-------------------|---------------------|
+| Step 1 (Select change) | ✅ | |
+| Step 2 (Read artifacts, determine testing context) | ✅ (dispatcher needs this to build subagent inputs) | |
+| Step 3 (Dispatch subagent) — dimension descriptions, mode logic | | ✅ |
+| Step 4 (Run automated tests) | ✅ (dispatcher action, not subagent) | |
+| Step 5 (Present report) — report template | | ✅ (subagent generates report) |
+| Issue Classification | ✅ (dispatcher reference) | Also included in prompt |
+| Graceful Degradation | ✅ (dispatcher logic) | |
+| Guardrails | ✅ | |
+
+The dispatcher presents the subagent's report as-is (pass-through), adding only Step 4 test results if available.
+
+**distill subagent prompt** — the prompt is a subset of the verify prompt with accuracy mode only. It includes:
+- Role definition
+- Inputs (code scope, draft feature files, proposal/design if created)
+- Accuracy checks from verify's Dimension 1 accuracy mode (does scenario match code? cite file:line)
+- Coverage checks (uncovered behaviors in code?)
+- Output format (findings with file:line evidence, classified as CRITICAL/SUGGESTION)
+- Same "Do NOT trust any claims" rule
 
 `distill/SKILL.md` step 5 changes similarly — references `distill-subagent-prompt.md` instead of inline verification instructions.
 
@@ -278,7 +325,7 @@ Replace the current implicit prerequisite with an explicit gate mechanism in `ff
 **Current** (in Step 4, buried in artifact patterns):
 > Tasks: If writing-plans is invoked, adapt its output...
 
-**New** (explicit gate section after the flowchart):
+**New** (explicit gate section after the flowchart, reinforces the Hard Gate with operational detail):
 
 ```markdown
 ## Tasks Gate
@@ -319,7 +366,7 @@ Do NOT:
 - Token efficiency optimization (continue is 231 lines — acceptable for now)
 - Test infrastructure (no automated skill testing — test manually per CLAUDE.md guidelines)
 - RED-GREEN-REFACTOR pressure testing of skills with subagents
-- Rationalization tables for verify, sync, archive, setup, distill (no observed compliance issues)
+- Rationalization tables for explore, verify, sync, archive, setup, distill (no observed compliance issues)
 
 ## Validation
 
@@ -331,3 +378,5 @@ After implementation, test each modified skill manually:
 4. **apply in TDD mode**: Run `/beat:apply` on a gherkin-driven change, verify worktrees then TDD invocation order
 5. **verify subagent**: Run `/beat:verify`, check that subagent receives structured prompt from file, not inline
 6. **Description triggering**: Use natural language ("I want to implement this change") and verify correct skill triggers
+7. **continue with proposal**: Run `/beat:continue` to proposal artifact, verify brainstorming is invoked before proposal creation
+8. **continue with design**: Run `/beat:continue` to design artifact, verify brainstorming is invoked before design creation
