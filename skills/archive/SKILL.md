@@ -1,6 +1,6 @@
 ---
 name: archive
-description: Archive a completed Beat change. Use when the user wants to finalize and archive a change after implementation is complete. Offers sync before archiving if needed. Triggers on /beat:archive.
+description: Use when finalizing a Beat change — moves it to archive after verification
 ---
 
 Archive a completed change. Checks completion, offers sync if needed, then moves to archive.

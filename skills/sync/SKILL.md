@@ -1,6 +1,6 @@
 ---
 name: sync
-description: Sync features and docs from a Beat change to the persistent beat/features/ directory. Use when the user wants to update the project's living documentation after implementation. Triggers on /beat:sync.
+description: Use when updating living documentation in beat/features/ from a completed change
 ---
 
 Sync features and documentation from a change to the project's persistent `beat/features/` directory.

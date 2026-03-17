@@ -1,6 +1,6 @@
 ---
 name: new
-description: Start a new Beat change. Use when the user wants to create a new feature, fix, or modification with the BDD workflow. Triggers on /beat:new or when user says "start a new change", "new feature", or similar.
+description: Use when starting a new feature, fix, or change — creates the change container and status.yaml
 ---
 
 Start a new change using the Beat workflow.

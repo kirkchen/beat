@@ -1,6 +1,6 @@
 ---
 name: setup
-description: Initialize Beat in a project. Creates beat/config.yaml with project context and rules. Use when the user wants to set up Beat for the first time, configure project preferences, or create a beat config. Triggers on /beat:setup or when user says "initialize beat", "set up beat", or similar.
+description: Use when setting up Beat for the first time in a project or updating project configuration
 ---
 
 Initialize Beat configuration in the current project.
