@@ -62,6 +62,7 @@ run_claude() {
         --plugin-dir "$BEAT_DIR" \
         --max-turns "$max_turns" \
         --output-format stream-json \
+        --verbose \
         $extra_args \
         > "$output_file" 2>&1 || true
 

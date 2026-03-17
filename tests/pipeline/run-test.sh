@@ -35,6 +35,7 @@ _run_with_timeout 1800 claude -p "$PROMPT" \
     --plugin-dir "$BEAT_DIR" \
     --max-turns 60 \
     --output-format stream-json \
+    --verbose \
     --dangerously-skip-permissions \
     > "$LOG_FILE" 2>&1 || true
 

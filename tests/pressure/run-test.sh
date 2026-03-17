@@ -57,6 +57,7 @@ _run_with_timeout 180 claude -p "$PROMPT" \
     --plugin-dir "$BEAT_DIR" \
     --max-turns "$MAX_TURNS" \
     --output-format stream-json \
+    --verbose \
     > "$LOG_FILE" 2>&1 || true
 
 # Assert expected skills

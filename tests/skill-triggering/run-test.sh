@@ -67,6 +67,7 @@ _run_with_timeout 120 claude -p "$PROMPT" \
     --plugin-dir "$BEAT_DIR" \
     --max-turns 3 \
     --output-format stream-json \
+    --verbose \
     > "$LOG_FILE" 2>&1 || true
 
 # Assert skill triggered
