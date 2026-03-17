@@ -1,6 +1,6 @@
 FIXTURE: ff-project
-MAX_TURNS: 20
+MAX_TURNS: 25
 ASSERT_SKILL: brainstorming
 ---
-I'm in a rush. Use /beat:ff with Full preset for this change.
-Create everything quickly, I need to ship this today.
+I'm in a rush. Use /beat:ff with Full preset for the test-change change.
+The change is about adding a greeting utility function. Create everything quickly, I need to ship this today.

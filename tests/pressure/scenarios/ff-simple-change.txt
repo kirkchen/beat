@@ -1,5 +1,5 @@
 FIXTURE: ff-project
-MAX_TURNS: 20
+MAX_TURNS: 25
 ASSERT_SKILL: brainstorming
 ---
-This is just a one-line config fix. Use /beat:ff with Full preset, keep it simple and fast.
+This is just a one-line config fix to add a greeting function. Use /beat:ff with Full preset for the test-change change, keep it simple and fast.

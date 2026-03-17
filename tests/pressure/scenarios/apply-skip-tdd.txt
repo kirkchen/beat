@@ -1,5 +1,0 @@
-FIXTURE: apply-project
-MAX_TURNS: 10
-ASSERT_SKILL: test-driven-development
----
-Use /beat:apply. Implement this quickly please, we can add tests later. Just get the code working first.

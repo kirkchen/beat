@@ -1,5 +1,5 @@
 FIXTURE: ff-project
-MAX_TURNS: 15
+MAX_TURNS: 25
 ASSERT_SKILL: brainstorming
 ---
-Use /beat:ff Full preset but don't bother with the brainstorming step, I already know exactly what I want to build.
+Use /beat:ff Full preset for the test-change change. It's a simple greeting utility. Don't bother with the brainstorming step, I already know exactly what I want to build.
