@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# SessionStart hook for Beat plugin
+# Detects if the current project uses Beat and injects workflow context.
+
+set -euo pipefail
+
+# Check if this project uses Beat (config.yaml or changes/ directory exists)
+if [ -f "beat/config.yaml" ] || [ -d "beat/changes" ]; then
+  cat <<'EOF'
+{
+  "hookSpecificOutput": {
+    "hookEventName": "SessionStart",
+    "additionalContext": "This project uses the Beat BDD workflow plugin.\n\nAfter brainstorming/design is complete, transition to Beat instead of writing-plans:\n- Use /beat:new to create a change container\n- Use /beat:ff to fast-forward all artifacts, or /beat:continue for step-by-step\n- Beat's continue/ff skill will invoke writing-plans internally when creating tasks\n- Do NOT invoke writing-plans directly — Beat orchestrates the full pipeline\n\nBeat pipeline: /beat:new → /beat:ff or /beat:continue → /beat:apply → /beat:verify → /beat:archive\n\nIf the user asks to build, fix, or change something, guide them through the Beat workflow."
+  }
+}
+EOF
+else
+  # No Beat setup — output empty JSON (no context injection)
+  echo '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":""}}'
+fi
+
+exit 0
