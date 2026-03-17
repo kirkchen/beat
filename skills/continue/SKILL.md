@@ -1,9 +1,17 @@
 ---
 name: continue
-description: Continue working on a Beat change by creating or skipping the next artifact. Use when the user wants to progress their change, build the next artifact, skip an optional step, or continue the BDD pipeline. Triggers on /beat:continue.
+description: Use when progressing a Beat change to its next artifact — one artifact at a time with control over each step
 ---
 
 Continue working on a change by creating or skipping the next artifact in the pipeline.
+
+<HARD-GATE>
+Before creating proposal or design: you MUST invoke superpowers:brainstorming.
+Before creating tasks: you MUST invoke superpowers:writing-plans.
+"MUST" means unconditional. Not "if complex enough". Not "if time permits". Always.
+If a prerequisite skill is unavailable (not installed), continue with fallback — but NEVER skip
+because you judged it unnecessary.
+</HARD-GATE>
 
 **Prerequisites** (invoke before proceeding)
 
@@ -13,6 +21,22 @@ Continue working on a change by creating or skipping the next artifact in the pi
 | writing-plans | When creating tasks | MUST |
 
 If a superpower is unavailable (skill not installed), skip and continue.
+
+## Rationalization Prevention
+
+| Thought | Reality |
+|---------|---------|
+| "This change is simple enough to write tasks inline" | Simple changes finish writing-plans quickly. Complex changes need it most. There is no middle ground where skipping helps. |
+| "I already understand the scope from the proposal/gherkin" | Understanding scope ≠ properly decomposed tasks. writing-plans catches scope gaps you haven't noticed. |
+| "The user wants speed, invoking superpowers will slow us down" | Skipping prerequisites produces lower-quality artifacts that cause rework during apply and verify. |
+| "brainstorming isn't needed, the user already described what they want" | A description is not a design. brainstorming surfaces assumptions, alternatives, and edge cases. |
+
+## Red Flags — STOP if you catch yourself:
+
+- Writing `- [ ]` task checkboxes without having invoked writing-plans
+- Generating proposal sections without having invoked brainstorming
+- Thinking "this prerequisite isn't needed for this particular change"
+- Skipping a MUST prerequisite and planning to "compensate" later
 
 **Pipeline order:** `proposal -> gherkin -> design -> tasks`
 
