@@ -1,6 +1,6 @@
 ---
 name: distill
-description: Reverse-engineer Gherkin feature files and docs from existing code. Use when adopting the BDD workflow for an existing codebase, migrating legacy code to BDD, or documenting existing behavior as feature specs. Triggers on /beat:distill.
+description: Use when extracting BDD specs from existing code — for adopting Beat in an established codebase
 ---
 
 Distill -- reverse-engineer Gherkin feature files from existing code.
@@ -57,17 +57,17 @@ Use this to bring existing codebases into the Beat workflow. The output is draft
 
    Update `status.yaml` for each artifact created.
 
-5. **Verify using /beat:verify logic**
+5. **Verify using distill verification subagent**
 
-   Execute the verification logic from `/beat:verify` inline (not as a separate skill invocation). Because `status.yaml` contains `source: distill`, verify automatically switches Dimension 1 to **accuracy mode**:
+   Dispatch verification subagent using the **Agent tool** (subagent_type: `Explore`).
+   Read `distill-subagent-prompt.md` for the complete subagent prompt.
 
-   - Checks whether each scenario accurately describes code behavior (not test existence)
-   - Cites specific file:line as evidence
-   - Flags behaviors in the code NOT captured by any scenario
-   - Flags scenarios that don't match the code
-   - Missing tests are reported as SUGGESTION (not CRITICAL)
+   Provide ONLY:
+   - Code scope (the files/directories being distilled)
+   - All draft artifacts (features, proposal, design)
+   - Do NOT pass conversation history or session context.
 
-   Dispatch the verification subagent as specified in `/beat:verify` step 3 (Agent tool, subagent_type: `Explore`), including all artifacts and the code scope.
+   Because `status.yaml` contains `source: distill`, verification focuses on **accuracy** (do scenarios match code behavior?) rather than coverage (do tests exist?).
 
 6. **Fix drafts based on verification feedback**
 
