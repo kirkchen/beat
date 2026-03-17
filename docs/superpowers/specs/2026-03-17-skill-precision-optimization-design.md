@@ -344,13 +344,146 @@ Do NOT:
 - Skip writing-plans because "the tasks are obvious"
 ```
 
+### Change 6: Apply Annotation Gate and Testing Conventions Reference
+
+Address observed issues where `apply` skips e2e test creation, omits `@covered-by` annotations, and produces inconsistent e2e test styles.
+
+#### 6.1 Per-Scenario Completion Checklist
+
+Add a checklist to `apply` Step 6 that must be verified after implementing each scenario. This replaces the current narrative instructions with an explicit gate.
+
+**Placed at the end of Step 6, after substep (e):**
+
+```markdown
+   f. **Scenario completion checklist** (verify before moving to next scenario):
+
+      **For `@e2e` scenarios (TDD mode):**
+      - [ ] E2e test or step definition exists and is executable
+      - [ ] Test references the scenario (`@feature`/`@scenario` annotations or BDD binding)
+      - [ ] `# @covered-by: <path>` annotation added to .feature file (between tag and Scenario line)
+
+      **For `@behavior` scenarios (TDD mode):**
+      - [ ] Test file exists with `@feature` and `@scenario` comments
+      - [ ] `# @covered-by: <path>` annotation added to .feature file (between tag and Scenario line)
+      - [ ] Test is executable (not a skeleton)
+
+      **For all scenarios:**
+      - [ ] Implementation code handles the scenario's behavior
+      - [ ] Task checkbox marked complete (if using tasks.md)
+
+      Do NOT move to the next scenario until all applicable items are checked.
+```
+
+#### 6.2 Apply-Specific Red Flags
+
+Extend the `apply` Red Flags section (from Change 1) with annotation-specific signals:
+
+```markdown
+## Red Flags — STOP if you catch yourself:
+
+- Writing implementation code before invoking using-git-worktrees
+- Writing implementation code before writing a failing test (in TDD mode)
+- Thinking "I'll set up the worktree after this first file"
+- Skipping TDD because "the test would be trivial"
+- Moving to the next scenario without adding `@covered-by` to the .feature file
+- Skipping e2e test creation because "the e2e framework is complex to set up"
+- Writing a test skeleton instead of an executable test
+- Thinking "I'll add the annotations at the end after all scenarios are done"
+```
+
+#### 6.3 Apply Rationalization Table Extension
+
+Extend the `apply` rationalization table (from Change 1) with annotation-specific entries:
+
+```markdown
+| "I'll add @covered-by annotations at the end for all scenarios" | Annotations must be added per-scenario immediately after writing the test. Batching them leads to forgetting. |
+| "The e2e test setup is too complex, I'll write a unit test instead" | The scenario is tagged @e2e for a reason. If e2e setup is genuinely blocked, announce the blocker and ask — don't silently downgrade. |
+| "This @behavior test is obvious, a skeleton is enough" | Every test must be executable. A skeleton that doesn't run is not a test. |
+```
+
+#### 6.4 New Reference File: `references/testing-conventions.md`
+
+Create a testing conventions reference that `apply` and `verify` can both cite. This enforces consistent e2e test style.
+
+**Content:**
+
+```markdown
+# Testing Conventions
+
+## Annotation Format
+
+### In .feature files
+
+Annotation is placed between the tag line and the Scenario line:
+
+```gherkin
+@behavior @happy-path
+# @covered-by: src/services/__tests__/billing.test.ts
+Scenario: Monthly billing adjusts for short months
+```
+
+```gherkin
+@e2e @happy-path
+# @covered-by: e2e/tests/login.spec.ts
+Scenario: User logs in with valid credentials
+```
+
+### In test files
+
+Use the project language's comment syntax:
+
+```typescript
+// @feature: monthly-billing.feature
+// @scenario: Monthly billing adjusts for short months
+```
+
+```python
+# @feature: monthly-billing.feature
+# @scenario: Monthly billing adjusts for short months
+```
+
+## E2E Test Style
+
+E2e tests should follow the project's existing e2e patterns. When no existing patterns:
+
+1. **Discover the e2e framework** — read project config (playwright.config, cypress.config, etc.)
+2. **Find existing e2e tests** — use them as style reference (file naming, structure, utilities)
+3. **Match conventions** — same directory structure, same assertion style, same setup patterns
+4. **If no e2e tests exist** — ask the user which framework to use before creating the first one
+
+### Style Consistency Rules
+
+- File naming: match existing pattern (e.g., `*.spec.ts`, `*.e2e.ts`, `*.test.ts`)
+- Test structure: match existing describe/it nesting or test() flat style
+- Selectors: match existing strategy (data-testid, role-based, CSS selectors)
+- Setup/teardown: use existing helpers and fixtures, don't create parallel patterns
+- Assertions: use the same assertion library and style as existing tests
+
+### When No Existing E2E Tests Exist
+
+Do NOT invent a style. Ask the user:
+> "No existing e2e tests found. Which e2e framework should I use? (e.g., Playwright, Cypress, etc.)"
+
+Then create the first test following that framework's official conventions.
+```
+
+**How skills reference this file:**
+
+`apply/SKILL.md` adds to Step 6b:
+```markdown
+Follow the conventions in `references/testing-conventions.md` for annotation format and e2e test style.
+```
+
+`verify/SKILL.md` (or `verification-subagent-prompt.md`) references it for checking annotation correctness.
+
 ## Files Changed
 
 | File | Change Type | Description |
 |------|-------------|-------------|
 | `skills/ff/SKILL.md` | Modified | Add hard gate, flowchart, tasks gate, rationalization table, red flags; update description |
 | `skills/continue/SKILL.md` | Modified | Add hard gate, rationalization table, red flags; update description |
-| `skills/apply/SKILL.md` | Modified | Add hard gate, flowchart, rationalization table, red flags; update description |
+| `skills/apply/SKILL.md` | Modified | Add hard gate, flowchart, rationalization table, red flags, scenario completion checklist; update description |
+| `references/testing-conventions.md` | New | Annotation format and e2e test style reference |
 | `skills/verify/SKILL.md` | Modified | Extract subagent prompt to file; update description |
 | `skills/verify/verification-subagent-prompt.md` | New | Standalone verification subagent prompt |
 | `skills/distill/SKILL.md` | Modified | Extract subagent prompt to file; update description |
@@ -380,3 +513,6 @@ After implementation, test each modified skill manually:
 6. **Description triggering**: Use natural language ("I want to implement this change") and verify correct skill triggers
 7. **continue with proposal**: Run `/beat:continue` to proposal artifact, verify brainstorming is invoked before proposal creation
 8. **continue with design**: Run `/beat:continue` to design artifact, verify brainstorming is invoked before design creation
+9. **apply with @e2e scenario**: Run `/beat:apply` on a change with `@e2e` scenarios, verify e2e test is actually created and `@covered-by` annotation is added to .feature
+10. **apply with @behavior scenario**: Run `/beat:apply` on a change with `@behavior` scenarios, verify test has `@feature`/`@scenario` annotations and .feature gets `@covered-by`
+11. **apply e2e style consistency**: Run `/beat:apply` on a project with existing e2e tests, verify new tests match existing style patterns
