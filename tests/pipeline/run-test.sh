@@ -102,6 +102,69 @@ else
     FAIL_COUNT=$((FAIL_COUNT + 1))
 fi
 
+# Code reviewer dispatched during verify (Dimension 4)
+if grep -q "superpowers:code-reviewer\|code.reviewer\|code quality" "$LOG_FILE" 2>/dev/null; then
+    echo -e "${GREEN}[PASS]${NC} Code reviewer dispatched"
+    PASS_COUNT=$((PASS_COUNT + 1))
+else
+    echo -e "${RED}[FAIL]${NC} Code reviewer not dispatched during verify"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+# Gherkin quality: scenarios have testing layer tags (@e2e or @behavior)
+FEATURE_FILES=$(find "$PROJECT_DIR/beat/changes/todo-list/features" -name "*.feature" 2>/dev/null)
+if [[ -n "$FEATURE_FILES" ]]; then
+    SCENARIOS_WITHOUT_TAG=0
+    while IFS= read -r ff; do
+        COUNT=$(grep -c "^[[:space:]]*Scenario:" "$ff" 2>/dev/null || echo 0)
+        TAGGED=$(grep -cE "@(e2e|behavior)" "$ff" 2>/dev/null || echo 0)
+        MISSING=$((COUNT - TAGGED))
+        SCENARIOS_WITHOUT_TAG=$((SCENARIOS_WITHOUT_TAG + MISSING))
+    done <<< "$FEATURE_FILES"
+    if [[ "$SCENARIOS_WITHOUT_TAG" -eq 0 ]]; then
+        echo -e "${GREEN}[PASS]${NC} All scenarios have testing layer tags (@e2e/@behavior)"
+        PASS_COUNT=$((PASS_COUNT + 1))
+    else
+        echo -e "${RED}[FAIL]${NC} $SCENARIOS_WITHOUT_TAG scenario(s) missing @e2e/@behavior tag"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+else
+    echo -e "${RED}[FAIL]${NC} No feature files to check for tags"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
+# @covered-by annotations in feature files (added during apply)
+if [[ -n "$FEATURE_FILES" ]]; then
+    COVERED_COUNT=0
+    while IFS= read -r ff; do
+        C=$(grep -c "@covered-by" "$ff" 2>/dev/null || echo 0)
+        COVERED_COUNT=$((COVERED_COUNT + C))
+    done <<< "$FEATURE_FILES"
+    if [[ "$COVERED_COUNT" -gt 0 ]]; then
+        echo -e "${GREEN}[PASS]${NC} @covered-by annotations present ($COVERED_COUNT found)"
+        PASS_COUNT=$((PASS_COUNT + 1))
+    else
+        echo -e "${RED}[FAIL]${NC} No @covered-by annotations in feature files"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+fi
+
+# No @no-test tags (removed from Beat workflow)
+if [[ -n "$FEATURE_FILES" ]]; then
+    NO_TEST_COUNT=0
+    while IFS= read -r ff; do
+        C=$(grep -c "@no-test\|@no_test" "$ff" 2>/dev/null || echo 0)
+        NO_TEST_COUNT=$((NO_TEST_COUNT + C))
+    done <<< "$FEATURE_FILES"
+    if [[ "$NO_TEST_COUNT" -eq 0 ]]; then
+        echo -e "${GREEN}[PASS]${NC} No @no-test tags (correctly removed)"
+        PASS_COUNT=$((PASS_COUNT + 1))
+    else
+        echo -e "${RED}[FAIL]${NC} Found $NO_TEST_COUNT @no-test tag(s) — should not exist"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+fi
+
 # Token analysis
 echo ""
 echo "=== Token Usage ==="
