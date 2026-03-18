@@ -15,25 +15,25 @@ PROJECT_DIR="$OUTPUT_BASE/pipeline-node-todo/project"
 mkdir -p "$(dirname "$PROJECT_DIR")"
 bash "$SCRIPT_DIR/node-todo/scaffold.sh" "$PROJECT_DIR"
 
-PROMPT='Use the Beat BDD workflow to build a simple todo list module.
-Requirements: add todo, complete todo, list todos, delete todo.
+PROMPT='Use the Beat BDD workflow to build a simple todo list module with in-memory storage.
+Requirements: add todo (title), list all todos, mark todo as complete.
 
-Execute this sequence:
+Execute these skills in sequence — do NOT use brainstorming, go directly to Beat skills:
 1. /beat:new todo-list
-2. /beat:ff with Standard preset (Proposal + Gherkin)
-3. /beat:apply to implement
+2. /beat:ff with Minimal preset (Gherkin only — skip proposal, design, tasks)
+3. /beat:apply to implement (write tests and code for each scenario)
 4. /beat:verify to validate
 
-Complete the full pipeline. Do not stop between steps.'
+Keep it simple. 3 scenarios max. Complete the full pipeline without stopping.'
 
 # Run Claude
 LOG_FILE="$OUTPUT_BASE/pipeline-node-todo/session.json"
 cd "$PROJECT_DIR"
-echo "Running claude -p (max-turns 60, timeout 1800s)..."
+echo "Running claude -p (max-turns 80, timeout 1800s)..."
 echo "Output: $LOG_FILE"
 _run_with_timeout 1800 claude -p "$PROMPT" \
     --plugin-dir "$BEAT_DIR" \
-    --max-turns 60 \
+    --max-turns 80 \
     --output-format stream-json \
     --verbose \
     --dangerously-skip-permissions \
