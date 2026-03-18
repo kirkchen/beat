@@ -54,15 +54,20 @@ Initialize Beat configuration in the current project.
    3. "Let me specify framework" -- set a specific test framework
 
    **If user chooses "Require tests":**
-   - If codebase detection was done in step 3, use detected framework for `testing.framework`
-   - Otherwise, ask: "What test framework does your project use?" (e.g., vitest, jest, pytest, go test)
+   - Ask about **behavior test framework** (`testing.behavior`):
+     - If codebase detection was done in step 3, use detected framework (vitest, jest, pytest, etc.)
+     - Otherwise, ask: "What test framework do you use for unit/behavior tests?" (e.g., vitest, jest, pytest, go test)
+   - Ask about **e2e test framework** (`testing.e2e`):
+     - If codebase detection found e2e config (playwright.config, cypress.config, etc.), use it
+     - Otherwise, ask: "Do you have an e2e test framework? (e.g., playwright, cypress, or skip if none)"
+     - If user says none/skip, omit `testing.e2e` from config
 
    **If user chooses "No tests required":**
    - Set `testing.required: false`
 
    **If user chooses "Let me specify":**
-   - Ask for the framework name
-   - Set `testing.framework` to the specified value
+   - Ask for behavior framework name → set `testing.behavior`
+   - Ask for e2e framework name (optional) → set `testing.e2e` if provided
 
    This sets the `testing` field in config.
 

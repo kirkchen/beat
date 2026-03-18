@@ -16,7 +16,7 @@ Beat cares about **what the system does**, not how it does it. Gherkin scenarios
 
 ### Framework-Agnostic
 
-Beat works with any language, any test framework, any tech stack. Skills never prescribe specific tools — they describe **what to do** (write a test, generate step definitions) and rely on the project's `testing.framework` config or auto-detection for **how to do it**. Annotation conventions (`@covered-by`, `@feature`, `@scenario`) use plain-text comments that work in any language.
+Beat works with any language, any test framework, any tech stack. Skills never prescribe specific tools — they describe **what to do** (write a test, generate step definitions) and rely on the project's `testing.behavior` and `testing.e2e` config or auto-detection for **how to do it**. Annotation conventions (`@covered-by`, `@feature`, `@scenario`) use plain-text comments that work in any language.
 
 ### Gherkin as Thinking Tool, Not Documentation
 

@@ -43,7 +43,7 @@ context: |
   Node.js project with Vitest for testing.
   Simple todo list module with in-memory storage.
 testing:
-  framework: vitest
+  behavior: vitest
 EOF
 
 # Install dependencies

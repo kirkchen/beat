@@ -34,6 +34,22 @@ Use the project language's comment syntax:
 # @scenario: Monthly billing adjusts for short months
 ```
 
+## Framework Selection
+
+Beat config supports separate frameworks for each testing layer:
+
+```yaml
+testing:
+  behavior: vitest      # for @behavior scenarios (unit/integration tests)
+  e2e: playwright        # for @e2e scenarios (end-to-end tests)
+```
+
+When writing tests, use the framework matching the scenario's tag:
+- `@behavior` scenario → use `testing.behavior` (or auto-detect: vitest, jest, pytest, etc.)
+- `@e2e` scenario → use `testing.e2e` (or auto-detect: playwright, cypress, etc.)
+
+Legacy: if only `testing.framework` is set, treat it as `testing.behavior`.
+
 ## E2E Test Style
 
 E2e tests should follow the project's existing e2e patterns. When no existing patterns:

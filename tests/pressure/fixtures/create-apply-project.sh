@@ -56,7 +56,7 @@ EOF
 cat > beat/config.yaml << 'EOF'
 language: en
 testing:
-  framework: vitest
+  behavior: vitest
 EOF
 
 echo '{ "name": "test-project", "type": "module", "devDependencies": { "vitest": "latest" } }' > package.json

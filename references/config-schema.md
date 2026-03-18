@@ -14,7 +14,8 @@ context: |                           # optional, string (max 50KB)
 
 testing:                             # optional, map
   required: true                     # optional, boolean (default: true)
-  framework: vitest                  # optional, string (auto-detected if omitted)
+  behavior: vitest                   # optional, string — framework for @behavior scenarios
+  e2e: playwright                    # optional, string — framework for @e2e scenarios
 
 rules:                               # optional, map
   proposal:                          # optional, array of strings
@@ -47,14 +48,16 @@ Controls how `/beat:apply` and `/beat:verify` handle automated tests. The entire
 
 **`testing.required`** (boolean, default: `true`): When `false`, `/beat:apply` does not enforce TDD cycles and `/beat:verify` skips test existence checks in Dimension 1. Implementation code is still written; only the test mandate is relaxed.
 
-**`testing.framework`** (string, optional): The test framework to use (e.g. `vitest`, `jest`, `pytest`, `go test`). If omitted, `/beat:apply` auto-detects from the codebase. If set, apply uses this framework directly without detection.
+**`testing.behavior`** (string, optional): The test framework for `@behavior` scenarios (e.g. `vitest`, `jest`, `pytest`, `go test`). If omitted, `/beat:apply` auto-detects from the codebase. These are unit/integration tests that don't need a running app.
+
+**`testing.e2e`** (string, optional): The test framework for `@e2e` scenarios (e.g. `playwright`, `cypress`, `puppeteer`). If omitted, `/beat:apply` auto-detects from the codebase (looks for playwright.config, cypress.config, etc.). These are end-to-end tests that need a running app.
 
 Skills that consume `testing`:
-- `/beat:apply` — checks `testing.required` and `testing.framework` before TDD cycles
+- `/beat:apply` — checks `testing.required`, `testing.behavior`, and `testing.e2e` before TDD cycles
 - `/beat:verify` — checks `testing.required` to decide whether Dimension 1 includes test existence checks
 - `/beat:setup` — asks users about testing preferences and writes this field
 
-**Interaction with `@no-test` scenario tag:** The `@no-test` Gherkin tag overrides `testing.required` at the scenario level. Even when `testing.required: true`, scenarios tagged `@no-test` are excluded from TDD and coverage checks. When `testing.required: false`, `@no-test` has no additional effect.
+**Backward compatibility:** If the legacy `testing.framework` field is present (instead of `testing.behavior`), treat it as `testing.behavior` (the old field was used for unit/behavior tests).
 
 ### `rules`
 
@@ -101,11 +104,11 @@ language: zh-TW
 
 context: |
   Tech stack: TypeScript, React, PostgreSQL
-  Testing: Vitest + React Testing Library
   Architecture: Feature-sliced design
 
 testing:
-  framework: vitest
+  behavior: vitest
+  e2e: playwright
 
 rules:
   proposal:

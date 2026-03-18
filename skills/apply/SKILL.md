@@ -119,7 +119,9 @@ digraph apply {
 
    **Determine testing mode:**
    - If `testing.required: false` → **no-test mode**: skip TDD cycles for all scenarios, write implementation only
-   - If `testing.framework` is set → use that framework (skip auto-detection)
+   - If `testing.behavior` is set → use that framework for `@behavior` scenarios (skip auto-detection)
+   - If `testing.e2e` is set → use that framework for `@e2e` scenarios (skip auto-detection)
+   - If `testing.framework` is set (legacy) → treat as `testing.behavior`
    - If `testing` is absent or `testing.required: true` → **TDD mode** (default): require tests for all scenarios
 
 4. **Determine implementation strategy**
@@ -153,15 +155,15 @@ digraph apply {
 
    b. **Write automated test first** (TDD mode only):
       - Skip this step if **no-test mode**
-      - The test framework: use `testing.framework` from config, or detect from codebase
+      - The test framework: use `testing.behavior` or `testing.e2e` from config (depending on scenario tag), or detect from codebase
 
       **For `@e2e` scenarios (Gherkin-driven):**
-      - Generate e2e test or step definitions using the project's e2e framework
+      - Generate e2e test or step definitions using `testing.e2e` framework from config, or auto-detect from codebase
       - If the project uses a BDD runner (Cucumber, pytest-bdd, etc.), generate step definitions that bind to the .feature file
       - If no BDD runner, generate a regular e2e test with `@feature`/`@scenario` annotations (same as `@behavior`)
 
       **For `@behavior` scenarios (Gherkin-driven):**
-      - Generate a test file (using `testing.framework` from config, or auto-detect) with annotation comments:
+      - Generate a test file (using `testing.behavior` from config, or auto-detect) with annotation comments:
         ```
         @feature: <feature-filename>.feature
         @scenario: <exact scenario name>
@@ -233,7 +235,7 @@ digraph apply {
 - `@e2e` scenarios → e2e test or step definitions (using project's e2e framework)
 - `@behavior` scenarios → test with `@feature`/`@scenario` annotations + `@covered-by` comment in .feature
 - The test MUST be executable (not just a skeleton)
-- The test framework: `testing.framework` from config, or auto-detect from codebase
+- The test framework: `testing.behavior` (for @behavior) or `testing.e2e` (for @e2e) from config, or auto-detect from codebase
 - If the project has a BDD runner (Cucumber, pytest-bdd, etc.), generate step definitions that bind directly to .feature files
 
 **In proposal-driven mode** (gherkin skipped):
@@ -243,7 +245,7 @@ digraph apply {
 
 **In no-test mode** (`testing.required: false`):
 - Tests are not required. Implementation code is written directly.
-- Developers may still write tests voluntarily using `testing.framework` if specified.
+- Developers may still write tests voluntarily using `testing.behavior`/`testing.e2e` if specified.
 
 **Guardrails**
 - Never implement without reading artifacts first (features in gherkin-driven, proposal in proposal-driven)

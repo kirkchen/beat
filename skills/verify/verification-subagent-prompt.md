@@ -16,6 +16,8 @@ The dispatcher provides:
 
 - **Drive mode**: gherkin-driven | proposal-driven
 - **Testing config**: required (default) | not-required
+- **Behavior framework**: e.g. vitest, jest, pytest (from config `testing.behavior`)
+- **E2E framework**: e.g. playwright, cypress (from config `testing.e2e`)
 - **Source**: normal | distill
 - **Tags summary**: @e2e count, @behavior count
 
