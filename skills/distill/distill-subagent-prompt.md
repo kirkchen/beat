@@ -13,7 +13,7 @@ The dispatcher provides:
 
 ## Accuracy Checks
 
-For each Scenario in the draft .feature files (excluding @no-test):
+For each Scenario in the draft .feature files:
 
 1. **Does the code actually behave as the scenario describes?**
    - Cite specific file:line as evidence

@@ -17,18 +17,46 @@ The dispatcher provides:
 - **Drive mode**: gherkin-driven | proposal-driven
 - **Testing config**: required (default) | not-required
 - **Source**: normal | distill
-- **Tags summary**: @e2e count, @behavior count, @no-test count
+- **Tags summary**: @e2e count, @behavior count
 
-## Dimension 1: Gherkin Coverage
+## Dimension 1: Gherkin Coverage & Quality
 
-The behavior of this dimension depends on testing context and drive mode.
+This dimension checks both **test coverage** (are scenarios tested?) and **Gherkin quality** (do scenarios follow BDD standards?).
+
+The behavior depends on testing context and drive mode.
 
 **When gherkin is skipped (proposal-driven):**
 - Skip Dimension 1 entirely.
 - Note in report: "Gherkin coverage skipped (gherkin: skipped, proposal-driven mode)."
 
+### 1A: Gherkin Quality (always checked when gherkin exists)
+
+For each .feature file:
+
+**Scenario level:**
+- Is the scenario written at behavior level ("what the system does"), not function level ("how a function works")?
+  - Function-level indicators: mentions function names, calls with specific arguments, checks return values → WARNING
+- Does every scenario have exactly one testing layer tag (`@e2e` or `@behavior`)?
+  - Missing both → WARNING. Has both → WARNING.
+- Is the `@e2e` vs `@behavior` choice appropriate?
+  - `@e2e` should require a running app (user journey, API call, UI interaction)
+  - `@behavior` should be testable without a running app (business logic, calculation, validation)
+  - Misclassified → SUGGESTION
+
+**Annotation format** (for scenarios with `@covered-by`):
+- Is `# @covered-by: <path>` placed between the tag line and the Scenario line?
+- Does the referenced test file contain matching `// @feature:` and `// @scenario:` comments?
+- Format violations → WARNING
+
+**Feature level:**
+- Does the Feature have a description (As a / I want / So that or equivalent business context)?
+  - Missing description → SUGGESTION
+- Are tags appropriate (`@happy-path`, `@error-handling`, `@edge-case`)?
+
+### 1B: Test Coverage (mode-dependent)
+
 **Default mode (coverage):** testing.required is true (or unset), source is not distill.
-For each Scenario in .feature files (excluding @no-test):
+For each Scenario in .feature files:
 
 *@e2e scenarios:*
 - Does an e2e test or step definition exist for this scenario?
@@ -47,7 +75,7 @@ For each Scenario in .feature files (excluding @no-test):
 *Scenarios without @e2e/@behavior tag:* treat as @behavior.
 
 **Accuracy mode:** source: distill in status.yaml.
-For each Scenario in .feature files (excluding @no-test):
+For each Scenario in .feature files:
 - Does the code actually behave as the scenario describes? (cite specific file:line)
 - Are there behaviors in the code NOT captured by any scenario?
 - Are there scenarios that don't match the code?
@@ -81,6 +109,7 @@ If design.md exists:
 ### Summary
 | Dimension | Status | Issues |
 |-----------|--------|--------|
+| Gherkin Quality | pass/partial/fail/skipped | N |
 | Gherkin Coverage | pass/partial/fail/skipped | N |
 | Proposal Alignment | pass/partial/fail/skipped | N |
 | Design Adherence | pass/partial/fail/skipped | N |
@@ -103,7 +132,7 @@ If design.md exists:
 - Source: normal/distill
 - @e2e scenarios: N (checked for e2e tests/step definitions)
 - @behavior scenarios: N (checked for @covered-by annotations)
-- @no-test scenarios: N excluded
+- All scenarios expected to have tests (no @no-test exceptions)
 
 ### Final Assessment
 - "X critical issue(s) found. Fix before archiving."

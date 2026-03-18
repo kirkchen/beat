@@ -120,8 +120,7 @@ digraph apply {
    **Determine testing mode:**
    - If `testing.required: false` → **no-test mode**: skip TDD cycles for all scenarios, write implementation only
    - If `testing.framework` is set → use that framework (skip auto-detection)
-   - If `testing` is absent or `testing.required: true` → **TDD mode** (default): require tests for all scenarios except `@no-test`
-   - Scenarios tagged `@no-test` → always skip TDD regardless of config
+   - If `testing` is absent or `testing.required: true` → **TDD mode** (default): require tests for all scenarios
 
 4. **Determine implementation strategy**
 
@@ -153,7 +152,7 @@ digraph apply {
    a. **Announce**: "Working on: <description>"
 
    b. **Write automated test first** (TDD mode only):
-      - Skip this step if **no-test mode** or scenario is tagged `@no-test`
+      - Skip this step if **no-test mode**
       - The test framework: use `testing.framework` from config, or detect from codebase
 
       **For `@e2e` scenarios (Gherkin-driven):**
@@ -230,7 +229,7 @@ digraph apply {
 **Testing Rule: Conditional TDD**
 
 **In TDD mode** (default when `testing.required` is true or unset):
-- For every Scenario in every .feature file (excluding `@no-test`): there MUST be a corresponding automated test
+- For every Scenario in every .feature file: there MUST be a corresponding automated test
 - `@e2e` scenarios → e2e test or step definitions (using project's e2e framework)
 - `@behavior` scenarios → test with `@feature`/`@scenario` annotations + `@covered-by` comment in .feature
 - The test MUST be executable (not just a skeleton)
@@ -246,13 +245,9 @@ digraph apply {
 - Tests are not required. Implementation code is written directly.
 - Developers may still write tests voluntarily using `testing.framework` if specified.
 
-**@no-test tag** (per-scenario override):
-- Scenarios tagged `@no-test` are always skipped for TDD, even in TDD mode.
-- Announce when skipping: "Skipping TDD for <scenario> (@no-test)".
-
 **Guardrails**
 - Never implement without reading artifacts first (features in gherkin-driven, proposal in proposal-driven)
-- In TDD mode: always write test before implementation (unless @no-test)
+- In TDD mode: always write test before implementation
 - For `@behavior` scenarios: always add `@covered-by` annotation to .feature after writing the test
 - For `@behavior` scenarios: always add `@feature`/`@scenario` annotations in the test file
 - Keep each change scoped to one scenario/task
