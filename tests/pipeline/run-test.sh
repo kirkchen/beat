@@ -72,8 +72,8 @@ else
     FAIL_COUNT=$((FAIL_COUNT + 1))
 fi
 
-# Test files
-TEST_COUNT=$(find "$PROJECT_DIR/test" -name "*.test.*" -o -name "*.spec.*" 2>/dev/null | wc -l | tr -d ' ')
+# Test files (may be in test/, src/, or alongside source files)
+TEST_COUNT=$(find "$PROJECT_DIR" -not -path "*/node_modules/*" -not -path "*/.git/*" \( -name "*.test.*" -o -name "*.spec.*" \) 2>/dev/null | wc -l | tr -d ' ')
 if [[ "$TEST_COUNT" -gt 0 ]]; then
     echo -e "${GREEN}[PASS]${NC} Test files created ($TEST_COUNT files)"
     PASS_COUNT=$((PASS_COUNT + 1))
