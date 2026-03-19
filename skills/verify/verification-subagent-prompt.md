@@ -44,6 +44,13 @@ For each .feature file:
   - `@e2e` should require a running app (user journey, API call, UI interaction)
   - `@behavior` should be testable without a running app (business logic, calculation, validation)
   - Misclassified → SUGGESTION
+- Do scenarios leak implementation details?
+  - Concrete numeric thresholds (0.85, 1.0) instead of business concepts → WARNING
+  - Code method names (detect_pii) instead of business verbs → WARNING
+  - Internal constants (context window, checksum weights) → WARNING
+  - Exception: API contract constants (entity type names, HTTP status codes) are shared vocabulary and OK
+- Are repeated Given steps across scenarios not consolidated into Background? → WARNING
+- Do any tags lack a filtering purpose (decorative tags with no test selection use)? → SUGGESTION
 
 **Annotation format** (for scenarios with `@covered-by`):
 - Is `# @covered-by: <path>` placed between the tag line and the Scenario line?
@@ -51,8 +58,8 @@ For each .feature file:
 - Format violations → WARNING
 
 **Feature level:**
-- Does the Feature have a description (As a / I want / So that or equivalent business context)?
-  - Missing description → SUGGESTION
+- Does the Feature have a business narrative (As a / I want / So that or equivalent business context)?
+  - Missing narrative → WARNING
 - Are tags appropriate (`@happy-path`, `@error-handling`, `@edge-case`)?
 
 ### 1B: Test Coverage (mode-dependent)
