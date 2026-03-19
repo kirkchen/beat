@@ -31,6 +31,13 @@ For each Scenario in the draft .feature files:
    - Map them to corresponding scenarios
    - Missing test → SUGGESTION (not CRITICAL, since distill focuses on accuracy)
 
+5. **Gherkin quality check**
+   - Do scenarios leak implementation details? (concrete numeric thresholds, method names, internal constants)
+     - API contract constants (entity type names, HTTP status codes) are acceptable as shared vocabulary
+   - Does each Feature have a business narrative (As a / I want / So that)?
+   - Are repeated Given steps consolidated into Background?
+   - Quality issues → SUGGESTION
+
 ## Output Format
 
 ```
@@ -41,13 +48,14 @@ For each Scenario in the draft .feature files:
 |-------|--------|--------|
 | Scenario Accuracy | pass/partial/fail | N |
 | Coverage Completeness | pass/partial | N |
+| Gherkin Quality | pass/partial | N |
 
 ### CRITICAL (inaccurate or aspirational scenarios)
 - Scenario: <name> -- file:line
   Finding: <what's wrong>
   Recommendation: <specific fix>
 
-### SUGGESTION (uncovered behaviors, missing tests)
+### SUGGESTION (uncovered behaviors, missing tests, quality issues)
 - Finding: <description> -- file:line
   Recommendation: <specific action>
 
