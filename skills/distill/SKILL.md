@@ -48,6 +48,16 @@ Use this to bring existing codebases into the Beat workflow. The output is draft
    - Each scenario must accurately reflect what the code actually does
    - Use tags: `@distilled` (always), plus `@happy-path`, `@error-handling`, `@edge-case`
    - Use SpecFlow style with rich description areas
+   - Each Feature MUST include a business narrative (As a / I want / So that)
+   - Scenarios use business language. Prohibited leaks:
+     - Concrete numeric thresholds (0.85, 1.0) → use business concepts (high confidence / low confidence)
+     - Code method names (detect_pii) → use business verbs (check for personal data)
+     - Internal constants (context window, checksum weights) → omit or describe effect
+     - Exception: API contract constants (entity type names, HTTP status codes) are shared vocabulary and MAY appear
+   - Repeated Given steps across scenarios MUST use Background:
+   - Tags must serve a filtering purpose: `@happy-path`, `@edge-case`, `@error-handling` — no decorative tags
+   - BDD focuses on high-level acceptance (detected / blocked / passed); boundary values and algorithm details belong in unit tests
+   - Every scenario MUST have a testing layer tag (`@e2e` or `@behavior`, default `@behavior`)
 
    **proposal.md (optional):**
    - If the purpose is clear from code/docs: write a brief "why this exists" proposal
