@@ -19,7 +19,7 @@ Inline rules per skill (not a shared reference file), because:
 
 ### 1. distill/SKILL.md — Step 4 feature generation
 
-Replace the current two-line guidance with full quality guardrails:
+Extend the existing feature generation guidance (preserve existing instructions: "CURRENT behavior not desired behavior", "@distilled always", "SpecFlow style"). Add the following quality guardrails after the existing lines:
 
 - Each Feature MUST include a business narrative (As a / I want / So that)
 - Scenarios use business language. Prohibited leaks:
@@ -51,7 +51,7 @@ Add a "Gherkin quality constraints" block before the existing granularity assess
 
 ### 4. ff/SKILL.md — Expand Gherkin artifact pattern
 
-Expand the single-line Gherkin entry in Artifact patterns to include:
+Expand the Gherkin paragraph in Artifact patterns (line starting with `- **Gherkin**:`) to include:
 - Business language mandate — no concrete numeric thresholds, code method names, or internal constants (API contract constants OK)
 - Repeated Given steps use Background:
 - Tags must serve filtering purpose — no decorative tags
@@ -59,22 +59,20 @@ Expand the single-line Gherkin entry in Artifact patterns to include:
 
 Maintain ff's existing inline paragraph style.
 
-### 5. verify/SKILL.md — Define Gherkin quality checks
+### 5. verify — Define Gherkin quality checks
 
-Add an explicit "Gherkin Quality Check" section (applies to both gherkin-driven and distill-driven verification):
-- Scenario implementation detail leaks (thresholds, method names, constants; API contract exception)
+The actual quality checking is performed by `verification-subagent-prompt.md`, not `verify/SKILL.md` (which is the dispatcher). The verification-subagent-prompt already has Section 1A (Gherkin Quality) with a function-level indicator check. Extend that existing section with:
+- Scenario implementation detail leaks (thresholds, method names, constants; API contract exception) — extends the existing function-level indicator check
 - Feature business narrative presence
 - Background: consolidation for repeated Given steps
 - Tag filtering purpose
-- Severity: **WARNING** (stricter than distill-subagent's SUGGESTION, since verify is the formal quality gate)
+- Severity: **WARNING** (consistent with existing Section 1A severity; stricter than distill-subagent's SUGGESTION since verify is the formal quality gate)
 
-### 6. Skill prompt wording — rules.gherkin enforcement
+`verify/SKILL.md` Issue Classification already lists "Gherkin quality issues" as WARNING — no change needed there.
 
-In distill, continue, and ff, add to the config reading paragraph:
+### ~~6. Skill prompt wording — rules.gherkin enforcement~~ (Removed)
 
-> If `rules.gherkin` exists, apply each rule as a hard constraint when generating feature files.
-
-No changes to config-schema.md (schema already defines `rules.gherkin` as `array of strings` with "constraints, not templates" semantics).
+All three generation skills already say "apply matching `rules` per artifact type," which covers `rules.gherkin`. Adding a special callout for one rule key creates asymmetry with `rules.proposal`, `rules.design`, etc. No change needed.
 
 ## Out of Scope
 
