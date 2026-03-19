@@ -17,4 +17,10 @@ assert_contains "$output" "e2e\|behavior\|tag" "verify knows to check @e2e/@beha
 output=$(run_claude "As beat:verify, is @no-test a valid tag in feature files?" 30)
 assert_contains "$output" "no\|not\|removed\|invalid" "verify knows @no-test is removed"
 
+output=$(run_claude "As beat:verify, what severity are implementation detail leaks in scenarios — like concrete numeric thresholds or method names?" 30)
+assert_contains "$output" "WARNING\|warning" "verify knows implementation detail leaks are WARNING"
+
+output=$(run_claude "As beat:verify, what severity is a missing business narrative in a Feature?" 30)
+assert_contains "$output" "WARNING\|warning" "verify knows missing business narrative is WARNING"
+
 print_summary

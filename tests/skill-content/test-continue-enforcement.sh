@@ -14,4 +14,7 @@ assert_contains "$output" "brainstorming" "continue knows to invoke brainstormin
 output=$(run_claude "As beat:continue, is it OK to skip brainstorming if user already described what they want?" 30)
 assert_contains "$output" "no\|must\|always\|never" "continue resists description-is-enough bias"
 
+output=$(run_claude "As beat:continue, can Gherkin scenarios include concrete numeric thresholds or code method names?" 30)
+assert_contains "$output" "no\|prohibit\|must not\|avoid\|business.*language\|leak" "continue knows about prohibited implementation detail leaks"
+
 print_summary

@@ -20,4 +20,7 @@ assert_contains "$output" "checkbox\|writing-plans\|brainstorming" "ff knows its
 output=$(run_claude "As beat:ff, is it OK to write tasks inline if the change is simple?" 30)
 assert_contains "$output" "no\|must\|writing-plans\|never" "ff resists simplicity bias for tasks"
 
+output=$(run_claude "As beat:ff, can Gherkin scenarios use concrete numeric thresholds or internal constants?" 30)
+assert_contains "$output" "no\|prohibit\|must not\|avoid\|business.*language\|leak" "ff knows about prohibited implementation detail leaks"
+
 print_summary
