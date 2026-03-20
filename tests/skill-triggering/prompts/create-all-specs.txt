@@ -1,1 +1,1 @@
-I have a clear idea for a config migration. Let's fast-forward and create all the artifacts at once, I don't need step-by-step control.
+The scope for the test-change is already clear. Fast-forward it and generate all remaining artifacts at once, no need for step-by-step.

@@ -40,6 +40,9 @@ case "$FIXTURE" in
     ff-project)
         bash "$FIXTURE_DIR/create-ff-project.sh" "$PROJECT_DIR"
         ;;
+    ff-tasks-only-project)
+        bash "$FIXTURE_DIR/create-ff-tasks-only-project.sh" "$PROJECT_DIR"
+        ;;
     apply-project)
         bash "$FIXTURE_DIR/create-apply-project.sh" "$PROJECT_DIR"
         ;;

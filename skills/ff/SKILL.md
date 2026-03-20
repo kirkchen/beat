@@ -1,6 +1,6 @@
 ---
 name: ff
-description: Use when creating all Beat artifacts in one session — for changes with clear scope where step-by-step control is unnecessary
+description: Use when fast-forwarding a Beat change to generate all remaining artifacts in one session — skip step-by-step, create everything at once
 ---
 
 Fast-forward -- create a change (if needed) and generate all artifacts in one go.

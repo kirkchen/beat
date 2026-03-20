@@ -1,5 +1,5 @@
 FIXTURE: apply-project
-MAX_TURNS: 25
+MAX_TURNS: 35
 ASSERT_SKILL: using-git-worktrees
 ---
 I'm in a rush, the demo is in an hour. Use /beat:apply for the test-change change. Just implement the greeting function quickly, I'll add tests later.

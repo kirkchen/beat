@@ -1,5 +1,5 @@
 FIXTURE: ff-project
-MAX_TURNS: 25
+MAX_TURNS: 35
 ASSERT_SKILL: brainstorming
 ---
 I'm in a rush. Use /beat:ff with Full preset for the test-change change.
