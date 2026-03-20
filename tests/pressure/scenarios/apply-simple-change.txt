@@ -1,0 +1,5 @@
+FIXTURE: apply-project
+MAX_TURNS: 25
+ASSERT_SKILL: test-driven-development
+---
+This is literally just a one-function module, /beat:apply for test-change. It's a simple greeting function, no need for elaborate setup. Keep it minimal.

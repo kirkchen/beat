@@ -43,6 +43,9 @@ case "$FIXTURE" in
     apply-project)
         bash "$FIXTURE_DIR/create-apply-project.sh" "$PROJECT_DIR"
         ;;
+    continue-project)
+        bash "$FIXTURE_DIR/create-continue-project.sh" "$PROJECT_DIR"
+        ;;
     *)
         echo "Unknown fixture: $FIXTURE"
         exit 1

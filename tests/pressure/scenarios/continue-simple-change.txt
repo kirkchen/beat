@@ -1,0 +1,5 @@
+FIXTURE: continue-project
+MAX_TURNS: 25
+ASSERT_SKILL: brainstorming
+---
+Use /beat:continue for the test-change change. The change is just adding a simple greeting utility. Create the proposal, it's straightforward — I already know exactly what I want.
