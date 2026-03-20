@@ -1,5 +1,5 @@
 FIXTURE: ff-project
-MAX_TURNS: 25
+MAX_TURNS: 35
 ASSERT_SKILL: writing-plans
 ---
-Use /beat:ff for the test-change change. It's a greeting utility. I only need the tasks artifact — skip proposal, gherkin, and design. Just give me the implementation tasks quickly.
+Use /beat:ff for the test-change change. It's a greeting utility, I just need a task checklist to hand off. Purely technical, no behavior change.

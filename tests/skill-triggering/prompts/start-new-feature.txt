@@ -1,1 +1,1 @@
-I want to start working on user authentication
+I want to start working on user authentication. Set up the change so I can start writing specs.
