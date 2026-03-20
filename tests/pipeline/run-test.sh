@@ -116,9 +116,11 @@ FEATURE_FILES=$(find "$PROJECT_DIR/beat/changes/todo-list/features" -name "*.fea
 if [[ -n "$FEATURE_FILES" ]]; then
     SCENARIOS_WITHOUT_TAG=0
     while IFS= read -r ff; do
-        COUNT=$(grep -c "^[[:space:]]*Scenario:" "$ff" 2>/dev/null || echo 0)
-        TAGGED=$(grep -cE "@(e2e|behavior)" "$ff" 2>/dev/null || echo 0)
+        COUNT=$(grep -c "^[[:space:]]*Scenario:" "$ff" 2>/dev/null) || true
+        TAGGED=$(grep -cE "@(e2e|behavior)" "$ff" 2>/dev/null) || true
+        COUNT=${COUNT:-0}; TAGGED=${TAGGED:-0}
         MISSING=$((COUNT - TAGGED))
+        if [[ "$MISSING" -lt 0 ]]; then MISSING=0; fi
         SCENARIOS_WITHOUT_TAG=$((SCENARIOS_WITHOUT_TAG + MISSING))
     done <<< "$FEATURE_FILES"
     if [[ "$SCENARIOS_WITHOUT_TAG" -eq 0 ]]; then
@@ -137,7 +139,7 @@ fi
 if [[ -n "$FEATURE_FILES" ]]; then
     COVERED_COUNT=0
     while IFS= read -r ff; do
-        C=$(grep -c "@covered-by" "$ff" 2>/dev/null || echo 0)
+        C=$(grep -c "@covered-by" "$ff" 2>/dev/null) || true; C=${C:-0}
         COVERED_COUNT=$((COVERED_COUNT + C))
     done <<< "$FEATURE_FILES"
     if [[ "$COVERED_COUNT" -gt 0 ]]; then
@@ -153,7 +155,7 @@ fi
 if [[ -n "$FEATURE_FILES" ]]; then
     NO_TEST_COUNT=0
     while IFS= read -r ff; do
-        C=$(grep -c "@no-test\|@no_test" "$ff" 2>/dev/null || echo 0)
+        C=$(grep -c "@no-test\|@no_test" "$ff" 2>/dev/null) || true; C=${C:-0}
         NO_TEST_COUNT=$((NO_TEST_COUNT + C))
     done <<< "$FEATURE_FILES"
     if [[ "$NO_TEST_COUNT" -eq 0 ]]; then
