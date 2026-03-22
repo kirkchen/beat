@@ -1,8 +1,130 @@
 # Agent Team Design for Beat
 
+## Research: AI Development Pain Points
+
+### Industry Data (2025-2026)
+
+Recent research reveals a striking **productivity paradox** in AI-assisted development:
+
+- **METR RCT Study**: Experienced open-source developers were **19% slower** with AI tools, despite predicting 24% faster. Even after completing the study, developers still believed AI sped them up by 20% — a remarkable perceptual gap.
+- **Qodo State of AI Code Quality 2025**: 65% cite **missing context** as the primary cause of poor AI output (more than hallucinations). Only 3.8% of developers experience both low hallucinations and high shipping confidence.
+- **Stack Overflow 2025 Survey**: 66% of developers spend extra time fixing "almost-right" AI suggestions.
+- **CodeRabbit Analysis** (470 real-world PRs): AI-generated code produces **1.7x more issues** than human code overall.
+- **Atlassian Research**: Developers only spend 16% of their time coding. AI coding speed gains are offset by non-coding bottlenecks — developers saved 10 hrs/week from AI but lost 10 hrs/week to other friction.
+
+### Pain Point Taxonomy
+
+Based on industry research and analysis of Beat's existing anti-pattern defenses, here are the 12 core pain points:
+
+#### Category A: Context & Memory
+
+| # | Pain Point | Evidence | Severity |
+|---|-----------|----------|----------|
+| A1 | **Context window saturation** | Agent loses early decisions as window fills; late-pipeline artifacts are weaker | Critical |
+| A2 | **Missing project context** | 65% of developers cite this as #1 cause of poor AI output (Qodo) | Critical |
+| A3 | **Cross-session amnesia** | Each new session starts blank; prior decisions lost unless explicitly recorded | High |
+| A4 | **Architectural amnesia** | Agent forgets cross-cutting concerns (security, conventions, patterns) | High |
+
+#### Category B: Quality & Correctness
+
+| # | Pain Point | Evidence | Severity |
+|---|-----------|----------|----------|
+| B1 | **"Almost right" code** | 66% of devs spend extra time fixing AI suggestions (SO 2025). Code looks correct, passes cursory review, but has subtle bugs | Critical |
+| B2 | **Self-verification bias** | Agent trusts its own output; can't objectively review what it just wrote | Critical |
+| B3 | **Test quality illusion** | AI writes tests that pass but don't actually verify behavior (tautological tests, overly mocked) | High |
+| B4 | **1.7x more issues** | AI code has more logic errors, security issues, and maintainability problems (CodeRabbit) | High |
+
+#### Category C: Process & Discipline
+
+| # | Pain Point | Evidence | Severity |
+|---|-----------|----------|----------|
+| C1 | **Rationalization drift** | Agent skips steps when it "seems simple enough"; invents excuses for shortcuts | Critical |
+| C2 | **Sycophancy / over-agreement** | Agent agrees with user's flawed assumptions instead of challenging them | High |
+| C3 | **Productivity perception gap** | Developers believe AI helps even when measurably slower (METR: -19% actual vs +20% perceived) | High |
+| C4 | **Specification-implementation drift** | Implementation diverges from specification without the agent noticing | High |
+
+### How Beat Already Addresses These
+
+Beat's existing architecture provides defenses for many of these pain points:
+
+| Pain Point | Beat Defense | Coverage |
+|-----------|-------------|----------|
+| A1 Context saturation | Artifact chain distills context at each phase | Partial — no fresh-session guidance |
+| A2 Missing project context | `config.yaml` context injection into every skill | Complete |
+| A3 Cross-session amnesia | `status.yaml` + artifacts carry full state | Complete |
+| A4 Architectural amnesia | `design.md` + `config.yaml` context | Partial — no enforcement |
+| B1 "Almost right" code | TDD (test before implementation) catches bugs at write time | Strong |
+| B2 Self-verification bias | Verify subagent has NO implementation context | Complete |
+| B3 Test quality illusion | Verify checks tests are executable, annotations are valid | Partial — doesn't check test logic |
+| B4 1.7x more issues | 4-dimension verification + code-reviewer subagent | Strong |
+| C1 Rationalization drift | Hard Gates + Rationalization Prevention Tables + Red Flags + Pressure Tests | Complete |
+| C2 Sycophancy | `explore` skill has "curious, not prescriptive" stance | Partial — only in explore |
+| C3 Productivity perception gap | Not addressed (Beat doesn't track metrics) | Gap |
+| C4 Spec-implementation drift | Verify Dimension 1 (gherkin coverage) + Dimension 2 (proposal alignment) | Strong |
+
+### Beat's Anti-Pattern Defense System (Deep Dive)
+
+Beat has a sophisticated, multi-layered defense system against AI anti-patterns:
+
+**Layer 1: Hard Gates** — Unconditional prerequisites that cannot be skipped.
+
+```
+"MUST" means unconditional. Not "if complex enough". Not "if time permits". Always.
+```
+
+| Skill | Hard Gate | What It Prevents |
+|-------|----------|------------------|
+| apply | `using-git-worktrees` | Implementing on main branch, polluting working tree |
+| apply | `test-driven-development` | Writing code without tests, reversing TDD order |
+| continue/ff | `brainstorming` | Shallow thinking on proposal/design |
+| continue/ff | `writing-plans` | Unstructured task decomposition |
+| explore | `brainstorming` | Jumping to solutions without understanding problem |
+| archive | `finishing-a-development-branch` | Leaving branches unfinished |
+
+**Layer 2: Rationalization Prevention Tables** — Pre-documented rebuttals to common AI excuses.
+
+| AI Excuse | Rebuttal (from Beat skills) |
+|-----------|---------------------------|
+| "This change is simple enough to skip writing-plans" | Simple changes finish writing-plans quickly. Complex changes need it most. No middle ground where skipping helps. |
+| "I already understand the scope from proposal" | Understanding scope ≠ having decomposed tasks. Writing-plans forces decomposition. |
+| "I'll write tests after the implementation" | TDD is about design feedback, not coverage. Writing test first reveals API design issues. |
+| "This is a refactor, TDD doesn't apply" | Refactors are exactly when TDD proves behavior preservation. |
+| "I'll batch @covered-by annotations at the end" | You will forget. Add annotations when writing each test. |
+| "I'll set up the worktree after this one file" | That "one file" becomes five. Worktree first, always. |
+
+**Layer 3: Red Flags** — Behavioral signals that indicate the agent is drifting.
+
+- Writing code before invoking worktrees
+- Implementing before a failing test exists (in TDD mode)
+- Generating proposal without brainstorming
+- Writing task checkboxes before writing-plans
+- Judging prerequisites "unnecessary for this case"
+- Planning to "compensate later"
+
+**Layer 4: Pressure Tests** — Automated tests that simulate hostile scenarios:
+
+- `apply-time-pressure.txt`: "Demo in an hour, implement quickly, add tests later"
+- `apply-simple-change.txt`: "Just a one-function module, no elaborate testing"
+- `ff-time-pressure.txt`: "I'm in a rush, just fast-forward everything"
+- `ff-simple-change.txt`: "One-line config fix, skip brainstorming"
+
+These tests assert the agent still invokes Hard Gate prerequisites under pressure.
+
+### Remaining Gaps (Agent Team Opportunities)
+
+| Gap | Description | Agent Team Solution |
+|-----|-------------|-------------------|
+| **Fresh-context guidance** | No mechanism to suggest "start a new session" when context is saturated | SessionStart hook tracks session depth, suggests handoff |
+| **Test logic verification** | Verify checks test existence and annotations, not whether tests actually verify behavior | Dedicated test-quality review subagent |
+| **Productivity metrics** | No way to measure if the pipeline actually improves quality | Quality scorecard tracked across pipeline |
+| **Sycophancy in implementation** | Agent follows flawed design without questioning | Cross-phase review where verifier checks design decisions |
+| **Parallel task coordination** | `subagent-driven-development` exists but no Beat-specific parallel protocol | Structured parallel implementation with merge strategy |
+
+---
+
 ## Problem Statement
 
-AI-driven software development with a single Claude Code session faces fundamental challenges:
+The agent team design addresses the **remaining gaps** not covered by Beat's existing defenses:
 
 | Problem | Symptom | Impact |
 |---------|---------|--------|
@@ -255,60 +377,111 @@ Session 3: /beat:verify → /beat:sync → /beat:archive (for each)
 
 ## Solving AI Development Problems
 
-### Problem 1: Context Saturation
+This section maps each pain point from the taxonomy to a concrete solution in the agent team model.
 
-**Solution**: Fresh-Context Pipeline (Pattern 2)
+### A1: Context Window Saturation → Fresh-Context Pipeline
+
+**Pattern**: Pattern 2 (Fresh-Context Pipeline)
 
 Each session starts with a clean context window. Artifacts carry all necessary context. The SessionStart hook ensures the new session knows where to pick up.
 
 **Mechanism**: Beat's artifact chain (proposal → gherkin → design → tasks) naturally distills context at each phase. A fresh session reading these artifacts has better context than a saturated session that wrote them.
 
-### Problem 2: Self-Verification Bias
+**New**: The enhanced SessionStart hook detects context depth and suggests: "This change has been in progress for N interactions. Consider starting a fresh session — artifacts carry your full context."
 
-**Solution**: Already solved by Beat's verify subagent architecture
+### A2: Missing Project Context → config.yaml + Context Injection
 
-The verification subagent receives ONLY artifacts and code — no conversation history, no implementation rationale. It verifies objectively against the specification.
+**Beat already solves this** via `config.yaml` context field. Every skill reads it.
 
-**Enhancement**: In the team model, verification can happen in a completely separate session (Pattern 2, Session 5), adding an additional layer of independence.
+**Enhancement**: Provide a `/beat:setup` guided wizard that thoroughly scans the project and generates rich context (tech stack, architecture patterns, testing conventions, naming standards).
 
-### Problem 3: Quality Degradation in Long Sessions
+### A3-A4: Cross-Session & Architectural Amnesia → Artifact-Based Memory
 
-**Solution**: Fresh-Context Pipeline + Subagent Parallelization
+**Beat already solves cross-session** via `status.yaml` + artifacts.
 
-Break long sessions into focused, short sessions. Each role-session has a clear, bounded scope:
-- Specifier: only write specs (30-60 min)
-- Architect: only design (30-60 min)
-- Implementer: only code (variable, but scoped by tasks)
-- Verifier: only verify (15-30 min)
+**Enhancement for architectural amnesia**: The `config.yaml` context field should include cross-cutting concerns. Example:
 
-### Problem 4: Rationalization Drift
+```yaml
+context: |
+  Security: All user input must be validated. SQL uses parameterized queries.
+  Error handling: All API errors return RFC 7807 format.
+  Naming: React components use PascalCase, utilities use camelCase.
+  Testing: Every public API endpoint needs an integration test.
+```
 
-**Solution**: Already solved by Beat's Hard Gate system
+This context is injected into EVERY skill invocation, preventing any session from forgetting these concerns.
 
-Every MUST prerequisite has:
-- Unconditional invocation (no "this is too simple" escape)
-- Rationalization Prevention Table (documents common excuses)
-- Red Flags (patterns that indicate skipping)
+### B1: "Almost Right" Code → TDD + Independent Verification
 
-**Enhancement**: In the team model, the human acts as team lead and can catch rationalization by reviewing artifacts between phases.
+**Beat's layered defense**:
+1. **TDD** (test-driven-development prerequisite) catches bugs at write time by requiring test BEFORE implementation
+2. **Verify subagent** catches what TDD missed by independently checking against specification
+3. **Code-reviewer subagent** catches quality issues
 
-### Problem 5: Architectural Amnesia
+**Enhancement**: In the team model, the Implementer and Verifier are always different sessions (or subagents). The Verifier has zero context about implementation struggles, workarounds, or "temporary" decisions.
 
-**Solution**: Design artifact + config.yaml context injection
+### B2: Self-Verification Bias → Independent Subagent Architecture
 
-The `design.md` artifact captures architectural decisions. The `config.yaml` context field injects project-wide architectural guidelines into every skill invocation. These persist across sessions.
+**Beat already solves this completely**. The verification subagent receives ONLY artifacts and code — no conversation history, no implementation rationale.
 
-**Enhancement**: Add a `beat/architecture.md` or use `config.yaml` context to document cross-cutting concerns (security patterns, error handling conventions, naming standards) that every implementer session inherits.
+**Enhancement**: In Pattern 2, verification happens in a completely separate Claude session, adding an additional layer of independence beyond subagent isolation.
 
-### Problem 6: No Peer Review Equivalent
+### B3: Test Quality Illusion → Verify Dimension Enhancement
 
-**Solution**: Verify-Fix Loop (Pattern 4)
+**Current state**: Verify checks test existence, executability, and annotation format — but not whether tests actually verify meaningful behavior.
 
-Beat's verify skill IS the peer review. It:
-- Uses an independent subagent (different "person" reviewing)
-- Checks against specification (not just "does it look right")
-- Dispatches code-reviewer for quality checks
-- Produces actionable findings with severity classification
+**Enhancement opportunity**: Add a test-quality check to the verification subagent:
+- Are tests tautological (always pass regardless of implementation)?
+- Are tests over-mocked (testing mocks instead of behavior)?
+- Do tests exercise the scenario's Given/When/Then, not just call the function?
+
+### B4: 1.7x More Issues → 4-Dimension Verification
+
+**Beat already addresses this** through 4-dimension verification:
+1. Gherkin Coverage & Quality
+2. Proposal Alignment
+3. Design Adherence
+4. Code Quality (via code-reviewer)
+
+**Enhancement**: Track verify findings over time to identify recurring issue patterns. If "security validation missing" appears in 3 consecutive changes, add it to `config.yaml` rules.
+
+### C1: Rationalization Drift → Hard Gate System
+
+**Beat already solves this completely** with the 4-layer defense:
+1. Hard Gates (unconditional prerequisites)
+2. Rationalization Prevention Tables (pre-documented rebuttals)
+3. Red Flags (behavioral signals)
+4. Pressure Tests (automated validation)
+
+**Enhancement**: The team model adds human review between phases as an additional rationalization check. The team lead reviews artifacts before approving the next phase.
+
+### C2: Sycophancy / Over-Agreement → Explorer Role + Cross-Phase Review
+
+**Current state**: The explore skill has a "curious, not prescriptive" stance but other phases don't challenge assumptions.
+
+**Enhancement**: Add a "Devil's Advocate" check to the Architect role — before creating design.md, briefly list assumptions from the proposal/gherkin and flag any that seem risky or unvalidated.
+
+### C3: Productivity Perception Gap → Quality Scorecard
+
+**Current gap**: Beat doesn't track whether its pipeline actually improves quality.
+
+**Enhancement**: Track metrics across the pipeline:
+
+| Metric | Where Measured | What It Reveals |
+|--------|---------------|-----------------|
+| Verify first-pass rate | After first verify | How often implementation is right on first try |
+| Fix cycle count | Verify-fix loop | How many iterations to pass verification |
+| CRITICAL issue density | Verify report | Quality of the implementation phase |
+| Annotation completeness | Verify Dimension 1 | Whether TDD discipline is maintained |
+| Spec-to-code ratio | After apply | How well specs translate to implementation |
+
+### C4: Specification-Implementation Drift → Verify Dimensions 1-2
+
+**Beat already addresses this** through:
+- Dimension 1: Every scenario has a test (coverage)
+- Dimension 2: Every proposal goal is implemented (alignment)
+
+**Enhancement**: In the team model, the Fresh-Context Pipeline ensures the Implementer reads specs with fresh eyes (no "I wrote these specs so I know what they mean" bias).
 
 ## Recommended Team Configurations
 
