@@ -6,11 +6,29 @@
 
 Recent research reveals a striking **productivity paradox** in AI-assisted development:
 
+**Productivity & Trust:**
 - **METR RCT Study**: Experienced open-source developers were **19% slower** with AI tools, despite predicting 24% faster. Even after completing the study, developers still believed AI sped them up by 20% — a remarkable perceptual gap.
-- **Qodo State of AI Code Quality 2025**: 65% cite **missing context** as the primary cause of poor AI output (more than hallucinations). Only 3.8% of developers experience both low hallucinations and high shipping confidence.
-- **Stack Overflow 2025 Survey**: 66% of developers spend extra time fixing "almost-right" AI suggestions.
-- **CodeRabbit Analysis** (470 real-world PRs): AI-generated code produces **1.7x more issues** than human code overall.
+- **Stack Overflow 2025 Survey**: 66% of developers spend extra time fixing "almost-right" AI suggestions. Only **33% trust AI output** (down from 40% in prior years); mere 3% "highly trust".
 - **Atlassian Research**: Developers only spend 16% of their time coding. AI coding speed gains are offset by non-coding bottlenecks — developers saved 10 hrs/week from AI but lost 10 hrs/week to other friction.
+- **Google DORA 2025**: 90% AI adoption increase correlated with **9% climb in bug rates**, **91% increase in code review time**, and **154% increase in PR size**.
+
+**Code Quality:**
+- **CodeRabbit Analysis** (470 real-world PRs): AI-generated code produces **1.7x more issues** overall — logic errors 1.75x, security 1.57x, performance 1.42x, concurrency 2x. **322% more privilege escalation paths**, **40% increase in secrets exposure** (hard-coded credentials).
+- **Qodo State of AI Code Quality 2025**: 65% cite **missing context** as the primary cause of poor AI output (more than hallucinations). Only 3.8% of developers experience both low hallucinations and high shipping confidence.
+- **GitClear**: "Code churn" (code discarded within 2 weeks of being written) is increasing dramatically with AI adoption, suggesting much AI code doesn't survive production.
+
+**Testing & Review:**
+- **AI Test Quality Study (arXiv 2603)**: AI-generated tests rarely exceed cyclomatic complexity of 2-3 — strong preference for linear, straightforward logic without complex branching. Shallow coverage creates false confidence.
+- **AI Code Review**: Leading tools catch runtime bugs with only **42-48% accuracy**. Early tools had ~9:1 false-positive-to-real-bug ratio.
+- **SWE-bench**: Top models score only **~39.6%** on real-world workflow benchmarks despite 90%+ on simpler benchmarks.
+
+**Security & Hallucination:**
+- **Package Hallucination (USENIX)**: Analyzing 16 LLMs, **21.7% of recommended package names were fabricated** — enabling "slopsquatting" attacks where adversaries register hallucinated names with malicious code.
+- **Security Vulnerabilities**: 29-45% of AI-generated code contains security vulnerabilities. XSS vulnerabilities 2.74x higher, insecure deserialization 1.82x, improper password handling 1.88x.
+
+**Sycophancy & Coordination:**
+- **Sycophancy**: Northeastern research found LLMs quickly shift beliefs to align with user judgments, significantly increasing reasoning errors. "Inoculation Prompting" (warning models about their tendencies) reduces sycophancy by up to 60%.
+- **"50 First Dates" Problem**: Agents have no memory between sessions, creating conflicting markdown files. The missing piece is persistent memory — "MCP connects agents to tools, but who remembers what happened yesterday?"
 
 ### Pain Point Taxonomy
 
@@ -30,18 +48,22 @@ Based on industry research and analysis of Beat's existing anti-pattern defenses
 | # | Pain Point | Evidence | Severity |
 |---|-----------|----------|----------|
 | B1 | **"Almost right" code** | 66% of devs spend extra time fixing AI suggestions (SO 2025). Code looks correct, passes cursory review, but has subtle bugs | Critical |
-| B2 | **Self-verification bias** | Agent trusts its own output; can't objectively review what it just wrote | Critical |
-| B3 | **Test quality illusion** | AI writes tests that pass but don't actually verify behavior (tautological tests, overly mocked) | High |
-| B4 | **1.7x more issues** | AI code has more logic errors, security issues, and maintainability problems (CodeRabbit) | High |
+| B2 | **Self-verification bias** | Agent trusts its own output; AI code review catches only 42-48% of runtime bugs | Critical |
+| B3 | **Test quality illusion** | AI tests rarely exceed cyclomatic complexity 2-3; shallow coverage creates false confidence | High |
+| B4 | **Security blind spots** | 322% more privilege escalation paths, 40% more secrets exposure, XSS 2.74x higher | Critical |
+| B5 | **Package hallucination** | 21.7% of AI-recommended packages are fabricated (USENIX); enables supply chain attacks | High |
+| B6 | **Code churn** | AI code discarded within 2 weeks is increasing dramatically (GitClear) | High |
 
 #### Category C: Process & Discipline
 
 | # | Pain Point | Evidence | Severity |
 |---|-----------|----------|----------|
 | C1 | **Rationalization drift** | Agent skips steps when it "seems simple enough"; invents excuses for shortcuts | Critical |
-| C2 | **Sycophancy / over-agreement** | Agent agrees with user's flawed assumptions instead of challenging them | High |
+| C2 | **Sycophancy / over-agreement** | LLMs shift beliefs to align with user judgment, increasing reasoning errors (Northeastern) | Critical |
 | C3 | **Productivity perception gap** | Developers believe AI helps even when measurably slower (METR: -19% actual vs +20% perceived) | High |
 | C4 | **Specification-implementation drift** | Implementation diverges from specification without the agent noticing | High |
+| C5 | **Multi-file coordination failure** | Changes involving 10+ files often require significant manual correction; agents make incompatible assumptions | High |
+| C6 | **Scope creep** | Agents add caching, logging, refactoring beyond task boundary; rename variables unprompted | Medium |
 
 ### How Beat Already Addresses These
 
@@ -51,16 +73,20 @@ Beat's existing architecture provides defenses for many of these pain points:
 |-----------|-------------|----------|
 | A1 Context saturation | Artifact chain distills context at each phase | Partial — no fresh-session guidance |
 | A2 Missing project context | `config.yaml` context injection into every skill | Complete |
-| A3 Cross-session amnesia | `status.yaml` + artifacts carry full state | Complete |
+| A3 Cross-session amnesia | `status.yaml` + artifacts carry full state | Complete — Beat IS the "persistent memory" |
 | A4 Architectural amnesia | `design.md` + `config.yaml` context | Partial — no enforcement |
 | B1 "Almost right" code | TDD (test before implementation) catches bugs at write time | Strong |
-| B2 Self-verification bias | Verify subagent has NO implementation context | Complete |
-| B3 Test quality illusion | Verify checks tests are executable, annotations are valid | Partial — doesn't check test logic |
-| B4 1.7x more issues | 4-dimension verification + code-reviewer subagent | Strong |
-| C1 Rationalization drift | Hard Gates + Rationalization Prevention Tables + Red Flags + Pressure Tests | Complete |
+| B2 Self-verification bias | Verify subagent has NO implementation context + code-reviewer | Complete |
+| B3 Test quality illusion | Verify checks tests are executable, no-skeleton rule | Partial — checks existence, not logic depth |
+| B4 Security blind spots | Code-reviewer subagent checks security | Partial — no specific security checklist |
+| B5 Package hallucination | Not addressed | Gap |
+| B6 Code churn | Verify-fix loop catches issues before merge | Partial — no churn tracking |
+| C1 Rationalization drift | Hard Gates + Rationalization Tables + Red Flags + Pressure Tests (4-layer defense-in-depth) | Complete |
 | C2 Sycophancy | `explore` skill has "curious, not prescriptive" stance | Partial — only in explore |
 | C3 Productivity perception gap | Not addressed (Beat doesn't track metrics) | Gap |
-| C4 Spec-implementation drift | Verify Dimension 1 (gherkin coverage) + Dimension 2 (proposal alignment) | Strong |
+| C4 Spec-implementation drift | Verify Dimensions 1-2 (coverage + alignment) | Strong |
+| C5 Multi-file coordination | `using-git-worktrees` isolates changes; `tasks.md` scopes work | Partial — no parallel coordination |
+| C6 Scope creep | `tasks.md` defines scope; verify checks proposal alignment | Strong — agents follow task scope |
 
 ### Beat's Anti-Pattern Defense System (Deep Dive)
 
@@ -112,13 +138,16 @@ These tests assert the agent still invokes Hard Gate prerequisites under pressur
 
 ### Remaining Gaps (Agent Team Opportunities)
 
-| Gap | Description | Agent Team Solution |
-|-----|-------------|-------------------|
-| **Fresh-context guidance** | No mechanism to suggest "start a new session" when context is saturated | SessionStart hook tracks session depth, suggests handoff |
-| **Test logic verification** | Verify checks test existence and annotations, not whether tests actually verify behavior | Dedicated test-quality review subagent |
-| **Productivity metrics** | No way to measure if the pipeline actually improves quality | Quality scorecard tracked across pipeline |
-| **Sycophancy in implementation** | Agent follows flawed design without questioning | Cross-phase review where verifier checks design decisions |
-| **Parallel task coordination** | `subagent-driven-development` exists but no Beat-specific parallel protocol | Structured parallel implementation with merge strategy |
+| Gap | Pain Point | Description | Agent Team Solution |
+|-----|-----------|-------------|-------------------|
+| **Fresh-context guidance** | A1 | No mechanism to suggest "start a new session" when context is saturated | SessionStart hook tracks session depth, suggests handoff |
+| **Test logic depth** | B3 | Verify checks test existence, not whether tests actually verify behavior (cyclomatic complexity 2-3 problem) | Dedicated test-quality review subagent that checks assertion depth |
+| **Security checklist** | B4 | No specific security verification beyond general code-reviewer | Security-focused verification dimension or config.yaml security rules |
+| **Package validation** | B5 | No check for hallucinated/non-existent package dependencies | Post-apply check: verify all imported packages exist in registry |
+| **Sycophancy defense** | C2 | Agent follows flawed design without questioning; "Inoculation Prompting" reduces sycophancy 60% | Inject anti-sycophancy prompt in key skills; cross-phase devil's advocate |
+| **Quality metrics** | C3 | No way to measure if the pipeline actually improves quality | Quality scorecard tracked across pipeline |
+| **Parallel coordination** | C5 | `subagent-driven-development` exists but no Beat-specific parallel protocol | Structured parallel implementation with merge strategy |
+| **Defense-in-depth for new gaps** | All | New gaps have single-layer defense at best | Apply Beat's proven 4-layer pattern (Gate → Table → Flags → Tests) to each new defense |
 
 ---
 
@@ -645,3 +674,37 @@ Track these metrics across the agent team pipeline to measure effectiveness:
 | Failure recovery | Agent restart, state replay | Read artifacts, continue from current phase |
 
 Beat's approach is better suited to Claude Code's execution model because it leverages the file system as a durable coordination layer, uses git for state tracking, and treats context freshness as a feature rather than a limitation.
+
+## Appendix: Research Sources
+
+### Productivity & Trust
+- [METR RCT Study (July 2025)](https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/) — 19% slowdown for experienced devs; 20% perceived speedup
+- [Atlassian / SD Times — Friction Points](https://sdtimes.com/ai/report-ai-productivity-gains-cancelled-out-by-friction-points-in-other-areas-that-slow-developers-down/)
+- [Cerbos — Productivity Paradox](https://www.cerbos.dev/blog/productivity-paradox-of-ai-coding-assistants)
+
+### Code Quality
+- [CodeRabbit — State of AI vs Human Code (Dec 2025)](https://www.coderabbit.ai/blog/state-of-ai-vs-human-code-generation-report) — 1.7x more issues, 322% more privilege escalation
+- [Qodo — State of AI Code Quality 2025](https://www.qodo.ai/reports/state-of-ai-code-quality/) — 65% cite missing context
+- [Google DORA 2025](https://cloud.google.com/devops/state-of-devops) — 9% bug rate increase, 91% review time increase
+- [arXiv 2512.05239 — Survey of Bugs in AI Code](https://arxiv.org/html/2512.05239v1)
+- [He et al. MSR 2026](https://arxiv.org/html/2601.13597v2) — Cursor AI increases short-term velocity but long-term complexity
+
+### Testing & Review
+- [arXiv 2603.13724 — AI Test Generation Study](https://arxiv.org/html/2603.13724) — Shallow test complexity
+- [DevTools Academy — State of AI Code Review](https://www.devtoolsacademy.com/blog/state-of-ai-code-review-tools-2025/) — 42-48% accuracy
+- [CodeRabbit — Year of Quality](https://www.coderabbit.ai/blog/2025-was-the-year-of-ai-speed-2026-will-be-the-year-of-ai-quality)
+
+### Security & Hallucination
+- [USENIX — Package Hallucinations](https://www.usenix.org/publications/loginonline/we-have-package-you-comprehensive-analysis-package-hallucinations-code) — 21.7% fabricated packages
+- [Simon Willison — Code Hallucinations](https://simonwillison.net/2025/Mar/2/hallucinations-in-code/)
+- [ProjectDiscovery — AI Code Review Limits](https://projectdiscovery.io/blog/ai-code-review-vs-neo)
+
+### Sycophancy
+- [Northeastern University Research](https://news.northeastern.edu/2025/11/24/ai-sycophancy-research/) — LLMs shift beliefs to align with users
+- [Georgetown Tech Brief — OpenAI Sycophancy Incident](https://www.law.georgetown.edu/tech-institute/research-insights/insights/tech-brief-ai-sycophancy-openai-2/)
+- [Sean Goedecke — AI Sycophancy as Dark Pattern](https://www.seangoedecke.com/ai-sycophancy/)
+
+### Multi-Agent Coordination
+- [Addy Osmani — LLM Coding Workflow](https://addyosmani.com/blog/ai-coding-workflow/)
+- [Mike Mason — AI Coding Agents Coherence](https://mikemason.ca/writing/ai-coding-agents-jan-2026/)
+- [Augment Code — Multi-Agent Workspace](https://www.augmentcode.com/guides/how-to-run-a-multi-agent-coding-workspace)
