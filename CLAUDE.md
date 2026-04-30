@@ -18,7 +18,11 @@ claude --plugin-dir /path/to/beat
 
 ```
 beat/
-├── .claude-plugin/plugin.json   # Plugin manifest (name, version, metadata)
+├── .claude-plugin/plugin.json   # Claude Code plugin manifest
+├── .codex-plugin/plugin.json    # Codex plugin manifest (with interface block)
+├── .agents/plugins/marketplace.json  # Codex marketplace manifest — makes this repo a single-plugin marketplace
+├── plugins/beat/                # Codex plugin overlay (symlinks to root files: skills, assets, .codex-plugin, references)
+├── assets/                      # Brand icons (composerIcon, logo) for Codex
 ├── skills/                      # Each subdirectory = one invocable skill
 │   ├── design/SKILL.md          # /beat:design — create change + generate spec artifacts
 │   ├── plan/SKILL.md            # /beat:plan — task breakdown with multi-role review
@@ -31,8 +35,10 @@ beat/
 ├── references/                  # Schemas referenced by skills
 │   ├── status-schema.md         # status.yaml format (single source of truth)
 │   ├── config-schema.md         # config.yaml format (single source of truth)
-│   └── testing-conventions.md   # Annotation format and e2e test style reference
-├── hooks/                       # Claude Code hooks
+│   ├── testing-conventions.md   # Annotation format and e2e test style reference
+│   ├── tool-mapping.md          # Cross-platform tool name mapping
+│   └── codex-agents-snippet.md  # Per-project AGENTS.md snippet replacing the SessionStart hook on Codex
+├── hooks/                       # Claude Code hooks (Codex ignores; replaced by AGENTS.md snippet)
 │   ├── hooks.json               # SessionStart hook config
 │   └── session-start            # Detects Beat project, injects workflow context
 ├── tests/                       # Automated skill tests (claude -p headless)
@@ -187,3 +193,23 @@ cd tests && ./run-all.sh --integration
 1. Install the plugin in a test project
 2. Run the skill command (e.g., `/beat:design`, `/beat:plan`)
 3. Verify the skill produces correct artifacts and status.yaml updates
+
+### Codex Distribution
+
+Beat is installable on Codex directly from this GitHub repo — no separate marketplace fork or sync step. The repo is structured as a **single-plugin Codex marketplace**:
+
+- `.agents/plugins/marketplace.json` declares one plugin `beat` with `source.path: "./plugins/beat"`.
+- `plugins/beat/` is a thin overlay containing symlinks back to repo-root files (`.codex-plugin/`, `skills/`, `assets/`, `references/`, `README.md`, `LICENSE`). Single source of truth at root, no duplication.
+
+`source.path: "./"` (root as plugin) was tried first but Codex's plugin scanner does not pick up content when marketplace and plugin overlap at the same path — the subdirectory layout matches the convention in `openai/plugins` and other working marketplaces.
+
+End-user install (two steps because the Codex CLI has no plugin-install subcommand — only marketplace add/upgrade/remove):
+
+1. `codex plugin marketplace add https://github.com/kirkchen/beat`
+2. Inside Codex UI plugins panel, install Beat.
+
+See `docs/INSTALL-CODEX.md` for the full user-facing flow.
+
+Codex doesn't support hooks, so the SessionStart context injection performed by `hooks/session-start` does not run on Codex. The replacement is a per-project `AGENTS.md` snippet — see `references/codex-agents-snippet.md` for the text.
+
+If we ever want to publish Beat to the canonical `openai/plugins` curated marketplace, that's a separate manual step (open a PR upstream that copies the plugin into their `plugins/beat/` subdirectory — same shape we already use locally). The current setup intentionally does not automate that.

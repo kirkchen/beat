@@ -1,8 +1,14 @@
 # Beat dogfooding artifacts (Beat used on itself)
-beat/
+# Anchored with leading "/" so the pattern only matches the top-level beat/
+# directory (the dogfooding instance) and not nested ones like plugins/beat/
+# which is the Codex plugin overlay.
+/beat/
 
 # Claude Code local settings
 .claude/
+
+# Superpowers brainstorm server runtime state
+.superpowers/
 
 # OS files
 .DS_Store

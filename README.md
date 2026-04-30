@@ -53,6 +53,14 @@ Every scenario gets a test. Every test links back to the spec. Nothing slips thr
 claude --plugin-dir /path/to/beat
 ```
 
+**On Codex:**
+
+```bash
+codex plugin marketplace add https://github.com/kirkchen/beat
+```
+
+Then in the Codex UI plugins panel, install `Beat`. See [docs/INSTALL-CODEX.md](docs/INSTALL-CODEX.md) for the full flow and the AGENTS.md snippet that replaces the SessionStart hook (Codex doesn't support hooks).
+
 Then, in your project:
 
 ```bash

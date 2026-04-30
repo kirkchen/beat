@@ -41,3 +41,5 @@ Beat skills reference `superpowers:*` skills as prerequisites (e.g., `superpower
 ### Hooks
 
 Beat includes a Claude Code SessionStart hook (`hooks/`) that auto-detects Beat projects and injects workflow context. This is a convenience feature — on platforms without hooks, invoke Beat skills directly (e.g., `/beat:design`).
+
+**On Codex specifically**, the hook does not run (Codex has no SessionStart hook). The replacement is a per-project `AGENTS.md` snippet that gives Codex the same workflow guidance — see `references/codex-agents-snippet.md` for the snippet and rationale, and `docs/INSTALL-CODEX.md` for the full Codex install flow.
