@@ -1,0 +1,40 @@
+{
+  "name": "beat",
+  "version": "0.1.0",
+  "description": "Agent-driven BDD workflow using Gherkin feature files. Rhythm for your development: explore → design → plan → apply → verify → archive.",
+  "author": {
+    "name": "Kirk Chen"
+  },
+  "homepage": "https://github.com/kirkchen/beat",
+  "repository": "https://github.com/kirkchen/beat",
+  "license": "MIT",
+  "keywords": [
+    "bdd",
+    "gherkin",
+    "workflow",
+    "tdd",
+    "feature-driven",
+    "behavior-driven"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Beat",
+    "shortDescription": "Gherkin-driven BDD workflow: explore → design → plan → apply → verify → archive",
+    "longDescription": "Beat makes coding agents write Gherkin scenarios before touching code, then drives TDD implementation from those specs. Every scenario gets a test, every test links back to the spec. Use /beat:design to capture behavior, /beat:plan to break it down, /beat:apply to implement with TDD, /beat:verify for unbiased verification, and /beat:archive to promote shipped work to living documentation.",
+    "developerName": "Kirk Chen",
+    "category": "Coding",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Let's design a new feature using Beat.",
+      "Walk me through Beat's workflow on this change."
+    ],
+    "brandColor": "#10B981",
+    "composerIcon": "./assets/beat-small.svg",
+    "logo": "./assets/app-icon.png",
+    "screenshots": []
+  }
+}
