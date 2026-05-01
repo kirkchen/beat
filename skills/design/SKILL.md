@@ -52,6 +52,7 @@ If a superpower is unavailable (skill not installed), skip and continue.
 | "brainstorming isn't needed, the user already described what they want" | A description is not a design. brainstorming surfaces assumptions, alternatives, and edge cases. |
 | "The user wants speed, invoking superpowers will slow us down" | Skipping prerequisites produces lower-quality artifacts that cause rework during apply and verify. |
 | "This change is simple enough to skip brainstorming" | Simple changes finish brainstorming quickly. Complex changes need it most. There is no middle ground where skipping helps. |
+| "Reviewer is commenting inline on design.md, I'll just answer with `D6`" | Inline comments on design.md share context, so `D6` works there. But MR descriptions, commit messages, and Slack messages have different readers without the source context. Translate codenames whenever crossing doc boundary. |
 
 ## Red Flags — STOP if you catch yourself:
 
@@ -62,6 +63,7 @@ If a superpower is unavailable (skill not installed), skip and continue.
 - Modifying an existing feature in `beat/features/` without creating a `.orig` backup first
 - Writing tasks.md or `- [ ]` checkboxes — tasks belong in `/beat:plan`
 - Thinking "this prerequisite isn't needed for this particular change"
+- Citing decisions by codename only (e.g. `D6`) in MR descriptions, commit messages, or any text outside design.md without inline plain-noun translation
 
 ## Process Flow
 
@@ -174,6 +176,13 @@ digraph design {
 
      New features that don't modify existing scenarios go directly to `changes/<name>/features/` as before.
    - **Design**: Sections: `## Approach`, `## Key Decisions`, `## Components`
+     - Numbering decisions (`D1`, `D2`, etc.) as internal shorthand is fine. When readers can't easily keep all decision titles in mind (rule of thumb: 4+ entries), add a Decisions Index mini-table at the top of the section so readers can decode references without scrolling:
+       ```
+       | # | Decision |
+       |---|----------|
+       | D1 | <short title> |
+       | D2 | <short title> |
+       ```
 
 5. **Commit artifacts and show final status**
 
@@ -201,3 +210,4 @@ digraph design {
 - If context is critically unclear, ask -- but prefer reasonable defaults to keep momentum
 - Verify each artifact file exists after writing before proceeding
 - Tasks are NOT created in this skill — they are handled by `/beat:plan`
+- **Cross-doc reference rule** — codenames (`D1`, `D6`, etc.) used inside `design.md` / `proposal.md` are valid internal shorthand. But when MR descriptions, commit messages, or any cross-doc communication references them, translate to plain noun inline (e.g. `D6 (Extension hard cap)` not just `D6`). Without translation, readers who haven't read the source artifact face context loss.

@@ -55,6 +55,7 @@ If a superpower is unavailable (skill not installed), skip and continue.
 | "The user wants speed, invoking superpowers will slow us down" | Skipping prerequisites produces lower-quality tasks that cause rework during apply. |
 | "The spec artifacts are clear enough, review is overkill" | Review catches blind spots that the spec author can't see. The more obvious the spec seems, the more likely assumptions are hiding. |
 | "I'll skip review for this small change" | Small changes still benefit from a test coverage check. Review scales with complexity — it's fast for simple changes. |
+| "Reviewer used codenames (C1, M2), I'll just paste them into the summary" | The review summary is the user's first contact with review findings — they may not have read the review report. Pasting codenames inherits context loss. Translating once costs little; reader cognitive load drops a lot. |
 
 ## Red Flags — STOP if you catch yourself:
 
@@ -64,6 +65,7 @@ If a superpower is unavailable (skill not installed), skip and continue.
 - Thinking "review isn't needed for this particular change"
 - Skipping a MUST prerequisite and planning to "compensate" later
 - Proceeding without at least one spec artifact (gherkin or proposal) being done
+- Writing reviewer codenames (C1, M2, etc.) into the `## Review Applied` summary or commit messages without inline plain-noun translation
 
 ## Process Flow
 
@@ -233,11 +235,11 @@ digraph plan {
    - Add test coverage notes where the review found gaps
    - Reorder tasks if the review identified dependency issues
 
-   Show the user a brief summary of what changed:
+   Show the user a brief summary of what changed. When summarizing, translate reviewer codenames (C1, M2, etc.) to plain noun — readers seeing this summary may not have read the review report:
    ```
    ## Review Applied
 
-   - [Role]: <what was changed>
+   - [Role]: <translate codenames inline, e.g. `C1 (runbook_search permission filter)` not just `C1`>
    - [Role]: <what was changed>
    ...
    ```
@@ -267,3 +269,4 @@ digraph plan {
 - Test coverage review is always included regardless of complexity
 - Apply review findings directly to tasks.md, not as a separate report
 - If review reveals spec-level issues (missing scenarios, design gaps), surface them to the user rather than silently compensating in tasks
+- **Cross-doc reference rule** — codenames from the review subagent (C1, M2, etc.) are valid shorthand within the review report. But when tasks.md, commit messages, or cross-round review references cite them, translate to plain noun inline (e.g. `C1 (runbook_search permission filter)`). Task ids within tasks.md (Task 5, Task 6) are fine — the doc defines them — but cross-doc citations need translation.
