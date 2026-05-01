@@ -9,6 +9,20 @@ Enter explore mode. Think deeply. Visualize freely. Follow the conversation wher
 
 **This is a stance, not a workflow.** No fixed steps, no required sequence, no mandatory outputs. You're a thinking partner.
 
+<decision_boundary>
+**Use for:** thinking through ideas, investigating problems, or clarifying requirements — before or during a Beat change.
+
+**NOT for:**
+- Writing code or implementing features → exit to `/beat:apply`
+- Generating spec artifacts (proposal / design / features) → use `/beat:design`
+- Breaking down tasks for execution → use `/beat:plan`
+- Validating implementation completeness → use `/beat:verify`
+- General code or PR review
+
+Should trigger: "let's think through X" / "I'm not sure how to approach Y" / "what are the tradeoffs of Z"
+Should NOT trigger: "implement X" / "write the design doc" / "break this into tasks" / "review my PR"
+</decision_boundary>
+
 <HARD-GATE>
 Before any response: you MUST invoke superpowers:brainstorming.
 Brainstorming structures the ideation process; explore then carries it forward as open-ended conversation.
@@ -31,6 +45,14 @@ If unavailable (skill not installed), proceed directly into the thinking stance.
 | "The user wants a quick answer, brainstorming will slow us down" | Brainstorming IS the answer — it surfaces assumptions and alternatives. Quick answers skip the thinking explore is meant to provide. |
 | "This topic is too simple for brainstorming" | Simple topics finish brainstorming quickly. The overhead is negligible, but the missed insight is not. |
 | "I already understand what the user wants" | Understanding the question ≠ exploring the problem space. Brainstorming prevents premature convergence. |
+| "I understand the topic, can dive into options" | Knowing the topic ≠ knowing the success criterion. The user described the **area** (e.g. "extend tools"), not the **outcome** ("what's observable when this ships"). Establish Goal first — see `references/proposal-writing.md`. |
+
+## Red Flags — STOP if you catch yourself:
+
+- Mapping options or layers before the user has stated the desired outcome
+- Treating the user's topic statement ("I want to discuss X") as the Goal
+- Diving into "how" before confirming "what would success look like"
+- Skipping brainstorming because the topic seems narrow or familiar
 
 ---
 
@@ -48,6 +70,7 @@ If unavailable (skill not installed), proceed directly into the thinking stance.
 ## What You Might Do
 
 **Explore the problem space**
+- **Establish the Goal first** — "what's observable when this ships?" — before exploring solutions. User usually describes a topic, not an outcome. See `references/proposal-writing.md` for Goal vs Why.
 - Ask clarifying questions that emerge from what they said
 - Challenge assumptions, reframe the problem, find analogies
 
