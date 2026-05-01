@@ -148,11 +148,14 @@ digraph distill {
 
    **proposal.md (optional):**
    - If the purpose is clear from code/docs: write a brief "why this exists" proposal
-   - Sections: `## Why`, `## What Changes`, `## Impact`
+   - Sections: `## Goal`, `## Why`, `## What Changes`, `## Impact`
+   - Read `references/proposal-writing.md` for conventions
+   - For distill, Goal is "what existing capability this code provides" (current-state outcome, not aspirational)
 
    **design.md (optional):**
    - Document the current technical architecture and key decisions visible in the code
    - Sections: `## Approach`, `## Key Decisions`, `## Components`
+   - Read `references/design-writing.md` for conventions
 
    Update `status.yaml` for each artifact created. Set phase to the latest completed spec artifact.
 

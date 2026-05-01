@@ -53,6 +53,7 @@ If a superpower is unavailable (skill not installed), skip and continue.
 | "The user wants speed, invoking superpowers will slow us down" | Skipping prerequisites produces lower-quality artifacts that cause rework during apply and verify. |
 | "This change is simple enough to skip brainstorming" | Simple changes finish brainstorming quickly. Complex changes need it most. There is no middle ground where skipping helps. |
 | "Reviewer is commenting inline on design.md, I'll just answer with `D6`" | Inline comments on design.md share context, so `D6` works there. But MR descriptions, commit messages, and Slack messages have different readers without the source context. Translate codenames whenever crossing doc boundary. |
+| "This change is too small to need a Goal section" | `references/proposal-writing.md` scaling table addresses small changes — Goal collapses to 1 sentence for typo / config tweaks, but is never omitted. Skipping Goal forces every reviewer to reverse-engineer "what success looks like" from Why and Impact. |
 
 ## Red Flags — STOP if you catch yourself:
 
@@ -150,7 +151,10 @@ digraph design {
    - If context is critically unclear, pause and ask
 
    **Artifact patterns:**
-   - **Proposal**: Sections: `## Why`, `## What Changes`, `## Impact`
+   - **Proposal**: Sections: `## Goal`, `## Why`, `## What Changes`, `## Impact`
+     - Read `references/proposal-writing.md` for conventions on Goal vs Why distinction, scaling to change size, and review checklist
+     - **Goal** is mandatory — 1 sentence + 3-5 outcomes in outcome voice. This is the reader's primary onboarding section
+     - For typo / config tweaks, sections may collapse to 1 sentence each, but Goal is never omitted
    - **Gherkin**:
      - Read `references/feature-writing.md` for conventions on description blocks, scenario organization, and review checklist
      - Before writing, scan `beat/features/**/*.feature` and `beat/changes/*/features/*.feature` (excluding current change) — read `Feature:` and `Scenario:` lines to map existing coverage, deep-read only overlapping features, avoid duplication and align style
@@ -176,13 +180,9 @@ digraph design {
 
      New features that don't modify existing scenarios go directly to `changes/<name>/features/` as before.
    - **Design**: Sections: `## Approach`, `## Key Decisions`, `## Components`
-     - Numbering decisions (`D1`, `D2`, etc.) as internal shorthand is fine. When readers can't easily keep all decision titles in mind (rule of thumb: 4+ entries), add a Decisions Index mini-table at the top of the section so readers can decode references without scrolling:
-       ```
-       | # | Decision |
-       |---|----------|
-       | D1 | <short title> |
-       | D2 | <short title> |
-       ```
+     - Read `references/design-writing.md` for conventions on Approach diagrams, decision content patterns, Decisions Index mini-table, scaling guidance, and external reader test
+     - When `## Key Decisions` has 4+ entries, add a Decisions Index mini-table at the top so readers can decode `D1`/`D2` references without scrolling
+     - Decisions count > 10 is a smell — see `references/design-writing.md` "How many decisions?"
 
 5. **Commit artifacts and show final status**
 
