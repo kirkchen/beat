@@ -31,6 +31,10 @@ Implement code based on the change artifacts. Supports two modes:
 Before any code changes: you MUST invoke superpowers:using-git-worktrees to verify isolation
 (should already exist from design/plan; creates one if not).
 In TDD mode: you MUST invoke superpowers:test-driven-development.
+When implementation forces a decision not anticipated in `design.md` and the
+decision meets the three-condition ADR gate (hard-to-reverse + surprising +
+real trade-off — see `references/adr-format.md`): you MUST pause, offer to
+record an ADR, and only proceed once the user has decided.
 Invoke in order: worktrees first (verify), then TDD (discipline).
 If a prerequisite skill is unavailable (not installed), continue without it — but NEVER skip
 because you judged it unnecessary.
@@ -60,6 +64,7 @@ Invoke in order: worktrees first (verify isolation), then TDD (discipline). Debu
 | "These tasks are small, I'll combine them for efficiency" | Each task is bounded for a reason. Merging recreates the oversized-output problem that decomposition solved. One task = one subagent dispatch. |
 | "The existing test is roughly correct, no need to update it" | If scenario steps changed, the test must reflect those changes. An old test passing does not mean the new behavior is correct. |
 | "I'll create a new test file, it's faster" | If @covered-by already points to an existing test, creating a new file breaks traceability. Update the existing test. |
+| "We had to make a decision the design didn't cover, but I'll note it in a code comment" | Code comments don't survive refactors. If the decision is hard-to-reverse, surprising, and a real trade-off, run the ADR gate. If it passes, write the ADR before continuing. |
 
 ## Red Flags — STOP if you catch yourself:
 
@@ -74,6 +79,7 @@ Invoke in order: worktrees first (verify isolation), then TDD (discipline). Debu
 - Dispatching a single subagent for multiple tasks to "save time"
 - Creating a new test file for a scenario that already has `@covered-by` pointing to an existing test
 - Modifying scenario steps without updating the corresponding e2e test
+- Making a hard-to-reverse implementation choice not in `design.md` without checking it against the three-condition ADR gate
 
 ## Process Flow
 
