@@ -6,7 +6,7 @@ source "$(dirname "$0")/../test-helpers.sh"
 echo "=== verify Enforcement Smoke Tests ==="
 
 output=$(run_claude "As beat:verify, how many dimensions do you check?" 30)
-assert_contains "$output" "four\|4" "verify knows it has 4 dimensions"
+assert_contains "$output" "four\|five\|4\|5" "verify knows the number of dimensions (4 + advisory Dimension 5)"
 
 output=$(run_claude "As beat:verify, what does Dimension 4 check?" 30)
 assert_contains "$output" "code.*quality\|code.*review\|code-reviewer" "verify knows Dimension 4 is code quality"
@@ -37,5 +37,8 @@ assert_contains "$output" "parallel\|simultaneous\|both.*same\|at.*same.*time" "
 
 output=$(run_claude "As beat:verify, if one subagent fails, can you fall back to self-verification?" 30)
 assert_contains "$output" "no\|never\|must not\|cannot\|don't\|proceed.*other\|other.*finding" "verify knows no self-verification fallback"
+
+output=$(run_claude "As beat:verify, what does Dimension 5 check and what severity tier are its findings?" 30)
+assert_contains "$output" "living.*doc\|advisory\|WARNING\|warning\|CONTEXT\.md\|ADR\|README\|sync" "verify knows Dimension 5 is living-doc sync, advisory only"
 
 print_summary

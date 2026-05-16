@@ -38,4 +38,13 @@ assert_contains "$output" "technical\|tooling\|infra\|refactor\|no behavior" "de
 output=$(run_claude "As beat:design, what is the tasks status after design completes?" 30)
 assert_contains "$output" "pending\|not.*create\|beat:plan\|separate" "design knows tasks stay pending after design"
 
+output=$(run_claude "As beat:design, before writing Gherkin scenarios that use project-specific domain terms, what must you do?" 30)
+assert_contains "$output" "CONTEXT\.md\|glossary\|four.challenge\|define\|add.*term" "design knows the CONTEXT.md four-challenge check before gherkin"
+
+output=$(run_claude "As beat:design, after writing each artifact, what self-check do you run?" 30)
+assert_contains "$output" "self.review\|placeholder\|consistency\|scope\|ambiguity" "design knows the four-check spec self-review"
+
+output=$(run_claude "As beat:design, when a Key Decision in design.md is hard-to-reverse, surprising, and a real trade-off, what do you do?" 30)
+assert_contains "$output" "ADR\|docs/adr\|three.condition\|gate\|record" "design knows the ADR three-condition gate"
+
 print_summary

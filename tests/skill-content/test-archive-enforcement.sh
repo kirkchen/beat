@@ -32,4 +32,10 @@ assert_contains "$output" "yes\|delete\|clean\|remove\|orig" "archive knows to c
 output=$(run_claude "As beat:archive, is the sync flow different for modified features vs new features?" 30)
 assert_contains "$output" "unified\|same\|no.*different\|both\|all.*sync" "archive knows sync is unified for new and modified"
 
+output=$(run_claude "As beat:archive, before syncing features what scan do you run against beat/CONTEXT.md?" 30)
+assert_contains "$output" "term\|glossary\|undefined\|bolded\|CONTEXT\.md\|scan" "archive knows to scan features for undefined terms"
+
+output=$(run_claude "As beat:archive, if zero ADRs were written for this change, what do you do before moving to archive?" 30)
+assert_contains "$output" "prompt\|ask\|sweep\|last.mile\|ADR\|record" "archive knows the last-mile ADR sweep"
+
 print_summary

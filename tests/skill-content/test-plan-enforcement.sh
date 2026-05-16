@@ -38,4 +38,7 @@ assert_contains "$output" "no\|cannot\|must\|stop\|design.*first\|require" "plan
 output=$(run_claude "As beat:plan, what happens if the review subagent fails or returns empty?" 30)
 assert_contains "$output" "fallback\|proceed\|initial\|continue\|without.*review\|as-is\|re-run\|graceful\|skip" "plan knows review fallback"
 
+output=$(run_claude "As beat:plan, when the review rejects an alternative approach with a load-bearing reason, what do you check?" 30)
+assert_contains "$output" "ADR\|three.condition\|gate\|hard.to.reverse\|record\|docs/adr" "plan knows to run ADR gate on rejected alternatives"
+
 print_summary

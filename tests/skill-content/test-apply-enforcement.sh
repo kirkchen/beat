@@ -35,4 +35,10 @@ assert_contains "$output" "no\|must\|update\|reflect\|change" "apply knows to up
 output=$(run_claude "As beat:apply, after implementing all scenarios, should you run the full e2e test suite before moving to verify?" 30)
 assert_contains "$output" "yes\|regression\|full.*suite\|e2e.*test\|run.*all" "apply knows e2e regression check"
 
+output=$(run_claude "As beat:apply, if implementation forces a hard-to-reverse decision not anticipated in design.md, what do you do?" 30)
+assert_contains "$output" "ADR\|pause\|offer\|three.condition\|record\|docs/adr" "apply knows to offer ADR for implementation-forced decisions"
+
+output=$(run_claude "As beat:apply, after changing a module's public interface, what must you prompt the user about?" 30)
+assert_contains "$output" "README\|module.*README\|update\|architecture\|public.*interface" "apply knows to prompt module README update"
+
 print_summary
