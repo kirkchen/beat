@@ -13,6 +13,17 @@ ADRs live in `docs/adr/` (at the project root) and use sequential numbering:
 
 Create the `docs/adr/` directory **lazily** — only when the first ADR is added.
 
+## Contents
+
+- [Template](#template)
+- [Optional sections](#optional-sections)
+- [Numbering](#numbering)
+- [When to offer an ADR — the three-condition gate](#when-to-offer-an-adr--the-three-condition-gate)
+- [What qualifies (when all three conditions hold)](#what-qualifies-when-all-three-conditions-hold)
+- [What does NOT qualify](#what-does-not-qualify)
+- [When Beat offers an ADR](#when-beat-offers-an-adr)
+- [Relationship with `design.md`](#relationship-with-designmd)
+
 ## Template
 
 ```md

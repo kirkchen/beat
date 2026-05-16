@@ -13,6 +13,19 @@ The single source of truth for Layer 3 living documentation:
 module-level READMEs for detail. The hub answers *"what's here and why?"*;
 module READMEs answer *"how do I use this part?"*.
 
+## Contents
+
+- [Design philosophy: Hybrid (hand-written + derive)](#design-philosophy-hybrid-hand-written--derive)
+- [`beat/ARCHITECTURE.md` (the hub)](#beatarchitecturemd-the-hub)
+  - [Structure](#structure)
+  - [Rules for the hub](#rules-for-the-hub)
+- [Module `README.md` (the spoke)](#module-readmemd-the-spoke)
+  - [Structure](#structure-1)
+  - [Vocabulary](#vocabulary)
+  - [Rules for module READMEs](#rules-for-module-readmes)
+- [When Beat updates these files](#when-beat-updates-these-files)
+- [Lazy creation](#lazy-creation)
+
 ## Design philosophy: Hybrid (hand-written + derive)
 
 Architecture documentation has two ingredients with different half-lives:

@@ -12,6 +12,17 @@ The single source of truth for the `beat/CONTEXT.md` glossary format.
 glossary. It is **created lazily** (only when the first term is resolved) and
 maintained inline by `/beat:design` and `/beat:archive`.
 
+## Contents
+
+- [What goes in CONTEXT.md](#what-goes-in-contextmd)
+- [What does NOT go in CONTEXT.md](#what-does-not-go-in-contextmd)
+- [Structure](#structure)
+- [Rules](#rules)
+- [Path](#path)
+- [When to update](#when-to-update)
+- [The four challenges (used by `/beat:design`)](#the-four-challenges-used-by-beatdesign)
+- [Optional grilling](#optional-grilling)
+
 ## What goes in CONTEXT.md
 
 A glossary, and nothing else.
