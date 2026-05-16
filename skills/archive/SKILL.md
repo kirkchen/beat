@@ -10,7 +10,9 @@ After archive is complete: you MUST invoke superpowers:finishing-a-development-b
 to guide merge/PR/cleanup. If unavailable (not installed), skip and show summary only —
 but NEVER skip because you judged the workflow complete without it.
 When gherkin status is `done`: you MUST sync features before archiving.
-Do NOT skip sync because the user wants speed.
+Before sync: you MUST scan the features being synced for project-specific terms
+that are not yet defined in `beat/CONTEXT.md`, and prompt the user to add them.
+Do NOT skip the scan or the sync because the user wants speed.
 </HARD-GATE>
 
 **Prerequisites** (invoke before proceeding)
@@ -29,6 +31,7 @@ If unavailable (skill not installed), skip and show archive summary only.
 | "I'll just tell the user to create a PR manually" | finishing-a-development-branch offers structured options (merge, PR, cleanup) tailored to the current state. Manual advice misses context. |
 | "Skipping sync is fine, the user can run it later" | There is no separate sync skill. Archive is the only place features get synced. Skipping means features are lost from living documentation. |
 | "The .orig backups can be cleaned up later" | Orphaned `.orig` files hide scenarios from BDD runners permanently. Cleanup is part of archive, not a separate step. |
+| "Glossary terms can be added later, it's just docs" | Once the features sync into `beat/features/`, the undefined terms become user-facing living documentation. Future readers can't tell which terms are canonical vs. ad hoc. The scan-and-prompt is two minutes — do it before sync. |
 
 ## Red Flags — STOP if you catch yourself:
 
@@ -36,6 +39,7 @@ If unavailable (skill not installed), skip and show archive summary only.
 - Skipping the sync step without checking if gherkin is done
 - Moving to archive without asking user about capability mapping (when features exist)
 - Completing archive while `.feature.orig` files remain in `beat/features/`
+- Syncing features without first scanning for project-specific terms missing from `beat/CONTEXT.md`
 
 ## Process Flow
 
@@ -48,6 +52,7 @@ digraph archive {
     "Warn incomplete tasks" [shape=box];
     "Gherkin done?" [shape=diamond];
     "Ask capability mapping" [shape=box];
+    "Scan features for\nundefined terms" [shape=box, style=bold];
     "Sync features" [shape=box];
     "Skip sync" [shape=box];
     "Move to archive" [shape=box];
@@ -63,7 +68,8 @@ digraph archive {
     "Warn incomplete tasks" -> "Gherkin done?" [label="user confirms"];
     "Gherkin done?" -> "Ask capability mapping" [label="done"];
     "Gherkin done?" -> "Skip sync" [label="skipped"];
-    "Ask capability mapping" -> "Sync features";
+    "Ask capability mapping" -> "Scan features for\nundefined terms";
+    "Scan features for\nundefined terms" -> "Sync features";
     "Sync features" -> "Move to archive";
     "Skip sync" -> "Move to archive";
     "Move to archive" -> "Invoke finishing-a-development-branch";
@@ -126,6 +132,23 @@ digraph archive {
 
    If only one feature file and the mapping is obvious from context, suggest a default.
 
+   **Scan features for undefined terms** (Layer 1 living-doc enforcement):
+
+   Read `beat/CONTEXT.md` if it exists (schema: `references/context-format.md`). The glossary is lazy — it may not exist yet if this is the project's first synced change.
+
+   Scan the feature files being synced for **bolded** project-specific terms. For each term:
+
+   - If it exists in `beat/CONTEXT.md`: OK, continue.
+   - If it doesn't: use **AskUserQuestion tool**:
+     > "Term '<term>' appears in scenarios but isn't in beat/CONTEXT.md. Add it now?"
+     > - Yes (recommended): provide a one-sentence definition; Beat appends it
+     > - Skip this term
+     > - Skip all remaining (record the count for the summary)
+
+   When the user adds a term, append it to `beat/CONTEXT.md` following the structure in `references/context-format.md` (one-sentence definition, optional `_Avoid_` aliases). Create `beat/CONTEXT.md` lazily if it doesn't exist.
+
+   If no project-specific bolded terms appear in the scanned features, skip this sub-step silently.
+
    **Sync files:**
 
    If `beat/features/` doesn't exist, create it: `mkdir -p beat/features`
@@ -176,6 +199,7 @@ digraph archive {
    **Change:** <change-name>
    **Archived to:** beat/changes/archive/YYYY-MM-DD-<name>/
    **Features:** Synced to beat/features/ (or "Sync skipped" or "No features to sync")
+   **Glossary:** N terms added to beat/CONTEXT.md (or "no changes" / "M terms skipped")
    **Artifacts:** N done, M skipped
    **Tasks:** X/Y complete (or "No tasks file")
    ```
