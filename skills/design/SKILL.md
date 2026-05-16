@@ -29,6 +29,14 @@ Before writing any artifact files: you MUST invoke superpowers:using-git-worktre
 When the artifact selection includes proposal or design, you MUST invoke superpowers:brainstorming
 before generating content. This applies even when scope seems obvious.
 
+Before writing gherkin scenarios: you MUST run the four-challenge CONTEXT.md check
+(see step 4 below) and ensure every project-specific term used in scenarios is
+defined in `beat/CONTEXT.md`. Create the glossary lazily — only when the first
+term is added.
+
+After writing each artifact: you MUST run the four-check spec self-review
+(placeholder / consistency / scope / ambiguity). Fix issues inline.
+
 Invoke in order: worktrees first (isolate), then brainstorming (design).
 
 If a prerequisite skill is unavailable (not installed), continue with fallback — but NEVER skip
@@ -37,12 +45,15 @@ because you judged it unnecessary.
 
 **Prerequisites** (invoke before proceeding)
 
-| Superpower | When | Priority |
-|-----------|------|----------|
-| using-git-worktrees | Before first file write | MUST |
-| brainstorming | Before creating proposal or design | MUST |
+| Skill | When | Priority |
+|-------|------|----------|
+| superpowers:using-git-worktrees | Before first file write | MUST |
+| superpowers:brainstorming | Before creating proposal or design | MUST |
+| mattpocock-skills:grill-with-docs | When CONTEXT.md ambiguity is complex enough that a full grilling session is warranted | OPTIONAL |
 
-If a superpower is unavailable (skill not installed), skip and continue.
+If a prerequisite skill is unavailable (skill not installed), skip and continue.
+For optional skills (grill-with-docs), offer to invoke when applicable; if the
+user declines or it isn't installed, proceed with the four-challenge check inline.
 
 ## Rationalization Prevention
 
@@ -52,6 +63,8 @@ If a superpower is unavailable (skill not installed), skip and continue.
 | "brainstorming isn't needed, the user already described what they want" | A description is not a design. brainstorming surfaces assumptions, alternatives, and edge cases. |
 | "The user wants speed, invoking superpowers will slow us down" | Skipping prerequisites produces lower-quality artifacts that cause rework during apply and verify. |
 | "This change is simple enough to skip brainstorming" | Simple changes finish brainstorming quickly. Complex changes need it most. There is no middle ground where skipping helps. |
+| "The domain terms are obvious, no need to update CONTEXT.md" | Obvious to you, not to future-you or anyone else reading the feature in six months. Glossary entries are two lines. Add them inline. |
+| "Spec self-review is overkill, the artifact is short" | Self-review catches placeholders, contradictions, and ambiguities that compound through plan and apply. The four checks take 30 seconds. |
 
 ## Red Flags — STOP if you catch yourself:
 
@@ -59,8 +72,10 @@ If a superpower is unavailable (skill not installed), skip and continue.
 - Generating proposal sections without having invoked brainstorming
 - Creating design.md without invoking brainstorming first
 - Writing gherkin scenarios that contain internal method names, numeric thresholds, or implementation constants
+- Writing gherkin scenarios that use project-specific domain terms not defined in `beat/CONTEXT.md`
 - Modifying an existing feature in `beat/features/` without creating a `.orig` backup first
 - Writing tasks.md or `- [ ]` checkboxes — tasks belong in `/beat:plan`
+- Skipping the spec self-review because the artifact "looks fine"
 - Thinking "this prerequisite isn't needed for this particular change"
 
 ## Process Flow
@@ -73,12 +88,16 @@ digraph design {
     "Includes proposal?" [shape=diamond];
     "Invoke brainstorming" [shape=box, style=bold];
     "Create proposal" [shape=box];
+    "Self-review proposal" [shape=box, style=bold];
     "Includes gherkin?" [shape=diamond];
+    "CONTEXT.md\nfour-challenge check" [shape=box, style=bold];
     "Existing scenarios\nto modify?" [shape=diamond];
     "Backup .orig +\ncopy to changes/" [shape=box];
     "Create gherkin\n(new features only)" [shape=box];
+    "Self-review gherkin" [shape=box, style=bold];
     "Includes design?" [shape=diamond];
     "Create design" [shape=box];
+    "Self-review design" [shape=box, style=bold];
     "Commit artifacts" [shape=box];
     "Show summary" [shape=doublecircle];
 
@@ -88,17 +107,21 @@ digraph design {
     "Includes proposal?" -> "Invoke brainstorming" [label="yes"];
     "Includes proposal?" -> "Includes gherkin?" [label="no"];
     "Invoke brainstorming" -> "Create proposal";
-    "Create proposal" -> "Includes gherkin?";
-    "Includes gherkin?" -> "Existing scenarios\nto modify?" [label="yes"];
+    "Create proposal" -> "Self-review proposal";
+    "Self-review proposal" -> "Includes gherkin?";
+    "Includes gherkin?" -> "CONTEXT.md\nfour-challenge check" [label="yes"];
     "Includes gherkin?" -> "Includes design?" [label="no"];
+    "CONTEXT.md\nfour-challenge check" -> "Existing scenarios\nto modify?";
     "Existing scenarios\nto modify?" -> "Backup .orig +\ncopy to changes/" [label="yes"];
     "Existing scenarios\nto modify?" -> "Create gherkin\n(new features only)" [label="no"];
     "Backup .orig +\ncopy to changes/" -> "Create gherkin\n(new features only)";
-    "Create gherkin\n(new features only)" -> "Includes design?";
+    "Create gherkin\n(new features only)" -> "Self-review gherkin";
+    "Self-review gherkin" -> "Includes design?";
     "Includes design?" -> "Invoke brainstorming" [label="yes, only if\nnot yet invoked"];
     "Includes design?" -> "Commit artifacts" [label="no"];
     "Invoke brainstorming" -> "Create design" [label="for design"];
-    "Create design" -> "Commit artifacts";
+    "Create design" -> "Self-review design";
+    "Self-review design" -> "Commit artifacts";
     "Commit artifacts" -> "Show summary";
 }
 ```
@@ -142,10 +165,38 @@ digraph design {
    For each artifact to create (pipeline order: proposal -> gherkin -> design):
    - Read all completed artifacts for context
    - Invoke prerequisites per the table above (brainstorming before proposal/design — invoke once before the first artifact that needs it; skip for subsequent artifacts if already invoked)
+   - **Gherkin only — before writing scenarios:** run the CONTEXT.md four-challenge check (see sub-step below)
    - Create the artifact following the patterns below
+   - **After writing:** run the spec self-review (see sub-step below); fix issues inline
    - Update `status.yaml`
    - Show brief progress: "Created <artifact>"
    - If context is critically unclear, pause and ask
+
+   **CONTEXT.md four-challenge check** (before writing gherkin):
+
+   Read `beat/CONTEXT.md` if it exists (schema: `references/context-format.md`). Create it lazily when the first term is added — never preemptively.
+
+   Walk through the brainstorming output and any draft scenario text. For each project-specific term, run these checks and update `beat/CONTEXT.md` **inline** as findings emerge (never batch):
+
+   1. **Against the glossary** — the term conflicts with an existing entry? Call it out, resolve, update.
+   2. **Sharpen fuzzy** — the term is vague or overloaded (e.g. "account" meaning Customer and User both)? Pick the canonical word, list the others as `_Avoid_`.
+   3. **Stress-test** — invent edge-case scenarios that probe term boundaries; force the boundary to be named.
+   4. **Cross-reference code** — the user states behaviour that the code contradicts? Surface, decide source of truth, update the loser.
+
+   **Optional grilling:** If `mattpocock-skills:grill-with-docs` is installed and the ambiguity is complex enough to warrant a full grilling session, offer to invoke it once: *"Want to drop into grill-with-docs for a deeper pass on this?"* If the user declines, or the skill isn't installed, continue inline with the four challenges. Beat never hard-requires grill-with-docs.
+
+   Every project-specific term used in scenarios MUST exist in `beat/CONTEXT.md` before the scenario is written. Bolded terms in scenarios are the canonical form.
+
+   **Spec self-review** (after writing each artifact):
+
+   Re-read the artifact with fresh eyes and check:
+
+   1. **Placeholder scan** — any `TBD`, `TODO`, incomplete sections, vague requirements?
+   2. **Internal consistency** — do sections contradict each other? Does the design match the gherkin scenarios?
+   3. **Scope check** — is this focused enough for a single implementation plan, or does it need decomposition?
+   4. **Ambiguity check** — could any requirement be read two different ways? If so, pick one and make it explicit.
+
+   Fix issues inline. No need to re-review the fix — just fix and move on.
 
    **Artifact patterns:**
    - **Proposal**: Sections: `## Why`, `## What Changes`, `## Impact`
