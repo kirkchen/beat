@@ -37,6 +37,11 @@ term is added.
 After writing each artifact: you MUST run the four-check spec self-review
 (placeholder / consistency / scope / ambiguity). Fix issues inline.
 
+While writing `design.md`: you MUST run the three-condition ADR gate
+(hard-to-reverse + surprising + real trade-off — see `references/adr-format.md`)
+on each Key Decision. When all three hold, offer to lift the decision into a
+new ADR under `docs/adr/`. The user may decline.
+
 Invoke in order: worktrees first (isolate), then brainstorming (design).
 
 If a prerequisite skill is unavailable (not installed), continue with fallback — but NEVER skip
@@ -65,6 +70,8 @@ user declines or it isn't installed, proceed with the four-challenge check inlin
 | "This change is simple enough to skip brainstorming" | Simple changes finish brainstorming quickly. Complex changes need it most. There is no middle ground where skipping helps. |
 | "The domain terms are obvious, no need to update CONTEXT.md" | Obvious to you, not to future-you or anyone else reading the feature in six months. Glossary entries are two lines. Add them inline. |
 | "Spec self-review is overkill, the artifact is short" | Self-review catches placeholders, contradictions, and ambiguities that compound through plan and apply. The four checks take 30 seconds. |
+| "This decision is just for this change, no ADR needed" | Run the three-condition gate. If it's hard-to-reverse, surprising, and a real trade-off, future changes will trip over it — that's the ADR's job. Decisions that *are* change-specific don't pass the gate; let the gate decide, not your gut. |
+| "We'll lift this into an ADR later" | "Later" rarely arrives. The decision is fresh now; the ADR is 1-3 sentences. Write it inline. |
 
 ## Red Flags — STOP if you catch yourself:
 
@@ -76,6 +83,7 @@ user declines or it isn't installed, proceed with the four-challenge check inlin
 - Modifying an existing feature in `beat/features/` without creating a `.orig` backup first
 - Writing tasks.md or `- [ ]` checkboxes — tasks belong in `/beat:plan`
 - Skipping the spec self-review because the artifact "looks fine"
+- Writing a Key Decision in `design.md` that meets all three ADR conditions without offering an ADR
 - Thinking "this prerequisite isn't needed for this particular change"
 
 ## Process Flow
@@ -97,6 +105,7 @@ digraph design {
     "Self-review gherkin" [shape=box, style=bold];
     "Includes design?" [shape=diamond];
     "Create design" [shape=box];
+    "ADR gate\n(per Key Decision)" [shape=box, style=bold];
     "Self-review design" [shape=box, style=bold];
     "Commit artifacts" [shape=box];
     "Show summary" [shape=doublecircle];
@@ -120,7 +129,8 @@ digraph design {
     "Includes design?" -> "Invoke brainstorming" [label="yes, only if\nnot yet invoked"];
     "Includes design?" -> "Commit artifacts" [label="no"];
     "Invoke brainstorming" -> "Create design" [label="for design"];
-    "Create design" -> "Self-review design";
+    "Create design" -> "ADR gate\n(per Key Decision)" [style=bold];
+    "ADR gate\n(per Key Decision)" -> "Self-review design";
     "Self-review design" -> "Commit artifacts";
     "Commit artifacts" -> "Show summary";
 }
@@ -224,7 +234,14 @@ digraph design {
      5. **Record**: add the original path to `status.yaml` `gherkin.modified` array
 
      New features that don't modify existing scenarios go directly to `changes/<name>/features/` as before.
-   - **Design**: Sections: `## Approach`, `## Key Decisions`, `## Components`
+   - **Design**:
+     - Sections: `## Approach`, `## Key Decisions`, `## Components`
+     - **ADR gate** — for each Key Decision, run the three-condition check from `references/adr-format.md`:
+       1. Hard to reverse? (cost of changing your mind is meaningful)
+       2. Surprising without context? (future reader will wonder *"why on earth this way?"*)
+       3. Result of a real trade-off? (genuine alternatives existed)
+       If **all three** hold, use **AskUserQuestion tool**: *"This decision meets the ADR gate. Lift it into `docs/adr/`?"* On Yes, write a 1-3 sentence ADR using the template in `references/adr-format.md`, increment the highest existing number in `docs/adr/` by one, and add a cross-reference from `design.md` (`See docs/adr/NNNN-slug.md`). On No, continue.
+       Create `docs/adr/` lazily — only on first ADR.
 
 5. **Commit artifacts and show final status**
 
