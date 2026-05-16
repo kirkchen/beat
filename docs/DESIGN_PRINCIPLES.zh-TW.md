@@ -164,6 +164,35 @@ Scenario 應該在**行為層級**：PM、QA、或新進團隊成員不需要看
 
 ---
 
+## Living Documentation 分層
+
+Gherkin scenario 描述**行為**。它不描述**詞彙**（這個專案的「Run」是什麼意思？）、**決策**（為什麼選 X 不選 Y？）或**結構**（哪個 module 擁有這件事？）。Beat 在 feature 之外維護三層 living doc，每層半衰期不同：
+
+- **Layer 1 — `beat/CONTEXT.md`**（詞彙）：每個概念只有一個正統詞，對同義詞 opinionated。半衰期：很長（domain 詞彙變化慢）。
+- **Layer 2 — `docs/adr/`**（決策）：1-3 句 ADR，需通過 hard-to-reverse + surprising + real trade-off 三條件 gate。半衰期：不確定（寫了就不太回頭）。
+- **Layer 3 — `beat/ARCHITECTURE.md` + module `README.md`**（結構與意圖）：hub + spokes、手寫。半衰期：短（必須跟著 code 動）。
+
+**我們捨棄了什麼：**
+
+- *單一巨型文件。* 一份 ARCHITECTURE-everything.md 腐爛最快、且把不同半衰期的內容混在一起。
+- *Day 1 強制建立。* 三層全部 lazy — 小專案如果只有一個 package、又沒有 surprising 決策，永遠不會需要這三個檔。
+- *Beat 擁有 ADR。* ADR 放在 `docs/adr/`（業界標準，自 Nygard 2011）而非 `beat/adr/`，因為這個格式早於 Beat 且被其他工具讀；Beat 只是 trigger 與 offer。
+- *從 code derive 意圖。* 結構可以 derive（Aider repo-map、DeepWiki）— 意圖不行。Beat 手寫意圖；結構快照交給使用者自己選工具產生。
+
+**Trade-off：** 三層 surface 在 design / apply / archive 多了摩擦。我們接受這個成本，因為光靠 Gherkin 會讓詞彙、決策、結構全部隱形，而事後 re-litigate 這些東西的代價遠高於一個 prompt。
+
+## Hard Prompt, Soft Action
+
+Layer 3 module README 同步在 `/beat:apply` 是 HARD-GATE — skill **必須** prompt user，當 public interface 改變。但**動作是 soft**：user 可以拒絕、繼續。`/beat:verify` 之後會把這個 gap 以 WARNING（advisory、永遠不是 CRITICAL）再提一次。
+
+這個 pattern — **hard prompt, soft action** — 套用在所有 living doc enforcement。Skill 負責提出問題、user 負責回答。
+
+**我們捨棄了什麼：** Living docs drift 時擋 merge。這會讓 living doc 維護變成一種稅、訓練 user 找辦法繞過 gate（找關閉開關、suppress warning）。Beat 改成相信「在對的時間給一個無法忽視的 prompt 就夠了」。
+
+**Trade-off：** 有紀律的 user 會收到溫和提醒；懶散的 user 可以完全忽略。我們接受這個取捨，因為另一邊（會擋住工作的 gate）更糟 — 它會造成「doc theatre」，大家想辦法 game gate、文件還是腐爛。
+
+---
+
 ## Beat 不是什麼
 
 - **不是測試執行器** — Beat 產出規格並引導實作，但不會自己跑測試
