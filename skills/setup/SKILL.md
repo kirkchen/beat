@@ -171,6 +171,12 @@ Initialize Beat configuration in the current project.
    mkdir -p beat/features
    ```
 
+   Do **not** create the three living-doc surfaces here. `beat/CONTEXT.md`,
+   `docs/adr/`, and `beat/ARCHITECTURE.md` (plus module READMEs) are **lazy** —
+   they appear the first time a Beat skill needs them. A small project may
+   never need any of them. Mention this in the summary so the user knows
+   what to expect.
+
 9. **Show summary**
 
    ```
@@ -183,6 +189,14 @@ Initialize Beat configuration in the current project.
 
    Your config will be used when creating artifacts.
    Edit beat/config.yaml anytime to update preferences.
+
+   Beat will also lazy-create three living-doc surfaces when first needed
+   (see references/{context,adr,architecture}-format.md):
+   - beat/CONTEXT.md     — domain glossary
+   - docs/adr/           — ADRs (three-condition gate)
+   - beat/ARCHITECTURE.md + module READMEs
+
+   Small projects may never need any of these.
 
    Ready to start? Run `/beat:design` or `/beat:explore`
    ```
