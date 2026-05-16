@@ -1,6 +1,6 @@
 ---
 name: plan
-description: Use when creating an execution plan for a Beat change — breaks down spec artifacts into tasks with multi-role review — requires spec artifacts (gherkin or proposal) to be done first
+description: Use when breaking down a Beat change spec into tasks — not for spec creation or implementation
 ---
 
 Plan the execution — read spec artifacts, review from multiple perspectives, then generate tasks.md.

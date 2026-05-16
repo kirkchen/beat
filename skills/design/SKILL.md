@@ -1,6 +1,6 @@
 ---
 name: design
-description: Use when designing a Beat change — creates change container and generates spec artifacts (proposal, gherkin, design.md) — not for task breakdown or implementation
+description: Use when starting a Beat change to create spec artifacts — not for task breakdown, implementation, or exploration
 ---
 
 Design a change — create a change container (if needed) and generate spec artifacts.

@@ -1,6 +1,6 @@
 ---
 name: setup
-description: Use when setting up Beat for the first time in a project or updating project configuration — not for editing beat/config.yaml directly or configuring non-Beat tools
+description: Use when initializing Beat or updating its config — not for editing config.yaml directly or non-Beat tools
 ---
 
 Initialize Beat configuration in the current project.

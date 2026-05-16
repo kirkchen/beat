@@ -1,6 +1,6 @@
 ---
 name: archive
-description: Use when finalizing a Beat change — syncs features to living documentation and archives the change — not for verifying implementation
+description: Use when a Beat change is implemented and ready to archive — not for verifying implementation
 ---
 
 Archive a completed change. Checks completion, syncs features to living documentation, then moves to archive.

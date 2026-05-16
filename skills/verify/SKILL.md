@@ -1,9 +1,28 @@
 ---
 name: verify
-description: Use when validating implementation completeness before archiving a Beat change
+description: Use when validating implementation against spec artifacts before archive — not for design, planning, or implementation
 ---
 
 Verify implementation against change artifacts using four dimensions. Uses independent subagents to eliminate context bias.
+
+<decision_boundary>
+
+**Use for:**
+- Validating implementation completeness against spec artifacts before archive
+- Independent verification via subagents to catch context bias
+- Surfacing living-doc drift (Layer 1/2/3) as advisory findings
+
+**NOT for:**
+- Creating or modifying spec artifacts (use `/beat:design`)
+- Writing tasks (use `/beat:plan`)
+- Running implementation (use `/beat:apply`)
+- Archiving the change (use `/beat:archive`)
+
+**Trigger examples:**
+- "Verify the change" / "Check implementation against spec" / "Run verification"
+- Should NOT trigger: "design a feature" / "implement the change" / "archive it"
+
+</decision_boundary>
 
 <HARD-GATE>
 You MUST dispatch independent subagents for verification — NEVER verify implementation yourself
