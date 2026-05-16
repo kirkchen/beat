@@ -12,7 +12,9 @@ but NEVER skip because you judged the workflow complete without it.
 When gherkin status is `done`: you MUST sync features before archiving.
 Before sync: you MUST scan the features being synced for project-specific terms
 that are not yet defined in `beat/CONTEXT.md`, and prompt the user to add them.
-Do NOT skip the scan or the sync because the user wants speed.
+After sync, before moving to archive: you MUST run the last-mile ADR sweep —
+if zero ADRs were written for this change, prompt once before archiving.
+Do NOT skip any of these because the user wants speed.
 </HARD-GATE>
 
 **Prerequisites** (invoke before proceeding)
@@ -32,6 +34,7 @@ If unavailable (skill not installed), skip and show archive summary only.
 | "Skipping sync is fine, the user can run it later" | There is no separate sync skill. Archive is the only place features get synced. Skipping means features are lost from living documentation. |
 | "The .orig backups can be cleaned up later" | Orphaned `.orig` files hide scenarios from BDD runners permanently. Cleanup is part of archive, not a separate step. |
 | "Glossary terms can be added later, it's just docs" | Once the features sync into `beat/features/`, the undefined terms become user-facing living documentation. Future readers can't tell which terms are canonical vs. ad hoc. The scan-and-prompt is two minutes — do it before sync. |
+| "We didn't write any ADRs but the design.md captures everything" | design.md gets archived with the change. Cross-change decisions need to live in `docs/adr/`. The last-mile sweep is one prompt; if nothing qualifies, it costs nothing. |
 
 ## Red Flags — STOP if you catch yourself:
 
@@ -40,6 +43,7 @@ If unavailable (skill not installed), skip and show archive summary only.
 - Moving to archive without asking user about capability mapping (when features exist)
 - Completing archive while `.feature.orig` files remain in `beat/features/`
 - Syncing features without first scanning for project-specific terms missing from `beat/CONTEXT.md`
+- Archiving a change with zero ADRs without running the last-mile sweep prompt
 
 ## Process Flow
 
@@ -55,6 +59,7 @@ digraph archive {
     "Scan features for\nundefined terms" [shape=box, style=bold];
     "Sync features" [shape=box];
     "Skip sync" [shape=box];
+    "Last-mile ADR sweep" [shape=box, style=bold];
     "Move to archive" [shape=box];
     "Invoke finishing-a-development-branch" [shape=box, style=bold];
     "Show summary" [shape=doublecircle];
@@ -70,8 +75,9 @@ digraph archive {
     "Gherkin done?" -> "Skip sync" [label="skipped"];
     "Ask capability mapping" -> "Scan features for\nundefined terms";
     "Scan features for\nundefined terms" -> "Sync features";
-    "Sync features" -> "Move to archive";
-    "Skip sync" -> "Move to archive";
+    "Sync features" -> "Last-mile ADR sweep";
+    "Skip sync" -> "Last-mile ADR sweep";
+    "Last-mile ADR sweep" -> "Move to archive";
     "Move to archive" -> "Invoke finishing-a-development-branch";
     "Invoke finishing-a-development-branch" -> "Show summary";
 }
@@ -173,6 +179,23 @@ digraph archive {
 
    Update `status.yaml` phase to `sync`.
 
+   **Last-mile ADR sweep** (Layer 2 living-doc enforcement):
+
+   Count ADR files written or referenced during this change:
+   - Check `docs/adr/` for files created since this change started (git diff against the change's base commit)
+   - Scan `design.md` and `tasks.md` for `docs/adr/NNNN-` cross-references
+
+   **If at least one ADR exists for this change:** skip the sweep silently. Earlier triggers (in `/beat:design`, `/beat:plan`, `/beat:apply`) already caught the candidates.
+
+   **If zero ADRs exist for this change:** prompt once using **AskUserQuestion tool**:
+   > "No ADRs recorded for this change. Was there any hard-to-reverse + surprising + real-trade-off decision worth recording before archiving?"
+   > - No, none qualified
+   > - Yes, let me describe it now
+
+   If user describes one, run the three-condition gate from `references/adr-format.md`. If all three hold, write the ADR under `docs/adr/` with the next sequential number. If not all three hold, note the skip.
+
+   Either way, proceed to archive.
+
 5. **Perform the archive**
 
    Update `status.yaml`: set phase to `archive`.
@@ -200,6 +223,7 @@ digraph archive {
    **Archived to:** beat/changes/archive/YYYY-MM-DD-<name>/
    **Features:** Synced to beat/features/ (or "Sync skipped" or "No features to sync")
    **Glossary:** N terms added to beat/CONTEXT.md (or "no changes" / "M terms skipped")
+   **ADRs:** N written to docs/adr/ (or "none recorded — last-mile sweep declined")
    **Artifacts:** N done, M skipped
    **Tasks:** X/Y complete (or "No tasks file")
    ```
