@@ -139,6 +139,18 @@ Each change can include these artifacts (you choose which):
 
 For purely technical changes (refactoring, tooling, deps), you can skip Gherkin entirely and drive from `proposal.md` instead.
 
+## Living Documentation (three layers)
+
+Beat also maintains **project-level** living docs alongside per-change artifacts. All three are lazy — created the first time they're needed, never preemptively.
+
+| Layer | File(s) | Format | Maintained by |
+|-------|---------|--------|--------------|
+| **1. Glossary** | `beat/CONTEXT.md` | Domain vocabulary (one canonical term per concept) | `/beat:design` (4-challenge check before gherkin), `/beat:archive` (scan synced features for undefined terms) |
+| **2. Decisions** | `docs/adr/NNNN-slug.md` | 1-3 sentence ADRs, gated by hard-to-reverse + surprising + real trade-off | `/beat:design` (per Key Decision), `/beat:plan` (review rejections), `/beat:apply` (implementation-forced), `/beat:archive` (last-mile sweep) |
+| **3. Structure** | `beat/ARCHITECTURE.md` + module `README.md` | Hub diagram + module purpose/interface/deps | `/beat:apply` (prompt on public-interface change), `/beat:verify` (Dimension 5, advisory) |
+
+The three formats are specified in `references/context-format.md`, `references/adr-format.md`, and `references/architecture-format.md`. Optional `mattpocock-skills:grill-with-docs` integration for deeper glossary grilling.
+
 ## Testing Architecture
 
 Beat connects feature files to tests through lightweight text annotations — no framework, no build step, works in any language:
