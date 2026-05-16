@@ -35,6 +35,10 @@ When implementation forces a decision not anticipated in `design.md` and the
 decision meets the three-condition ADR gate (hard-to-reverse + surprising +
 real trade-off — see `references/adr-format.md`): you MUST pause, offer to
 record an ADR, and only proceed once the user has decided.
+When implementation changes a module's **public interface** (anything callers
+outside the module rely on — see `references/architecture-format.md`): you
+MUST prompt the user to update that module's `README.md`. User may decline.
+The check is hard (always asked); the action is soft (user choice).
 Invoke in order: worktrees first (verify), then TDD (discipline).
 If a prerequisite skill is unavailable (not installed), continue without it — but NEVER skip
 because you judged it unnecessary.
@@ -65,6 +69,8 @@ Invoke in order: worktrees first (verify isolation), then TDD (discipline). Debu
 | "The existing test is roughly correct, no need to update it" | If scenario steps changed, the test must reflect those changes. An old test passing does not mean the new behavior is correct. |
 | "I'll create a new test file, it's faster" | If @covered-by already points to an existing test, creating a new file breaks traceability. Update the existing test. |
 | "We had to make a decision the design didn't cover, but I'll note it in a code comment" | Code comments don't survive refactors. If the decision is hard-to-reverse, surprising, and a real trade-off, run the ADR gate. If it passes, write the ADR before continuing. |
+| "I changed the function signature but it's a small change, no README update needed" | The signature is part of the public interface. Every caller outside the module just changed. The prompt takes 5 seconds — answer it. |
+| "The module doesn't have a README yet, I'll skip" | Module README is lazy — it gets created the first time a public-interface change triggers the prompt. Skipping now means the next change has nothing to compare against. |
 
 ## Red Flags — STOP if you catch yourself:
 
@@ -80,6 +86,7 @@ Invoke in order: worktrees first (verify isolation), then TDD (discipline). Debu
 - Creating a new test file for a scenario that already has `@covered-by` pointing to an existing test
 - Modifying scenario steps without updating the corresponding e2e test
 - Making a hard-to-reverse implementation choice not in `design.md` without checking it against the three-condition ADR gate
+- Changing a module's public interface without prompting the user about its `README.md`
 
 ## Process Flow
 
