@@ -125,12 +125,15 @@ digraph verify {
    Combine both subagent reports:
    - Dimensions 1-3 from verification subagent (spec alignment)
    - Dimension 4 from code-reviewer (code quality)
+   - Dimension 5 from verification subagent (living docs sync — Layer 1/2/3, advisory only)
    - Step 4 test results (if available)
 
 **Issue Classification**
 - CRITICAL: Must fix (missing scenario test [in coverage mode], inaccurate scenario [in accuracy mode], unimplemented goal, design violation, security vulnerability)
-- WARNING: Should fix (partial coverage, possible divergence, non-executable test, Gherkin quality issues, code quality concerns)
-- SUGGESTION: Nice to fix (pattern inconsistency, minor improvement, missing test in distill mode)
+- WARNING: Should fix (partial coverage, possible divergence, non-executable test, Gherkin quality issues, code quality concerns, living-doc drift — Layer 1/2/3 sync gaps)
+- SUGGESTION: Nice to fix (pattern inconsistency, minor improvement, missing test in distill mode, module without README)
+
+**Dimension 5 is advisory** — its findings classify as WARNING or SUGGESTION only, never CRITICAL. The user decides whether to act before archiving; living-doc drift never blocks the archive.
 
 **Graceful Degradation**
 - Gherkin skipped: skip Dimension 1, strengthen Dimension 2 (proposal alignment)
