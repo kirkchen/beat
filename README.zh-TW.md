@@ -131,6 +131,18 @@ explore → design → plan → apply → verify → archive
 
 純技術性變更（重構、工具鏈、依賴升級）可以完全跳過 Gherkin，改由 `proposal.md` 驅動。
 
+## Living Documentation（三層）
+
+除了 per-change artifact，Beat 也維護 **專案層級** living docs。三層全部 lazy — 第一次需要時才建，不會 preemptively 建立。
+
+| Layer | 檔案 | 格式 | 由誰維護 |
+|-------|------|------|---------|
+| **1. 詞彙表** | `beat/CONTEXT.md` | 領域詞彙（每個概念只有一個正統詞） | `/beat:design`（寫 gherkin 前 4 challenge）、`/beat:archive`（sync 前掃未定義 term） |
+| **2. 決策** | `docs/adr/NNNN-slug.md` | 1-3 句 ADR，需通過 hard-to-reverse + surprising + real trade-off 三條件 gate | `/beat:design`（每個 Key Decision）、`/beat:plan`（review 拒絕方案時）、`/beat:apply`（實作中浮現時）、`/beat:archive`（last-mile sweep） |
+| **3. 結構** | `beat/ARCHITECTURE.md` + module `README.md` | Hub 圖 + 每個 module 的職責/interface/依賴 | `/beat:apply`（改 public interface 時 prompt）、`/beat:verify`（Dimension 5，advisory） |
+
+三個格式定義在 `references/context-format.md` / `adr-format.md` / `architecture-format.md`。詞彙釐清需要深入時可以選擇性 invoke `mattpocock-skills:grill-with-docs`。
+
 ## 測試架構
 
 Beat 透過輕量級文字註解連結 feature 檔和測試 — 不需要框架、不需要建置步驟、適用任何語言：

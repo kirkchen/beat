@@ -75,6 +75,13 @@ Invoke in order: worktrees first (verify isolation), then TDD (discipline). Debu
 - Creating a new test file for a scenario that already has `@covered-by` pointing to an existing test
 - Modifying scenario steps without updating the corresponding e2e test
 
+## Mid-Implementation Triggers (mandatory)
+
+- **ADR** — hard-to-reverse + surprising + real-trade-off decision not in `design.md` → write ADR (`references/adr-format.md`)
+- **README** — module public-interface change → update module README (`references/architecture-format.md`)
+
+Run inline as conditions arise. Don't batch.
+
 ## Process Flow
 
 ```dot

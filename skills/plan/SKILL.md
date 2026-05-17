@@ -1,6 +1,6 @@
 ---
 name: plan
-description: Use when creating an execution plan for a Beat change — breaks down spec artifacts into tasks with multi-role review — requires spec artifacts (gherkin or proposal) to be done first
+description: Use when breaking down a Beat change spec into tasks — not for spec creation or implementation
 ---
 
 Plan the execution — read spec artifacts, review from multiple perspectives, then generate tasks.md.
@@ -32,6 +32,11 @@ writing-plans IS the task creation process. This applies regardless of change co
 You MUST have at least one spec artifact done (gherkin or proposal) before proceeding.
 Do NOT create tasks from a description alone — spec artifacts are the input.
 
+When the multi-role review rejects an alternative with a load-bearing reason
+that would otherwise have to be re-litigated by future reviewers: you MUST
+run the three-condition ADR gate (see `references/adr-format.md`) and offer
+to record an ADR. User may decline.
+
 If a prerequisite skill is unavailable (not installed), continue with fallback — but NEVER skip
 because you judged it unnecessary.
 </HARD-GATE>
@@ -55,6 +60,7 @@ If a superpower is unavailable (skill not installed), skip and continue.
 | "The user wants speed, invoking superpowers will slow us down" | Skipping prerequisites produces lower-quality tasks that cause rework during apply. |
 | "The spec artifacts are clear enough, review is overkill" | Review catches blind spots that the spec author can't see. The more obvious the spec seems, the more likely assumptions are hiding. |
 | "I'll skip review for this small change" | Small changes still benefit from a test coverage check. Review scales with complexity — it's fast for simple changes. |
+| "The review rejected option X — let's just note it in tasks.md" | If the rejection reason is load-bearing for future reviewers, it'll be re-litigated. Run the ADR gate; if all three conditions hold, write the ADR. |
 
 ## Red Flags — STOP if you catch yourself:
 
@@ -64,6 +70,7 @@ If a superpower is unavailable (skill not installed), skip and continue.
 - Thinking "review isn't needed for this particular change"
 - Skipping a MUST prerequisite and planning to "compensate" later
 - Proceeding without at least one spec artifact (gherkin or proposal) being done
+- Merging a review rejection into tasks.md without checking whether it qualifies as an ADR
 
 ## Process Flow
 
@@ -226,6 +233,18 @@ digraph plan {
    Collect findings from all review agents. If parallel agents were used:
    - Deduplicate findings that identify the same issue from different roles
    - When findings conflict, prefer the more conservative recommendation
+
+   **ADR gate on rejected alternatives** — scan the review output for cases
+   where an alternative approach was considered and rejected with a
+   load-bearing reason (i.e. a reason a future reviewer would want to know
+   about to avoid re-suggesting the same thing). For each, run the three
+   conditions from `references/adr-format.md`:
+
+   1. Hard to reverse?
+   2. Surprising without context?
+   3. Result of a real trade-off?
+
+   If **all three** hold, use **AskUserQuestion tool**: *"Review rejected '<alt>' because '<reason>' — record as ADR?"* On Yes, write the ADR under `docs/adr/`, increment numbering, cross-reference from `tasks.md` or `design.md` as appropriate. On No, continue.
 
    Read `beat/changes/<name>/tasks.md`, then use the **Edit tool** to apply:
    - Add missing tasks or steps identified by the review

@@ -130,6 +130,59 @@ If design.md exists:
 - For each decision in the design: does the implementation follow this decision?
 - Are there contradictions?
 
+## Dimension 5: Living Docs Sync (advisory)
+
+This dimension is **advisory** — findings always classify as WARNING or
+SUGGESTION, never CRITICAL. The purpose is to surface drift in Layer 1 / 2 / 3
+living documentation; the user decides whether to act before archiving.
+
+### 5A: CONTEXT.md (Layer 1)
+
+If `beat/CONTEXT.md` exists:
+- Scan the change's feature files and proposal/design for **bolded** project-
+  specific terms.
+- Any bolded term that is not defined in `beat/CONTEXT.md` → WARNING.
+- Any term used in the codebase that conflicts with a glossary entry
+  (different meaning) → WARNING.
+
+If `beat/CONTEXT.md` doesn't exist and the project has ≥ 1 archived change,
+this is fine — Beat creates it lazily.
+
+### 5B: ADR coverage (Layer 2)
+
+- If `design.md` contains a section marked as ADR-worthy (or a Key Decision
+  that obviously meets the three-condition gate) but no corresponding ADR
+  exists in `docs/adr/` → WARNING.
+- If `design.md` or `tasks.md` references a non-existent ADR path
+  (`docs/adr/NNNN-…`) → WARNING.
+
+The three-condition gate (hard-to-reverse + surprising + real trade-off) is
+in `references/adr-format.md`. Don't flag decisions that don't meet the gate.
+
+### 5C: Module README sync (Layer 3)
+
+If `beat/ARCHITECTURE.md` exists or any module under the project has a
+`README.md`:
+
+- Did this change touch source files inside a module whose public interface
+  changed? (Heuristic: exported function signatures, exported types, public
+  method signatures.)
+- If yes, did the corresponding module `README.md` change in the same change?
+  - No README change → WARNING: "Module `<path>` public interface changed but
+    its README didn't"
+  - No README exists at all → SUGGESTION: "Module `<path>` has no README;
+    consider scaffolding one from `references/architecture-format.md`"
+- If the change adds a new module (new top-level directory in `src/` or
+  `packages/`) and no README exists → WARNING
+
+Internal refactors that don't change the public interface do not trigger
+findings. Use the deletion test as the heuristic: would deleting an export
+break callers outside the module?
+
+Skip Dimension 5 entirely if none of `beat/CONTEXT.md`, `docs/adr/`, or
+module READMEs exist — this means the project hasn't adopted living docs
+yet, and Beat shouldn't pretend it has.
+
 ## Output Format
 
 ```

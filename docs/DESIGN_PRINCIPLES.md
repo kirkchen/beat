@@ -164,6 +164,35 @@ The pause between them is intentional. It gives the team a chance to review spec
 
 ---
 
+## Living Documentation in Layers
+
+Gherkin scenarios describe **behavior**. They do not describe **vocabulary** (what does "Run" mean here?), **decisions** (why did we pick X over Y?), or **structure** (which module owns this?). Beat maintains three additional living-doc surfaces alongside features, each with a different half-life:
+
+- **Layer 1 — `beat/CONTEXT.md`** (vocabulary): one canonical term per concept, opinionated about synonyms. Half-life: very long (domain words change slowly).
+- **Layer 2 — `docs/adr/`** (decisions): 1-3 sentence ADRs, gated by hard-to-reverse + surprising + real trade-off. Half-life: indefinite (once written, rarely revisited).
+- **Layer 3 — `beat/ARCHITECTURE.md` + module `README.md`** (structure & intent): hub + spokes, hand-written. Half-life: short (must update with code).
+
+**What we rejected:**
+
+- *One mega-doc.* A single ARCHITECTURE-everything.md rots fastest and conflates concerns with different half-lives.
+- *Mandatory on day one.* All three are lazy — a small project with one package and no surprising decisions may never need them.
+- *Beat-owned ADRs.* ADRs live at `docs/adr/` (industry standard, since Nygard 2011) rather than `beat/adr/`, because the format predates Beat and is read by other tools; Beat only triggers and offers.
+- *Deriving intent from code.* Structure can be derived (Aider repo-map, DeepWiki) — intent cannot. Beat hand-writes intent; users pick their own derive tool for structure snapshots.
+
+**Trade-off:** Three surfaces add friction at design / apply / archive. We accept this because Gherkin alone leaves vocabulary, decisions, and structure invisible — and the cost of re-litigating those is higher than the cost of one extra prompt per change.
+
+## Hard Prompt, Soft Action
+
+Layer 3 module README sync is a HARD-GATE in `/beat:apply` — the skill MUST prompt the user when a public interface changes. But the **action** is soft: the user can decline and continue. `/beat:verify` re-surfaces the gap as a WARNING (advisory, never CRITICAL).
+
+This pattern — hard prompt, soft action — applies broadly to all living-doc enforcement. The skills are accountable for raising the question; the user is accountable for the answer.
+
+**What we rejected:** Blocking merge when living docs drift. This makes living-doc maintenance feel like a tax and trains users to silence the gate (find the magic flag, suppress the warning). Instead Beat trusts that an unignorable prompt at the right moment is enough.
+
+**Trade-off:** Disciplined users get gentle reminders; lazy users can ignore them entirely. We accept this because the alternative — gates that block work — is worse: it produces "doc theatre" where everyone games the gate and the docs still rot.
+
+---
+
 ## What Beat Is Not
 
 - **Not a test runner** — Beat produces specifications and guides implementation, but doesn't execute tests

@@ -26,6 +26,11 @@ After brainstorming or exploration is complete, transition to Beat instead of `w
 
 Beat pipeline: `/beat:design` → `/beat:plan` → `/beat:apply` → `/beat:verify` → `/beat:archive`.
 
+Beat maintains three project-level living-doc surfaces (all lazy — created on first use):
+- `beat/CONTEXT.md` — domain glossary maintained inline by design/archive
+- `docs/adr/` — ADRs gated by hard-to-reverse + surprising + real trade-off
+- `beat/ARCHITECTURE.md` + module `README.md` — structure & intent, updated when public interfaces change
+
 If the user asks to build, fix, or change something, guide them through the Beat workflow.
 ```
 

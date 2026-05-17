@@ -36,8 +36,12 @@ beat/
 │   ├── status-schema.md         # status.yaml format (single source of truth)
 │   ├── config-schema.md         # config.yaml format (single source of truth)
 │   ├── testing-conventions.md   # Annotation format and e2e test style reference
+│   ├── context-format.md        # beat/CONTEXT.md glossary format (Layer 1 living docs)
+│   ├── adr-format.md            # docs/adr/ ADR format + three-condition gate (Layer 2 living docs)
+│   ├── architecture-format.md   # beat/ARCHITECTURE.md hub + module README format (Layer 3 living docs)
 │   ├── tool-mapping.md          # Cross-platform tool name mapping
 │   └── codex-agents-snippet.md  # Per-project AGENTS.md snippet replacing the SessionStart hook on Codex
+├── NOTICE.md                    # Third-party attribution (mattpocock-skills, superpowers — both MIT)
 ├── hooks/                       # Claude Code hooks (Codex ignores; replaced by AGENTS.md snippet)
 │   ├── hooks.json               # SessionStart hook config
 │   └── session-start            # Detects Beat project, injects workflow context
@@ -57,21 +61,28 @@ beat/
 When installed in a user's project, Beat creates this structure:
 
 ```
-<project>/beat/
-├── config.yaml              # Optional project config (language, context, rules)
-├── changes/                 # Active and archived changes
-│   ├── <change-name>/       # One directory per active change
-│   │   ├── status.yaml      # Change lifecycle state
-│   │   ├── proposal.md      # Optional: why this change exists
-│   │   ├── features/        # Gherkin feature files (mandatory by default)
-│   │   │   └── *.feature
-│   │   ├── design.md        # Optional: technical decisions
-│   │   └── tasks.md         # Optional: implementation checklist
-│   └── archive/             # Completed changes (YYYY-MM-DD-<name>/)
-└── features/                # Persistent living documentation
-    └── <capability>/        # Organized by capability after sync
-        ├── *.feature
-        └── README.md
+<project>/
+├── beat/
+│   ├── config.yaml              # Optional project config (language, context, rules)
+│   ├── CONTEXT.md               # Layer 1 — domain glossary (lazy, created on first term)
+│   ├── ARCHITECTURE.md          # Layer 3 — architecture hub (lazy, multi-module projects)
+│   ├── changes/                 # Active and archived changes
+│   │   ├── <change-name>/       # One directory per active change
+│   │   │   ├── status.yaml      # Change lifecycle state
+│   │   │   ├── proposal.md      # Optional: why this change exists
+│   │   │   ├── features/        # Gherkin feature files (mandatory by default)
+│   │   │   │   └── *.feature
+│   │   │   ├── design.md        # Optional: technical decisions
+│   │   │   └── tasks.md         # Optional: implementation checklist
+│   │   └── archive/             # Completed changes (YYYY-MM-DD-<name>/)
+│   └── features/                # Persistent living documentation
+│       └── <capability>/        # Organized by capability after sync
+│           ├── *.feature
+│           └── README.md
+├── docs/adr/                    # Layer 2 — ADRs (lazy, three-condition gate)
+│   └── NNNN-slug.md
+└── packages|src/<module>/
+    └── README.md                # Layer 3 — module README (lazy, on public-interface change)
 ```
 
 ### Pipeline Flow
@@ -100,6 +111,18 @@ For purely technical changes (tooling, deps, refactor): gherkin can be skipped, 
 - **Gherkin is mandatory by default** but can be skipped for purely technical changes (tooling, deps, refactoring without behavior change). When skipped, proposal drives plan, apply, and verify.
 - **verify** uses independent subagents (Agent tool with `subagent_type: Explore`) to avoid context bias. When verifying distilled specs (`source: distill`), it switches to accuracy mode.
 - **distill** works in reverse (code → spec), marks features with `@distilled` tag, and relies on `/beat:verify` for independent accuracy verification.
+
+### Living Documentation (three layers)
+
+Beat maintains three layers of project-level living documentation alongside the per-change artifacts. All three are **lazy** — created on first need, never preemptively. They complement the per-change archives, not replace them.
+
+- **Layer 1 — `beat/CONTEXT.md`** (glossary). Domain vocabulary, one canonical term per concept, opinionated about synonyms. Maintained inline by `/beat:design` (four-challenge check before writing gherkin) and `/beat:archive` (scan synced features for undefined terms). Format: `references/context-format.md`. Optional grilling via `mattpocock-skills:grill-with-docs` when ambiguity is complex.
+
+- **Layer 2 — `docs/adr/NNNN-slug.md`** (decisions). 1-3 sentence ADRs gated by three conditions: hard-to-reverse + surprising without context + result of a real trade-off. Offered at four trigger points: `/beat:design` (per Key Decision), `/beat:plan` (review rejections), `/beat:apply` (implementation-forced choices), `/beat:archive` (last-mile sweep when zero ADRs written). Format: `references/adr-format.md`. ADRs live at `docs/adr/` rather than `beat/adr/` because the ADR format is an industry standard (Nygard 2011) with its own tool ecosystem; Beat only triggers and offers, while the files belong to the project and outlive Beat if the plugin is removed.
+
+- **Layer 3 — `beat/ARCHITECTURE.md` hub + module `README.md` spokes** (structure & intent). Hub stays under ~150 lines: one Mermaid diagram, modules table, constraints referencing ADRs. Each module README under ~100 lines: purpose, public interface, dependencies, tests. Vocabulary is intentionally unspecified — use the codebase's native terms (package/service/module/layer). Maintained by `/beat:apply` (hard prompt on public-interface change) and `/beat:verify` (Dimension 5, WARNING tier, advisory only). Format: `references/architecture-format.md`. Structural snapshots (file tree, symbol map) are derive-tool territory — Beat doesn't generate them.
+
+- **Spec self-review**: After writing each artifact, `/beat:design` runs a four-check pass (placeholder / consistency / scope / ambiguity) and fixes issues inline. Adapted from `superpowers:brainstorming`.
 
 ### Testing Architecture
 
@@ -136,6 +159,10 @@ In test files (use the project language's comment syntax):
 ## Dependencies
 
 Requires the [superpowers](https://github.com/obra/superpowers) plugin for TDD, brainstorming, and debugging integrations referenced by `design`, `plan`, `apply`, and `explore` skills.
+
+Optionally integrates with [mattpocock-skills](https://github.com/mattpocock/skills) — `/beat:design` can hand off to `grill-with-docs` when CONTEXT.md ambiguity is complex enough to warrant a full grilling session. Graceful fallback when not installed.
+
+`NOTICE.md` records third-party attribution for content adapted from these projects (both MIT-licensed).
 
 ### Superpowers Integration
 
