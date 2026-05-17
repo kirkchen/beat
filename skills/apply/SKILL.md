@@ -75,37 +75,12 @@ Invoke in order: worktrees first (verify isolation), then TDD (discipline). Debu
 - Creating a new test file for a scenario that already has `@covered-by` pointing to an existing test
 - Modifying scenario steps without updating the corresponding e2e test
 
-## In-Flight Triggers (during implementation)
+## Mid-Implementation Triggers (mandatory)
 
-These fire **as implementation progresses**, not before. Each is its own
-MUST — you surface the trigger; the user decides the action. The check is
-hard (always asked); the action is soft (user may decline). This is a
-separate enforcement wall from the pre-condition HARD-GATE above; the
-prerequisite invocations there always come first.
+- **ADR** — hard-to-reverse + surprising + real-trade-off decision not in `design.md` → write ADR (`references/adr-format.md`)
+- **README** — module public-interface change → update module README (`references/architecture-format.md`)
 
-**ADR three-condition gate** — when implementation forces a decision not
-anticipated in `design.md` and the decision meets all three conditions
-(hard-to-reverse + surprising + real trade-off — see
-`references/adr-format.md`): pause, offer to record an ADR under `docs/adr/`,
-and only proceed once the user has decided.
-
-**Module README sync** — when implementation changes a module's **public
-interface** (anything callers outside the module rely on — see
-`references/architecture-format.md`): prompt the user to update that
-module's `README.md`.
-
-### In-Flight Rationalization Prevention
-
-| Thought | Reality |
-|---------|---------|
-| "We had to make a decision the design didn't cover, but I'll note it in a code comment" | Code comments don't survive refactors. If the decision is hard-to-reverse, surprising, and a real trade-off, run the ADR gate. If it passes, write the ADR before continuing. |
-| "I changed the function signature but it's a small change, no README update needed" | The signature is part of the public interface. Every caller outside the module just changed. The prompt takes 5 seconds — answer it. |
-| "The module doesn't have a README yet, I'll skip" | Module README is lazy — it gets created the first time a public-interface change triggers the prompt. Skipping now means the next change has nothing to compare against. |
-
-### In-Flight Red Flags — STOP if you catch yourself:
-
-- Making a hard-to-reverse implementation choice not in `design.md` without checking it against the three-condition ADR gate
-- Changing a module's public interface without prompting the user about its `README.md`
+Run inline as conditions arise. Don't batch.
 
 ## Process Flow
 
