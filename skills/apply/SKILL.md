@@ -31,18 +31,27 @@ Implement code based on the change artifacts. Supports two modes:
 Before any code changes: you MUST invoke superpowers:using-git-worktrees to verify isolation
 (should already exist from design/plan; creates one if not).
 In TDD mode: you MUST invoke superpowers:test-driven-development.
-When implementation forces a decision not anticipated in `design.md` and the
-decision meets the three-condition ADR gate (hard-to-reverse + surprising +
-real trade-off — see `references/adr-format.md`): you MUST pause, offer to
-record an ADR, and only proceed once the user has decided.
-When implementation changes a module's **public interface** (anything callers
-outside the module rely on — see `references/architecture-format.md`): you
-MUST prompt the user to update that module's `README.md`. User may decline.
-The check is hard (always asked); the action is soft (user choice).
 Invoke in order: worktrees first (verify), then TDD (discipline).
 If a prerequisite skill is unavailable (not installed), continue without it — but NEVER skip
 because you judged it unnecessary.
 </HARD-GATE>
+
+## In-Flight Triggers (during implementation)
+
+These fire **as implementation progresses**, not before. Each is a HARD-GATE
+in its own right — you MUST surface them and let the user decide.
+
+**ADR three-condition gate** — when implementation forces a decision not
+anticipated in `design.md` and the decision meets all three conditions
+(hard-to-reverse + surprising + real trade-off — see
+`references/adr-format.md`): pause, offer to record an ADR under `docs/adr/`,
+and only proceed once the user has decided.
+
+**Module README sync** — when implementation changes a module's **public
+interface** (anything callers outside the module rely on — see
+`references/architecture-format.md`): prompt the user to update that
+module's `README.md`. The check is hard (always asked); the action is soft
+(user may decline).
 
 **Prerequisites** (invoke before proceeding)
 
