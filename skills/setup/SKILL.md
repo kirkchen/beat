@@ -190,11 +190,10 @@ Initialize Beat configuration in the current project.
    Your config will be used when creating artifacts.
    Edit beat/config.yaml anytime to update preferences.
 
-   Beat will also lazy-create three living-doc surfaces when first needed
-   (see references/{context,adr,architecture}-format.md):
-   - beat/CONTEXT.md     — domain glossary
-   - docs/adr/           — ADRs (three-condition gate)
-   - beat/ARCHITECTURE.md + module READMEs
+   Beat will also lazy-create three living-doc surfaces when first needed:
+   - beat/CONTEXT.md     — domain glossary (see references/context-format.md)
+   - docs/adr/           — ADRs, three-condition gate (see references/adr-format.md)
+   - beat/ARCHITECTURE.md + module READMEs (see references/architecture-format.md)
 
    Small projects may never need any of these.
 

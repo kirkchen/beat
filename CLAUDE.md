@@ -23,24 +23,25 @@ beat/
 ├── .agents/plugins/marketplace.json  # Codex marketplace manifest — makes this repo a single-plugin marketplace
 ├── plugins/beat/                # Codex plugin overlay (symlinks to root files: skills, assets, .codex-plugin, references)
 ├── assets/                      # Brand icons (composerIcon, logo) for Codex
-├── skills/                      # Each subdirectory = one invocable skill
-│   ├── design/SKILL.md          # /beat:design — create change + generate spec artifacts
-│   ├── plan/SKILL.md            # /beat:plan — task breakdown with multi-role review
-│   ├── apply/SKILL.md           # /beat:apply — TDD implementation
-│   ├── verify/SKILL.md          # /beat:verify — 3-dimension verification
-│   ├── archive/SKILL.md         # /beat:archive — sync features + archive completed change
-│   ├── explore/SKILL.md         # /beat:explore — thinking partner mode
-│   ├── setup/SKILL.md           # /beat:setup — create beat/config.yaml
-│   └── distill/SKILL.md         # /beat:distill — reverse-engineer specs from code
-├── references/                  # Schemas referenced by skills
-│   ├── status-schema.md         # status.yaml format (single source of truth)
-│   ├── config-schema.md         # config.yaml format (single source of truth)
+├── skills/                      # Each subdirectory = one invocable skill (SKILL.md + synced references/)
+│   ├── design/                  # /beat:design — create change + generate spec artifacts
+│   ├── plan/                    # /beat:plan — task breakdown with multi-role review
+│   ├── apply/                   # /beat:apply — TDD implementation
+│   ├── verify/                  # /beat:verify — 3-dimension verification
+│   ├── archive/                 # /beat:archive — sync features + archive completed change
+│   ├── explore/                 # /beat:explore — thinking partner mode
+│   ├── setup/                   # /beat:setup — create beat/config.yaml
+│   └── distill/                 # /beat:distill — reverse-engineer specs from code
+├── references/                  # Source of truth for shared schemas — edit here, then run scripts/sync-references.mjs
+│   ├── status-schema.md         # status.yaml format
+│   ├── config-schema.md         # config.yaml format
 │   ├── testing-conventions.md   # Annotation format and e2e test style reference
 │   ├── context-format.md        # beat/CONTEXT.md glossary format (Layer 1 living docs)
 │   ├── adr-format.md            # docs/adr/ ADR format + three-condition gate (Layer 2 living docs)
 │   ├── architecture-format.md   # beat/ARCHITECTURE.md hub + module README format (Layer 3 living docs)
-│   ├── tool-mapping.md          # Cross-platform tool name mapping
-│   └── codex-agents-snippet.md  # Per-project AGENTS.md snippet replacing the SessionStart hook on Codex
+│   ├── tool-mapping.md          # Cross-platform tool name mapping (root only)
+│   └── codex-agents-snippet.md  # Per-project AGENTS.md snippet for Codex (root only)
+├── scripts/sync-references.mjs  # Syncs /references into each skill's references/ (see header for rationale)
 ├── NOTICE.md                    # Third-party attribution (mattpocock-skills, superpowers — both MIT)
 ├── hooks/                       # Claude Code hooks (Codex ignores; replaced by AGENTS.md snippet)
 │   ├── hooks.json               # SessionStart hook config
@@ -181,6 +182,10 @@ Each skill is a single SKILL.md file with YAML frontmatter (`name`, `description
 ### Schema Changes
 
 `references/status-schema.md` and `references/config-schema.md` are the single sources of truth. Every skill that reads/writes these files must follow the schemas exactly. If you change a schema, audit all skills that reference it.
+
+### References sync
+
+`/references` is the source of truth; `skills/<name>/references/` are synced copies. After editing anything under `/references`, run `node scripts/sync-references.mjs` (or `--check` for CI). Do not hand-edit synced copies. Rationale in the script header.
 
 ### Testing Changes
 
