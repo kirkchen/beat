@@ -4,6 +4,25 @@ All notable changes to Beat are documented in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and Beat adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-05-25
+
+### Fixed
+
+- Codex install via `npx skills add` now ships the references each skill
+  cites. The plugin previously kept all references at `/references` (plugin
+  root), but the skills CLI install path only copies a single skill folder
+  — so agents on Codex hit path-not-found when reading schema docs like
+  `references/status-schema.md`. Each skill now carries its own
+  `references/` subfolder, synced from the plugin-root source of truth via
+  `scripts/sync-references.mjs`.
+
+### Internal
+
+- `tool-mapping.md` and `codex-agents-snippet.md` stay at plugin root only
+  (no SKILL.md cites them).
+- `skills/setup/SKILL.md` brace-expanded references path expanded to
+  explicit filenames so the sync scanner picks them up.
+
 ## [0.2.0] - 2026-05-17
 
 ### Added
