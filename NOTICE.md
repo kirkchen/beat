@@ -11,6 +11,9 @@ following open-source projects.
 Beat references superpowers skills at runtime (e.g. `superpowers:brainstorming`,
 `superpowers:using-git-worktrees`). The `Spec Self-Review` checklist in
 `skills/design/SKILL.md` is adapted from `skills/brainstorming/SKILL.md`.
+`skills/verify/code-reviewer-prompt.md` is adapted from
+`skills/requesting-code-review/code-reviewer.md`, reshaped to Beat's Dimension 4
+and severity vocabulary.
 
 ## mattpocock/skills
 - License: MIT

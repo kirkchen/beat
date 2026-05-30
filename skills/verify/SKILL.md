@@ -121,14 +121,16 @@ digraph verify {
    - Testing context (drive mode, testing config, source flag, tag counts)
    - Do NOT pass conversation history or session context.
 
-   **Agent B — Code quality review** (subagent_type: `superpowers:code-reviewer`):
+   **Agent B — Code quality review** (subagent_type: `general-purpose`):
+   Read `code-reviewer-prompt.md` for the complete subagent prompt.
 
    Provide:
    - The change name and description (from proposal or status.yaml)
    - List of files created/modified during apply
    - The planning document (tasks.md or proposal.md) as the "original plan"
+   - The git range (base..head SHAs) if available, so the reviewer can read the diff
 
-   This reviews: code quality, architecture, naming, error handling, test quality, security, and plan alignment.
+   This reviews: code quality, architecture, naming, error handling, test quality, security, and plan alignment. Its output is Dimension 4, classified in Beat's CRITICAL/WARNING/SUGGESTION vocabulary.
 
    **Fallback**: If one agent fails, proceed with the other's findings. If BOTH fail, report failure — do NOT self-verify.
 

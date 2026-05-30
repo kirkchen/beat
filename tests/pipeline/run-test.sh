@@ -116,7 +116,7 @@ else
 fi
 
 # Code reviewer dispatched during verify (Dimension 4)
-if grep -q "superpowers:code-reviewer\|code.reviewer\|code quality" "$LOG_FILE" 2>/dev/null; then
+if grep -q "code-reviewer-prompt\|code.reviewer\|code quality" "$LOG_FILE" 2>/dev/null; then
     echo -e "${GREEN}[PASS]${NC} Code reviewer dispatched"
     PASS_COUNT=$((PASS_COUNT + 1))
 else
