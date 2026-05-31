@@ -4,6 +4,18 @@ All notable changes to Beat are documented in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and Beat adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2026-05-31
+
+### Fixed
+
+- `/beat:verify` no longer dispatches the `superpowers:code-reviewer` agent,
+  which superpowers removed in v5.1.0 (its persona/checklist moved into a
+  per-skill template). Agent B now dispatches `general-purpose` with an
+  internalized prompt at `skills/verify/code-reviewer-prompt.md`, reshaped to
+  Beat's Dimension 4 and CRITICAL/WARNING/SUGGESTION severity. Dimension 4
+  (code quality) previously failed silently when the named agent could not be
+  resolved; it now also works standalone without superpowers installed.
+
 ## [0.2.1] - 2026-05-25
 
 ### Fixed
