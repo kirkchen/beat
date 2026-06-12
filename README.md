@@ -145,9 +145,9 @@ Beat also maintains **project-level** living docs alongside per-change artifacts
 
 | Layer | File(s) | Format | Maintained by |
 |-------|---------|--------|--------------|
-| **1. Glossary** | `beat/CONTEXT.md` | Domain vocabulary (one canonical term per concept) | `/beat:design` (4-challenge check before gherkin), `/beat:archive` (scan synced features for undefined terms) |
-| **2. Decisions** | `docs/adr/NNNN-slug.md` | 1-3 sentence ADRs, gated by hard-to-reverse + surprising + real trade-off | `/beat:design` (per Key Decision), `/beat:plan` (review rejections), `/beat:apply` (implementation-forced), `/beat:archive` (last-mile sweep) |
-| **3. Structure** | `beat/ARCHITECTURE.md` + module `README.md` | Hub diagram + module purpose/interface/deps | `/beat:apply` (prompt on public-interface change), `/beat:verify` (Dimension 5, advisory) |
+| **1. Glossary** | `beat/CONTEXT.md` | Domain vocabulary (one canonical term per concept) | `/beat:design` (4-challenge check before gherkin), `/beat:distill` (glossary check on terms recovered from code), `/beat:archive` (scan synced features for undefined terms) |
+| **2. Decisions** | `docs/adr/NNNN-slug.md` | 1-3 sentence ADRs, gated by hard-to-reverse + surprising + real trade-off | `/beat:explore` (decision capture), `/beat:design` (per Key Decision), `/beat:plan` (review rejections), `/beat:apply` (implementation-forced), `/beat:distill` (decisions recovered from code), `/beat:archive` (last-mile sweep) |
+| **3. Structure** | `beat/ARCHITECTURE.md` + module `README.md` | Hub diagram + module purpose/interface/deps | `/beat:design` (hub suggestion on module-level change), `/beat:apply` (prompt on public-interface change, scaffold offer on new module), `/beat:distill` (README scaffold offer), `/beat:verify` (Dimension 5, advisory) |
 
 The three formats are specified in `references/context-format.md`, `references/adr-format.md`, and `references/architecture-format.md`. Optional `mattpocock-skills:grill-with-docs` integration for deeper glossary grilling.
 

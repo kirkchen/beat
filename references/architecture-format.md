@@ -180,11 +180,11 @@ when discussing refactors where precision pays off, not as a baseline.
 
 | Skill | Trigger | Action |
 |-------|---------|--------|
-| `/beat:apply` | After implementing tasks that change a module's **public interface** | HARD-GATE prompts user to update that module's README. User may decline. |
+| `/beat:apply` | After implementing tasks that change a module's **public interface** | Mandatory mid-implementation trigger prompts user to update that module's README. User may decline. |
 | `/beat:apply` | When creating a new module (new directory with its own concerns) | Prompt user to scaffold a README using the structure above |
 | `/beat:verify` | Verification dimension | Diff scan: if `apply` touched a module's public interface and its README didn't change in the same change, flag as **WARNING** (advisory). |
 | `/beat:design` | While writing `design.md`, when it describes a module-level architecture change | Suggest updating `beat/ARCHITECTURE.md` if the change affects the modules table, hub diagram, or constraints |
-| `/beat:distill` | When the distilled scope is a module without a `README.md` | Offer to scaffold the module README; offer an `beat/ARCHITECTURE.md` row if the hub exists but lacks the module |
+| `/beat:distill` | When the distilled scope is a module without a `README.md` | Offer to scaffold the module README; offer a `beat/ARCHITECTURE.md` row if the hub exists but lacks the module |
 
 Internal refactors that don't change a module's public interface do not
 trigger README updates. Use the **deletion test** as a rule of thumb: if

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Run Beat modify-feature pipeline end-to-end test.
-# Tests: plan (modify existing) -> apply (update existing tests) -> verify (semantic) -> archive (.orig cleanup)
+# Tests: design (modify existing) -> apply (update existing tests) -> verify (semantic) -> archive (.orig cleanup)
 # Usage: ./run-test.sh
 set -euo pipefail
 source "$(dirname "$0")/../../test-helpers.sh"
@@ -51,8 +51,8 @@ assert_skill_invoked "$LOG_FILE" "beat:apply" "beat:apply invoked"
 assert_skill_invoked "$LOG_FILE" "beat:verify" "beat:verify invoked"
 assert_skill_invoked "$LOG_FILE" "beat:archive" "beat:archive invoked"
 
-# --- .orig backup mechanism (plan) ---
-# After plan: original should be renamed to .orig
+# --- .orig backup mechanism (design) ---
+# After design: original should be renamed to .orig
 # After archive: .orig should be cleaned up
 # We check the final state — .orig should NOT exist (archive cleaned it)
 ORIG_FILES=$(find "$PROJECT_DIR/beat/features" -name "*.feature.orig" 2>/dev/null | wc -l | tr -d ' ')

@@ -4,6 +4,44 @@ All notable changes to Beat are documented in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and Beat adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- `/beat:distill` now participates in all three living-doc layers, matching
+  the other lifecycle skills: a glossary check before writing feature files
+  (Layer 1, four challenges adapted for code-as-source), a three-condition
+  ADR gate on Key Decisions recovered from the code (Layer 2 — rationale
+  must come from evidence or the user, never invented), and a module README
+  scaffold offer (Layer 3, advisory). Distill also runs the same four-check
+  spec self-review as `/beat:design`.
+- `/beat:verify` records its outcome in a new top-level `verification` field
+  in status.yaml (`{ status, critical, date }`); `/beat:archive` warns and
+  asks for confirmation when archiving a change that was never verified or
+  has unresolved critical findings. Inform-and-confirm — never blocks.
+- `/beat:explore` runs the ADR gate when capturing design decisions;
+  `/beat:design` suggests `beat/ARCHITECTURE.md` hub updates on module-level
+  changes; `/beat:apply` offers README scaffolding when creating a new module.
+- `/beat:plan` and `/beat:apply` warn before operating on a distill change
+  (`source: distill`) — there is nothing to plan or implement.
+
+### Fixed
+
+- Distill lifecycle dead end: the skill now routes to `/beat:verify` →
+  `/beat:archive` (previously suggested plan/apply, which have nothing to do
+  for a distill change) and sets `tasks: skipped` plus `skipped` for declined
+  optional artifacts, so archive no longer warns spuriously.
+- `/beat:verify` now passes the `gherkin.modified` file list (with `.orig`
+  paths) to the verification subagent — semantic verification of modified
+  scenarios (Dimension 1B+) could previously never trigger.
+- BDD feature paths are combined whenever `beat/changes/<name>/features/`
+  contains feature files — previously conditioned on `gherkin.modified`, so
+  changes that only added new features never ran them in e2e regression.
+- `/beat:archive` runs the last-mile ADR sweep on the gherkin-skipped path
+  too (previously bypassed for exactly the technical changes that need it).
+- Stale docs: verify is five dimensions (not three/four); `.orig` backups are
+  created by design (not plan); ADR trigger tables now list all six points.
+
 ## [0.2.2] - 2026-05-31
 
 ### Fixed

@@ -60,7 +60,7 @@ If a superpower is unavailable (skill not installed), skip and continue.
 
 | Thought | Reality |
 |---------|---------|
-| "I don't need a worktree for just writing feature files" | Distilled artifacts flow into plan/apply/archive. Without isolation, they won't carry forward correctly. |
+| "I don't need a worktree for just writing feature files" | Distilled artifacts flow through verify and archive. Without isolation, they won't carry forward correctly. |
 | "The code is simple, I can verify the scenarios myself" | Self-verification of distilled specs is explicitly forbidden. Always use `/beat:verify` for independent accuracy checking. |
 | "I'll skip scanning existing features, this is a new area" | Existing features may already cover this behavior. Distilling duplicates creates maintenance burden. |
 | "These scenarios are obviously correct, verification is overkill" | Distill extracts specs from code — the most likely error is describing aspirational behavior instead of current behavior. Verification catches this. |
@@ -80,6 +80,7 @@ If a superpower is unavailable (skill not installed), skip and continue.
 - Writing scenarios that use project-specific domain terms not defined in `beat/CONTEXT.md`
 - Writing a Key Decision in `design.md` without running the three-condition ADR gate
 - Inventing rationale for a recovered decision instead of marking it unverified or asking
+- Skipping the spec self-review because the scenarios "came straight from the code"
 - Telling the user to run `/beat:plan` or `/beat:apply` on the distill change itself (there is nothing to implement)
 - Thinking "I know the code well enough to skip verification"
 
@@ -96,6 +97,7 @@ digraph distill {
     "Create change container" [shape=box];
     "Glossary check\n(terms → CONTEXT.md)" [shape=box, style=bold];
     "Generate draft artifacts\n(self-review each)" [shape=box];
+    "design.md included?" [shape=diamond];
     "ADR gate\n(design.md Key Decisions)" [shape=box, style=bold];
     "Offer module README\n(Layer 3, optional)" [shape=box];
     "Commit artifacts" [shape=box];
@@ -109,8 +111,9 @@ digraph distill {
     "Scope already covered?" -> "Create change container" [label="no"];
     "Create change container" -> "Glossary check\n(terms → CONTEXT.md)";
     "Glossary check\n(terms → CONTEXT.md)" -> "Generate draft artifacts\n(self-review each)";
-    "Generate draft artifacts\n(self-review each)" -> "ADR gate\n(design.md Key Decisions)" [label="if design.md"];
-    "Generate draft artifacts\n(self-review each)" -> "Offer module README\n(Layer 3, optional)" [label="no design.md"];
+    "Generate draft artifacts\n(self-review each)" -> "design.md included?";
+    "design.md included?" -> "ADR gate\n(design.md Key Decisions)" [label="yes"];
+    "design.md included?" -> "Offer module README\n(Layer 3, optional)" [label="no"];
     "ADR gate\n(design.md Key Decisions)" -> "Offer module README\n(Layer 3, optional)";
     "Offer module README\n(Layer 3, optional)" -> "Commit artifacts";
     "Commit artifacts" -> "Present to user";
@@ -193,6 +196,7 @@ digraph distill {
    **proposal.md (optional):**
    - If the purpose is clear from code/docs: write a brief "why this exists" proposal
    - Sections: `## Why`, `## What Changes`, `## Impact`
+   - If you choose not to write it: set `proposal: { status: skipped }` in status.yaml — never leave it `pending` (archive warns on pending artifacts)
 
    **design.md (optional):**
    - Document the current technical architecture and key decisions visible in the code
@@ -203,6 +207,7 @@ digraph distill {
      3. Result of a real trade-off?
      Recovered decisions are prime candidates — "surprising without context" is exactly what code archaeology surfaces. **Caveat**: the code shows *what* was decided, not *why*. Take rationale from evidence (commit history, comments, docs) or from the user; if neither is available, record the decision with rationale marked unverified (e.g. "Rationale unconfirmed — recovered from code"). Never invent a why.
      If **all three** hold, use **AskUserQuestion tool**: *"This recovered decision meets the ADR gate. Lift it into `docs/adr/`?"* On Yes, write a 1-3 sentence ADR per the template in `references/adr-format.md`, incrementing the highest existing number. On No, continue. Create `docs/adr/` lazily — only on first ADR.
+   - If you choose not to write design.md: set `design: { status: skipped }` in status.yaml — never leave it `pending`
 
    **Spec self-review (after writing each artifact):**
 
@@ -215,7 +220,7 @@ digraph distill {
 
    Fix issues inline. No need to re-review the fix — just fix and move on.
 
-   Update `status.yaml` for each artifact created. Set phase to the latest completed spec artifact.
+   Update `status.yaml` for each artifact created, and mark optional artifacts you chose not to create as `skipped`. Set phase to the latest completed spec artifact.
 
    **Module README offer (Layer 3, optional):**
 

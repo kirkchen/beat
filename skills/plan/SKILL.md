@@ -139,6 +139,8 @@ digraph plan {
 
    If neither condition is met: "Spec artifacts are required before task breakdown. Run `/beat:design` first." STOP.
 
+   If `status.yaml` has `source: distill`: warn — "This is a distill change; it describes current behavior, so there is nothing to plan. The intended flow is `/beat:verify` → `/beat:archive`." Use **AskUserQuestion tool** to confirm before proceeding.
+
    If `tasks` already has `status: done`: "Tasks already exist. Re-running will regenerate tasks.md." Confirm with user before proceeding.
 
    Read all available artifacts:

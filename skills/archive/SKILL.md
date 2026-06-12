@@ -1,6 +1,6 @@
 ---
 name: archive
-description: Use when a Beat change is implemented and ready to archive — not for verifying implementation
+description: Use when a Beat change is complete (implemented, or distilled and verified) and ready to archive — not for verifying implementation
 ---
 
 Archive a completed change. Checks completion, syncs features to living documentation, then moves to archive.
@@ -27,11 +27,14 @@ Archive a completed change. Checks completion, syncs features to living document
 After archive is complete: you MUST invoke superpowers:finishing-a-development-branch
 to guide merge/PR/cleanup. If unavailable (not installed), skip and show summary only —
 but NEVER skip because you judged the workflow complete without it.
+Before archiving: you MUST check the top-level `verification` field in status.yaml;
+if absent or `issues-found`, confirm with the user — inform and confirm, never block.
 When gherkin status is `done`: you MUST sync features before archiving.
 Before sync: you MUST scan the features being synced for project-specific terms
 that are not yet defined in `beat/CONTEXT.md`, and prompt the user to add them.
-After sync, before moving to archive: you MUST run the last-mile ADR sweep —
-if zero ADRs were written for this change, prompt once before archiving.
+Before moving to archive: you MUST run the last-mile ADR sweep — if zero ADRs
+were written for this change, prompt once before archiving. This applies whether
+or not features were synced.
 Do NOT skip any of these because the user wants speed.
 </HARD-GATE>
 
@@ -83,8 +86,8 @@ digraph archive {
     "Skip sync" [shape=box];
     "Last-mile ADR sweep" [shape=box, style=bold];
     "Move to archive" [shape=box];
-    "Invoke finishing-a-development-branch" [shape=box, style=bold];
-    "Show summary" [shape=doublecircle];
+    "Show summary" [shape=box];
+    "Invoke finishing-a-development-branch" [shape=doublecircle, style=bold];
 
     "Select change" -> "Check artifact completion";
     "Check artifact completion" -> "Warn incomplete" [label="pending found"];
@@ -103,8 +106,8 @@ digraph archive {
     "Sync features" -> "Last-mile ADR sweep";
     "Skip sync" -> "Last-mile ADR sweep";
     "Last-mile ADR sweep" -> "Move to archive";
-    "Move to archive" -> "Invoke finishing-a-development-branch";
-    "Invoke finishing-a-development-branch" -> "Show summary";
+    "Move to archive" -> "Show summary";
+    "Show summary" -> "Invoke finishing-a-development-branch";
 }
 ```
 
@@ -153,7 +156,7 @@ digraph archive {
 
    Check `status.yaml`:
 
-   **If gherkin status is `skipped`:** Skip sync (no features to sync). Proceed to Step 5.
+   **If gherkin status is `skipped`:** Skip sync (no features to sync). Proceed to step 4b.
 
    **If gherkin status is `done`:**
 
@@ -162,7 +165,7 @@ digraph archive {
    - `proposal.md` (if exists)
    - `design.md` (if exists)
 
-   If no feature files exist: skip sync, proceed to Step 5.
+   If no feature files exist: skip sync, proceed to step 4b.
 
    Read `beat/config.yaml` if it exists (schema: `references/config-schema.md`). Use `language` for README content language.
 
@@ -216,7 +219,9 @@ digraph archive {
 
    Update `status.yaml` phase to `sync`.
 
-   **Last-mile ADR sweep** (Layer 2 living-doc enforcement):
+4b. **Last-mile ADR sweep** (Layer 2 living-doc enforcement)
+
+   Runs on every path — whether features were synced or sync was skipped.
 
    Count ADR files written or referenced during this change:
    - Check `docs/adr/` for files created since this change started (git diff against the change's base commit)

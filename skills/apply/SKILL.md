@@ -141,6 +141,8 @@ digraph apply {
 
    If neither condition is met: "Features or proposal are required before implementation. Run `/beat:design` first." STOP.
 
+   If `status.yaml` has `source: distill`: warn — "This is a distill change; its features describe behavior the code already has, so there is nothing to implement. The intended flow is `/beat:verify` → `/beat:archive`." Use **AskUserQuestion tool** to confirm before proceeding.
+
 3. **Read all artifacts and determine testing mode**
 
    Read in order:
@@ -160,7 +162,7 @@ digraph apply {
 
    **Determine BDD feature paths** (for running e2e tests):
    - Base: `beat/features/` (unchanged features; `.feature.orig` files are invisible to BDD runners)
-   - If `status.yaml` has `gherkin.modified`: add `beat/changes/<name>/features/` (modified + new features)
+   - If `beat/changes/<name>/features/` contains feature files: add it (new + modified features)
    - Combine both paths when invoking BDD runner (e.g., `npx cucumber-js beat/features beat/changes/<name>/features`)
 
 4. **Determine implementation strategy**
