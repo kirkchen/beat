@@ -267,6 +267,8 @@ digraph plan {
 
    Commit tasks.md and updated status.yaml: `git add beat/changes/<name>/ && git commit`
 
+   Use a descriptive message, e.g. "plan(<name>): add task breakdown".
+
    Update phase to `implement` in `status.yaml` (advancing from `tasks` → `implement`).
 
    ```

@@ -104,13 +104,14 @@ ADR, no one reads ADRs.
 
 ## When Beat offers an ADR
 
-Beat skills surface ADR candidates at four trigger points:
+Beat skills surface ADR candidates at five trigger points:
 
 | Skill | Trigger |
 |-------|---------|
 | `/beat:design` | While writing `design.md`, when a section describes a hard-to-reverse + surprising + real-trade-off decision |
 | `/beat:plan` | When the multi-role review rejects an alternative with a load-bearing reason that future reviewers shouldn't have to re-litigate |
 | `/beat:apply` | When implementation forces a hard-to-reverse choice not anticipated in `design.md` |
+| `/beat:distill` | While writing `design.md`, when a Key Decision recovered from the code meets the gate — rationale must come from evidence or the user, never invented |
 | `/beat:archive` | Last-mile sweep — if zero ADRs were written for this change, prompt once: "Anything from this change worth recording as an ADR?" |
 
 At each trigger, run the three-condition gate. If all three hold, offer to

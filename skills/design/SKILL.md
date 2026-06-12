@@ -242,10 +242,13 @@ digraph design {
        3. Result of a real trade-off? (genuine alternatives existed)
        If **all three** hold, use **AskUserQuestion tool**: *"This decision meets the ADR gate. Lift it into `docs/adr/`?"* On Yes, write a 1-3 sentence ADR using the template in `references/adr-format.md`, increment the highest existing number in `docs/adr/` by one, and add a cross-reference from `design.md` (`See docs/adr/NNNN-slug.md`). On No, continue.
        Create `docs/adr/` lazily — only on first ADR.
+     - **Architecture hub suggestion** (Layer 3, advisory) — if `design.md` describes a module-level architecture change (new module, module split/merge, changed module boundaries or responsibilities), suggest updating `beat/ARCHITECTURE.md` — the hub diagram, modules table, or constraints (see `references/architecture-format.md`). Create the hub lazily, only if the project is multi-module and the user accepts. Never block.
 
 5. **Commit artifacts and show final status**
 
    Commit all change artifacts: `git add beat/changes/<name>/ && git commit`
+
+   Use a descriptive message, e.g. "design(<name>): add spec artifacts".
 
    Update phase to the latest completed spec artifact in `status.yaml`.
 

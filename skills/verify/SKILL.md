@@ -3,7 +3,7 @@ name: verify
 description: Use when validating implementation against spec artifacts before archive — not for design, planning, or implementation
 ---
 
-Verify implementation against change artifacts using four dimensions. Uses independent subagents to eliminate context bias.
+Verify implementation against change artifacts across five dimensions. Uses independent subagents to eliminate context bias.
 
 <decision_boundary>
 
@@ -50,7 +50,8 @@ do NOT fall back to self-verification.
 - Dispatching subagents sequentially instead of in parallel
 - Skipping code-reviewer because "the code is simple"
 - Claiming verification passed without reading the subagent reports
-- Editing code during verification (verify reads, doesn't write)
+- Editing code or artifacts during verification (the ONLY write is the `verification` record in status.yaml)
+- Presenting the report without recording the outcome in status.yaml
 - Falling back to self-verification because a subagent failed
 
 ## Process Flow
@@ -64,7 +65,8 @@ digraph verify {
     "Code-reviewer\nsubagent" [shape=box];
     "tests available?" [shape=diamond];
     "Run automated tests" [shape=box];
-    "Present combined report" [shape=doublecircle];
+    "Present combined report" [shape=box];
+    "Record verification\nin status.yaml" [shape=doublecircle];
 
     "Select change" -> "Read artifacts +\ntesting context";
     "Read artifacts +\ntesting context" -> "Parallel dispatch";
@@ -75,6 +77,7 @@ digraph verify {
     "tests available?" -> "Run automated tests" [label="yes"];
     "tests available?" -> "Present combined report" [label="no"];
     "Run automated tests" -> "Present combined report";
+    "Present combined report" -> "Record verification\nin status.yaml";
 }
 ```
 
@@ -149,6 +152,20 @@ digraph verify {
    - Dimension 5 from verification subagent (living docs sync — Layer 1/2/3, advisory only)
    - Step 4 test results (if available)
 
+6. **Record the outcome in status.yaml**
+
+   Read `beat/changes/<name>/status.yaml` (read before write — preserve existing fields), then set the top-level `verification` field per `references/status-schema.md`:
+
+   ```yaml
+   verification: { status: passed, critical: 0, date: YYYY-MM-DD }
+   ```
+
+   - `status: passed` when zero CRITICAL findings; `issues-found` otherwise
+   - `critical`: the CRITICAL count from the combined report
+   - Do NOT advance `phase` — verification outcome lives only in this field
+
+   This is the only file verify writes. `/beat:archive` uses it to warn when archiving an unverified change. Re-running verify after fixes overwrites the field.
+
 **Issue Classification**
 - CRITICAL: Must fix (missing scenario test [in coverage mode], inaccurate scenario [in accuracy mode], unimplemented goal, design violation, security vulnerability)
 - WARNING: Should fix (partial coverage, possible divergence, non-executable test, Gherkin quality issues, code quality concerns, living-doc drift — Layer 1/2/3 sync gaps)
@@ -160,5 +177,5 @@ digraph verify {
 - Gherkin skipped: skip Dimension 1, strengthen Dimension 2 (proposal alignment)
 - Only features exist: verify Gherkin coverage only
 - Features + proposal: verify coverage + alignment
-- Features + proposal + design: verify all four dimensions
+- Features + proposal + design: verify all five dimensions (Dimension 5 only when living docs exist)
 - Always note which checks were skipped and why

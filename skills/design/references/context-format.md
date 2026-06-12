@@ -10,7 +10,7 @@ The single source of truth for the `beat/CONTEXT.md` glossary format.
 
 `beat/CONTEXT.md` is **Layer 1 living documentation** — the project's domain
 glossary. It is **created lazily** (only when the first term is resolved) and
-maintained inline by `/beat:design` and `/beat:archive`.
+maintained inline by `/beat:design`, `/beat:distill`, and `/beat:archive`.
 
 ## Contents
 
@@ -121,6 +121,7 @@ _Avoid_: module, package, feature group
 |-------|---------|
 | `/beat:design` | Before writing gherkin: scan four challenges (see below) |
 | `/beat:design` | Within scenario writing: every bolded term in a scenario must exist in the glossary; new term → add inline |
+| `/beat:distill` | Before writing feature files: glossary check — terms recovered from code must be defined before scenarios use them (four challenges adapted: the code, not user intent, is the source) |
 | `/beat:archive` | Before sync: scan `features/*.feature` for bolded terms not in the glossary; prompt to add |
 
 ## The four challenges (used by `/beat:design`)
