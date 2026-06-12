@@ -17,6 +17,7 @@ cat > beat/changes/test-change/status.yaml << 'EOF'
 name: test-change
 created: 2026-03-17
 phase: verify
+verification: { status: passed, critical: 0, date: 2026-03-18 }
 pipeline:
   proposal: { status: done }
   gherkin: { status: done }

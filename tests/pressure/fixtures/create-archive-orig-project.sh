@@ -48,6 +48,7 @@ cat > beat/changes/add-two-factor/status.yaml << 'EOF'
 name: add-two-factor
 created: 2026-04-07
 phase: verify
+verification: { status: passed, critical: 0, date: 2026-04-08 }
 pipeline:
   proposal: { status: done }
   gherkin: { status: done, modified: ["beat/features/auth/login.feature"] }
