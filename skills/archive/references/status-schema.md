@@ -11,6 +11,8 @@ name: <kebab-case-name>          # required, string
 created: YYYY-MM-DD              # required, ISO date
 phase: <phase>                   # required, one of the phase values below
 source: distill                  # optional, only present when created by /beat:distill
+verification: { status: <verification-status>, critical: N, date: YYYY-MM-DD }
+                                 # optional, written by /beat:verify after presenting the report
 pipeline:
   proposal: { status: <status> } # required
   gherkin: { status: <status> }  # required; optional: modified
@@ -24,10 +26,10 @@ pipeline:
 
 | Value | Set by | Meaning |
 |-------|--------|---------|
-| `new` | `/beat:design` | Just created, no artifacts yet |
-| `proposal` | `/beat:design` | Proposal artifact created |
-| `gherkin` | `/beat:design` | Gherkin features created |
-| `design` | `/beat:design` | Design artifact created |
+| `new` | `/beat:design`, `/beat:distill` | Just created, no artifacts yet |
+| `proposal` | `/beat:design`, `/beat:distill` | Proposal artifact created |
+| `gherkin` | `/beat:design`, `/beat:distill` | Gherkin features created |
+| `design` | `/beat:design`, `/beat:distill` | Design artifact created |
 | `tasks` | `/beat:plan` | Tasks artifact created (after review) |
 | `implement` | `/beat:plan` | All artifacts done, ready for coding |
 | `verify` | `/beat:apply` | Implementation complete, ready for verification |
@@ -38,7 +40,11 @@ pipeline:
 
 `/beat:design` sets phase to the latest completed spec artifact (`proposal`, `gherkin`, or `design`). When a spec artifact is skipped, phase advances to the next non-skipped spec artifact.
 
+`/beat:distill` creates the container with `source: distill` and `tasks: { status: skipped }` (a distill change describes current behavior — nothing to implement), then advances phase like `/beat:design`. A distill change flows distill → verify → archive with no `/beat:apply` step, so it never reaches the `implement`/`verify` phases. Because verify does not advance phase (see below), the change rests at its last spec-artifact phase (e.g. `design`) through verification — only `/beat:archive` moves it forward to `sync`/`archive`.
+
 `/beat:plan` sets phase to `tasks` after task breakdown, then `implement` when ready for coding.
+
+`/beat:verify` does NOT advance phase — it records its outcome in the top-level `verification` field instead.
 
 ### `status` (per-artifact in pipeline)
 
@@ -50,6 +56,26 @@ pipeline:
 
 **`gherkin` is mandatory by default** but can be `skipped` for purely technical changes (e.g., setting up tooling, upgrading dependencies, refactoring without behavior change). When skipped, `proposal` becomes the primary driver for plan, apply, and verify.
 
+### `verification` (optional, top-level)
+
+Written by `/beat:verify` after presenting the combined report. Absent until verify has run at least once. Always inline YAML flow style.
+
+```yaml
+verification: { status: passed, critical: 0, date: 2026-06-12 }
+```
+
+| Field | Meaning |
+|-------|---------|
+| `status` | `passed` (zero CRITICAL findings) or `issues-found` (one or more CRITICAL findings) |
+| `critical` | CRITICAL finding count at the most recent run |
+| `date` | Date of the most recent run; re-running verify overwrites the whole field |
+
+`status` has only these two values. A failed run records nothing: if verification could not run at all (both subagents failed), `/beat:verify` reports the failure but writes no `verification` field — a failed run is not a verification outcome, so there is no `failed` status value. The field's absence therefore covers two cases: verify never ran, and verify ran but could not complete. Archive treats both the same.
+
+Used by:
+- **verify**: writes the field after presenting the report (the only file verify writes)
+- **archive**: warns and asks for confirmation when the field is absent (change never verified, or verify ran but could not complete) or `status` is `issues-found`
+
 ### `modified` (optional, gherkin only)
 
 Array of paths to existing feature files in `beat/features/` that were modified by this change. Only present when the change modifies (not just adds) existing scenarios.
@@ -60,7 +86,7 @@ When a change modifies an existing feature file:
 3. The original path (without `.orig`) is recorded in `modified`
 
 Used by:
-- **plan**: writes the list when creating `.orig` backups
+- **design**: writes the list when creating `.orig` backups
 - **verify**: triggers semantic verification for modified scenarios (diff `.orig` vs current)
 - **archive**: knows which `.orig` files to clean up after sync
 
@@ -131,23 +157,24 @@ pipeline:
   tasks: { status: done }
 ```
 
-### Distilled from existing code (after artifacts generated)
+### Distilled from existing code (after artifacts generated and verified)
 ```yaml
 name: distill-auth-module
 created: 2026-03-05
 phase: design
 source: distill
+verification: { status: passed, critical: 0, date: 2026-03-06 }
 pipeline:
   proposal: { status: done }
   gherkin: { status: done }
   design: { status: done }
-  tasks: { status: pending }
+  tasks: { status: skipped }
 ```
 
 ## Rules
 
-1. **Always use inline YAML flow style** for pipeline entries: `{ status: done }`, not multi-line. Exception: when `modified` is present, use `{ status: done, modified: [...] }`
+1. **Always use inline YAML flow style** for pipeline entries and `verification`: `{ status: done }`, not multi-line. Exception: when `modified` is present, use `{ status: done, modified: [...] }`
 2. **Never add extra fields** to pipeline entries — only `status` (and `modified` for gherkin)
 3. **Never add extra entries** to pipeline — only the four listed
 4. **Phase must match reality** — set to the latest completed artifact name, or `implement`/`verify`/`sync`/`archive` for later stages
-5. **Read before write** — always read the current status.yaml before updating to preserve existing fields (like `source`)
+5. **Read before write** — always read the current status.yaml before updating to preserve existing fields (like `source` and `verification`)

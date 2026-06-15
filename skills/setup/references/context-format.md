@@ -10,7 +10,7 @@ The single source of truth for the `beat/CONTEXT.md` glossary format.
 
 `beat/CONTEXT.md` is **Layer 1 living documentation** — the project's domain
 glossary. It is **created lazily** (only when the first term is resolved) and
-maintained inline by `/beat:design` and `/beat:archive`.
+maintained inline by `/beat:design`, `/beat:distill`, and `/beat:archive`.
 
 ## Contents
 
@@ -20,7 +20,7 @@ maintained inline by `/beat:design` and `/beat:archive`.
 - [Rules](#rules)
 - [Path](#path)
 - [When to update](#when-to-update)
-- [The four challenges (used by `/beat:design`)](#the-four-challenges-used-by-beatdesign)
+- [The four challenges (used by `/beat:design`, adapted by `/beat:distill`)](#the-four-challenges-used-by-beatdesign-adapted-by-beatdistill)
 - [Optional grilling](#optional-grilling)
 
 ## What goes in CONTEXT.md
@@ -121,12 +121,15 @@ _Avoid_: module, package, feature group
 |-------|---------|
 | `/beat:design` | Before writing gherkin: scan four challenges (see below) |
 | `/beat:design` | Within scenario writing: every bolded term in a scenario must exist in the glossary; new term → add inline |
+| `/beat:distill` | Before writing feature files: glossary check — terms recovered from code must be defined before scenarios use them (four challenges adapted: the code, not user intent, is the source) |
 | `/beat:archive` | Before sync: scan `features/*.feature` for bolded terms not in the glossary; prompt to add |
 
-## The four challenges (used by `/beat:design`)
+## The four challenges (used by `/beat:design`, adapted by `/beat:distill`)
 
 When a scenario or description is being written, the design skill checks for
-these four signals and updates `CONTEXT.md` inline as they fire.
+these four signals and updates `CONTEXT.md` inline as they fire. `/beat:distill`
+adapts the same four challenges with the code (not user intent) as the source —
+see the distill skill for the adapted wording.
 
 1. **Challenge against the glossary** — the user uses a term that conflicts
    with an existing entry. Call it out: *"Your glossary defines X as A, but

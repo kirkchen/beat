@@ -3,12 +3,13 @@ name: verify
 description: Use when validating implementation against spec artifacts before archive — not for design, planning, or implementation
 ---
 
-Verify implementation against change artifacts using four dimensions. Uses independent subagents to eliminate context bias.
+Verify implementation against change artifacts across five dimensions. Uses independent subagents to eliminate context bias.
 
 <decision_boundary>
 
 **Use for:**
 - Validating implementation completeness against spec artifacts before archive
+- Verifying distilled specs match current code behavior (accuracy mode, `source: distill`)
 - Independent verification via subagents to catch context bias
 - Surfacing living-doc drift (Layer 1/2/3) as advisory findings
 
@@ -32,6 +33,10 @@ Dispatch the verification subagent AND code-reviewer in parallel — they are in
 
 If a subagent fails, proceed with findings from the other. If BOTH fail, report the failure —
 do NOT fall back to self-verification.
+
+After presenting the combined report: you MUST record the outcome in the top-level
+`verification` field of status.yaml (see step 6). If verification could not run at all
+(both subagents failed), do NOT record — a failed run is not a verification outcome.
 </HARD-GATE>
 
 ## Rationalization Prevention
@@ -43,6 +48,7 @@ do NOT fall back to self-verification.
 | "Running two subagents is overkill for this" | Code quality and spec alignment are independent dimensions. A single agent conflates them. |
 | "I'll just run the tests, that's verification enough" | Tests verify behavior but not spec alignment, design adherence, or code quality. |
 | "I'll dispatch them sequentially to save context" | They're independent — parallel dispatch is faster and prevents one report from biasing the other. |
+| "The report is delivered, the status.yaml write is just bookkeeping" | The `verification` field is how archive knows verify ran. Skip it and archive warns "never verified" on a verified change. Ten seconds — write it. |
 
 ## Red Flags — STOP if you catch yourself:
 
@@ -50,7 +56,8 @@ do NOT fall back to self-verification.
 - Dispatching subagents sequentially instead of in parallel
 - Skipping code-reviewer because "the code is simple"
 - Claiming verification passed without reading the subagent reports
-- Editing code during verification (verify reads, doesn't write)
+- Editing code or artifacts during verification (the ONLY write is the `verification` record in status.yaml)
+- Presenting the report without recording the outcome in status.yaml
 - Falling back to self-verification because a subagent failed
 
 ## Process Flow
@@ -64,7 +71,8 @@ digraph verify {
     "Code-reviewer\nsubagent" [shape=box];
     "tests available?" [shape=diamond];
     "Run automated tests" [shape=box];
-    "Present combined report" [shape=doublecircle];
+    "Present combined report" [shape=box];
+    "Record verification\nin status.yaml" [shape=doublecircle];
 
     "Select change" -> "Read artifacts +\ntesting context";
     "Read artifacts +\ntesting context" -> "Parallel dispatch";
@@ -75,6 +83,7 @@ digraph verify {
     "tests available?" -> "Run automated tests" [label="yes"];
     "tests available?" -> "Present combined report" [label="no"];
     "Run automated tests" -> "Present combined report";
+    "Present combined report" -> "Record verification\nin status.yaml";
 }
 ```
 
@@ -108,6 +117,7 @@ digraph verify {
    - **Config layer**: Is `testing.required` set to `false`? If yes, skip test existence checks globally.
    - **Source layer**: Does `status.yaml` contain `source: distill`? If yes, Dimension 1 switches to **accuracy mode** (see below).
    - **Tag layer**: Every scenario in a .feature file is expected to have a corresponding test (in TDD mode).
+   - **Modified files**: Does `status.yaml` have `gherkin.modified`? If yes, collect the listed paths and their `.feature.orig` backup paths — the verification subagent needs them for semantic verification (Dimension 1B+).
 
 3. **Dispatch verification subagent AND code-reviewer in parallel**
 
@@ -119,6 +129,7 @@ digraph verify {
    Provide ONLY:
    - All artifact contents (features, proposal, design, tasks)
    - Testing context (drive mode, testing config, source flag, tag counts)
+   - Modified files list from `gherkin.modified` with their `.feature.orig` backup paths (if any)
    - Do NOT pass conversation history or session context.
 
    **Agent B — Code quality review** (subagent_type: `general-purpose`):
@@ -138,7 +149,7 @@ digraph verify {
 
    Detect and run the project's test suite:
    - **Behavior tests**: run using `testing.behavior` framework (or auto-detect)
-   - **E2E tests**: run using `testing.e2e` framework (or auto-detect). If `gherkin.modified` exists in status.yaml, combine BDD feature paths: `beat/features/` + `beat/changes/<name>/features/`
+   - **E2E tests**: run using `testing.e2e` framework (or auto-detect). If `beat/changes/<name>/features/` contains feature files, combine BDD feature paths: `beat/features/` + `beat/changes/<name>/features/`
    - Report behavior and e2e results separately
 
 5. **Present combined verification report**
@@ -149,8 +160,23 @@ digraph verify {
    - Dimension 5 from verification subagent (living docs sync — Layer 1/2/3, advisory only)
    - Step 4 test results (if available)
 
+6. **Record the outcome in status.yaml**
+
+   Read `beat/changes/<name>/status.yaml` (read before write — preserve existing fields), then set the top-level `verification` field per `references/status-schema.md`:
+
+   ```yaml
+   verification: { status: passed, critical: 0, date: YYYY-MM-DD }
+   ```
+
+   - `status: passed` when zero CRITICAL findings; `issues-found` otherwise
+   - `critical`: the CRITICAL count from the combined report, including failing automated tests from step 4
+   - Do NOT advance `phase` — verification outcome lives only in this field
+   - Skip recording entirely if verification could not run (both subagents failed) — report the failure instead
+
+   This is the only file verify writes. `/beat:archive` uses it to warn when archiving an unverified change. Re-running verify after fixes overwrites the field.
+
 **Issue Classification**
-- CRITICAL: Must fix (missing scenario test [in coverage mode], inaccurate scenario [in accuracy mode], unimplemented goal, design violation, security vulnerability)
+- CRITICAL: Must fix (missing scenario test [in coverage mode], inaccurate scenario [in accuracy mode], unimplemented goal, design violation, security vulnerability, failing automated test from step 4)
 - WARNING: Should fix (partial coverage, possible divergence, non-executable test, Gherkin quality issues, code quality concerns, living-doc drift — Layer 1/2/3 sync gaps)
 - SUGGESTION: Nice to fix (pattern inconsistency, minor improvement, missing test in distill mode, module without README)
 
@@ -160,5 +186,5 @@ digraph verify {
 - Gherkin skipped: skip Dimension 1, strengthen Dimension 2 (proposal alignment)
 - Only features exist: verify Gherkin coverage only
 - Features + proposal: verify coverage + alignment
-- Features + proposal + design: verify all four dimensions
+- Features + proposal + design: verify all five dimensions (Dimension 5 only when living docs exist)
 - Always note which checks were skipped and why

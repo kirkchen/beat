@@ -183,7 +183,7 @@ Gherkin scenarios describe **behavior**. They do not describe **vocabulary** (wh
 
 ## Hard Prompt, Soft Action
 
-Layer 3 module README sync is a HARD-GATE in `/beat:apply` — the skill MUST prompt the user when a public interface changes. But the **action** is soft: the user can decline and continue. `/beat:verify` re-surfaces the gap as a WARNING (advisory, never CRITICAL).
+Layer 3 module README sync is a mandatory mid-implementation trigger in `/beat:apply` — the skill MUST prompt the user when a public interface changes. But the **action** is soft: the user can decline and continue. `/beat:verify` re-surfaces the gap as a WARNING (advisory, never CRITICAL).
 
 This pattern — hard prompt, soft action — applies broadly to all living-doc enforcement. The skills are accountable for raising the question; the user is accountable for the answer.
 

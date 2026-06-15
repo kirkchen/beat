@@ -1,6 +1,6 @@
 {
   "name": "beat",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Agent-driven BDD workflow using Gherkin feature files. Rhythm for your development: explore → design → plan → apply → verify → archive.",
   "author": {
     "name": "Kirk Chen"

@@ -41,4 +41,7 @@ assert_contains "$output" "ADR\|pause\|offer\|three.condition\|record\|docs/adr"
 output=$(run_claude "As beat:apply, after changing a module's public interface, what must you prompt the user about?" 30)
 assert_contains "$output" "README\|module.*README\|update\|architecture\|public.*interface" "apply knows to prompt module README update"
 
+output=$(run_claude "As beat:apply, if status.yaml has source: distill, do you proceed straight to implementation?" 30)
+assert_contains "$output" "no\|warn\|confirm\|AskUserQuestion\|verify\|nothing to implement" "apply warns and confirms before running on a source: distill change"
+
 print_summary

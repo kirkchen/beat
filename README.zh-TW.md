@@ -137,9 +137,9 @@ explore → design → plan → apply → verify → archive
 
 | Layer | 檔案 | 格式 | 由誰維護 |
 |-------|------|------|---------|
-| **1. 詞彙表** | `beat/CONTEXT.md` | 領域詞彙（每個概念只有一個正統詞） | `/beat:design`（寫 gherkin 前 4 challenge）、`/beat:archive`（sync 前掃未定義 term） |
-| **2. 決策** | `docs/adr/NNNN-slug.md` | 1-3 句 ADR，需通過 hard-to-reverse + surprising + real trade-off 三條件 gate | `/beat:design`（每個 Key Decision）、`/beat:plan`（review 拒絕方案時）、`/beat:apply`（實作中浮現時）、`/beat:archive`（last-mile sweep） |
-| **3. 結構** | `beat/ARCHITECTURE.md` + module `README.md` | Hub 圖 + 每個 module 的職責/interface/依賴 | `/beat:apply`（改 public interface 時 prompt）、`/beat:verify`（Dimension 5，advisory） |
+| **1. 詞彙表** | `beat/CONTEXT.md` | 領域詞彙（每個概念只有一個正統詞） | `/beat:design`（寫 gherkin 前 4 challenge）、`/beat:distill`（從 code 萃取 term 時檢查）、`/beat:archive`（sync 前掃未定義 term） |
+| **2. 決策** | `docs/adr/NNNN-slug.md` | 1-3 句 ADR，需通過 hard-to-reverse + surprising + real trade-off 三條件 gate | `/beat:explore`（捕捉決策時）、`/beat:design`（每個 Key Decision）、`/beat:plan`（review 拒絕方案時）、`/beat:apply`（實作中浮現時）、`/beat:distill`（從 code 還原的決策）、`/beat:archive`（last-mile sweep） |
+| **3. 結構** | `beat/ARCHITECTURE.md` + module `README.md` | Hub 圖 + 每個 module 的職責/interface/依賴 | `/beat:design`（module 層級變更時建議更新 hub）、`/beat:apply`（改 public interface 時 prompt、新 module 時 offer scaffold）、`/beat:distill`（offer module README scaffold）、`/beat:verify`（Dimension 5，advisory） |
 
 三個格式定義在 `references/context-format.md` / `adr-format.md` / `architecture-format.md`。詞彙釐清需要深入時可以選擇性 invoke `mattpocock-skills:grill-with-docs`。
 

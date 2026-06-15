@@ -1,19 +1,40 @@
 ---
 name: archive
-description: Use when a Beat change is implemented and ready to archive — not for verifying implementation
+description: Use when a Beat change is complete (implemented, or distilled and verified) and ready to archive — not for verifying implementation
 ---
 
 Archive a completed change. Checks completion, syncs features to living documentation, then moves to archive.
+
+<decision_boundary>
+
+**Use for:**
+- Archiving a completed (or verified distilled) change
+- Syncing features into `beat/features/` living documentation
+- Final living-doc sweeps (glossary terms, last-mile ADR) before archiving
+
+**NOT for:**
+- Verifying implementation against spec (use `/beat:verify`)
+- Implementing remaining tasks (use `/beat:apply`)
+- Creating or modifying spec artifacts (use `/beat:design`)
+
+**Trigger examples:**
+- "Archive the change" / "The change is done, wrap it up" / "Sync the features"
+- Should NOT trigger: "verify the implementation" / "implement the change" / "design a feature"
+
+</decision_boundary>
 
 <HARD-GATE>
 After archive is complete: you MUST invoke superpowers:finishing-a-development-branch
 to guide merge/PR/cleanup. If unavailable (not installed), skip and show summary only —
 but NEVER skip because you judged the workflow complete without it.
+Before archiving: you MUST check the top-level `verification` field in status.yaml;
+if absent or `issues-found`, confirm with the user — inform and confirm, never block.
 When gherkin status is `done`: you MUST sync features before archiving.
 Before sync: you MUST scan the features being synced for project-specific terms
 that are not yet defined in `beat/CONTEXT.md`, and prompt the user to add them.
-After sync, before moving to archive: you MUST run the last-mile ADR sweep —
-if zero ADRs were written for this change, prompt once before archiving.
+Before moving to archive: you MUST run the last-mile ADR sweep — if zero ADRs
+were written for this change, prompt once before archiving. This applies whether
+or not features were synced.
 Do NOT skip any of these because the user wants speed.
 </HARD-GATE>
 
@@ -35,6 +56,7 @@ If unavailable (skill not installed), skip and show archive summary only.
 | "The .orig backups can be cleaned up later" | Orphaned `.orig` files hide scenarios from BDD runners permanently. Cleanup is part of archive, not a separate step. |
 | "Glossary terms can be added later, it's just docs" | Once the features sync into `beat/features/`, the undefined terms become user-facing living documentation. Future readers can't tell which terms are canonical vs. ad hoc. The scan-and-prompt is two minutes — do it before sync. |
 | "We didn't write any ADRs but the design.md captures everything" | design.md gets archived with the change. Cross-change decisions need to live in `docs/adr/`. The last-mile sweep is one prompt; if nothing qualifies, it costs nothing. |
+| "Verify probably ran at some point, no need to check" | status.yaml records it. If the `verification` field is absent, verify never ran — archiving unverified work silently is exactly the gap the check exists to close. One confirmation prompt, never a block. |
 
 ## Red Flags — STOP if you catch yourself:
 
@@ -44,6 +66,7 @@ If unavailable (skill not installed), skip and show archive summary only.
 - Completing archive while `.feature.orig` files remain in `beat/features/`
 - Syncing features without first scanning for project-specific terms missing from `beat/CONTEXT.md`
 - Archiving a change with zero ADRs without running the last-mile sweep prompt
+- Archiving a change with no `verification` record (or `status: issues-found`) without confirming with the user
 
 ## Process Flow
 
@@ -54,6 +77,8 @@ digraph archive {
     "Warn incomplete" [shape=box];
     "Check task completion" [shape=diamond];
     "Warn incomplete tasks" [shape=box];
+    "Verification recorded?" [shape=diamond];
+    "Warn unverified" [shape=box];
     "Gherkin done?" [shape=diamond];
     "Ask capability mapping" [shape=box];
     "Scan features for\nundefined terms" [shape=box, style=bold];
@@ -61,16 +86,19 @@ digraph archive {
     "Skip sync" [shape=box];
     "Last-mile ADR sweep" [shape=box, style=bold];
     "Move to archive" [shape=box];
-    "Invoke finishing-a-development-branch" [shape=box, style=bold];
-    "Show summary" [shape=doublecircle];
+    "Show summary" [shape=box];
+    "Invoke finishing-a-development-branch" [shape=doublecircle, style=bold];
 
     "Select change" -> "Check artifact completion";
     "Check artifact completion" -> "Warn incomplete" [label="pending found"];
     "Check artifact completion" -> "Check task completion" [label="all done/skipped"];
     "Warn incomplete" -> "Check task completion" [label="user confirms"];
     "Check task completion" -> "Warn incomplete tasks" [label="incomplete"];
-    "Check task completion" -> "Gherkin done?" [label="all complete\nor no tasks"];
-    "Warn incomplete tasks" -> "Gherkin done?" [label="user confirms"];
+    "Check task completion" -> "Verification recorded?" [label="all complete\nor no tasks"];
+    "Warn incomplete tasks" -> "Verification recorded?" [label="user confirms"];
+    "Verification recorded?" -> "Warn unverified" [label="absent or\nissues-found"];
+    "Verification recorded?" -> "Gherkin done?" [label="passed"];
+    "Warn unverified" -> "Gherkin done?" [label="user confirms"];
     "Gherkin done?" -> "Ask capability mapping" [label="done"];
     "Gherkin done?" -> "Skip sync" [label="skipped"];
     "Ask capability mapping" -> "Scan features for\nundefined terms";
@@ -78,8 +106,8 @@ digraph archive {
     "Sync features" -> "Last-mile ADR sweep";
     "Skip sync" -> "Last-mile ADR sweep";
     "Last-mile ADR sweep" -> "Move to archive";
-    "Move to archive" -> "Invoke finishing-a-development-branch";
-    "Invoke finishing-a-development-branch" -> "Show summary";
+    "Move to archive" -> "Show summary";
+    "Show summary" -> "Invoke finishing-a-development-branch";
 }
 ```
 
@@ -114,11 +142,21 @@ digraph archive {
    - Use **AskUserQuestion tool** to confirm
    - Proceed if user confirms
 
+3b. **Check verification ran** (schema: `references/status-schema.md`)
+
+   Read the top-level `verification` field from `status.yaml`:
+
+   - **Absent:** warn "This change was never verified (`/beat:verify` has not run)." Use **AskUserQuestion tool** to confirm archiving anyway.
+   - **`status: issues-found`:** warn "Verification found N critical issue(s) on <date>." Use **AskUserQuestion tool** to confirm.
+   - **`status: passed`:** proceed silently.
+
+   Inform and confirm — never block.
+
 4. **Sync features to living documentation**
 
    Check `status.yaml`:
 
-   **If gherkin status is `skipped`:** Skip sync (no features to sync). Proceed to Step 5.
+   **If gherkin status is `skipped`:** Skip sync (no features to sync). Proceed to step 4b.
 
    **If gherkin status is `done`:**
 
@@ -127,7 +165,7 @@ digraph archive {
    - `proposal.md` (if exists)
    - `design.md` (if exists)
 
-   If no feature files exist: skip sync, proceed to Step 5.
+   If no feature files exist: skip sync, proceed to step 4b.
 
    Read `beat/config.yaml` if it exists (schema: `references/config-schema.md`). Use `language` for README content language.
 
@@ -165,6 +203,8 @@ digraph archive {
    | `proposal.md` | `beat/features/<capability>/proposal.md` | Copy to capability |
    | `design.md` | `beat/features/<capability>/design.md` | Copy to capability |
 
+   When features map to **multiple capabilities**, copy `proposal.md` and `design.md` to the primary capability only (the one receiving the most feature files). On a tie, ask the user which capability owns them. Don't duplicate them across capabilities.
+
    **Handle .orig backups** (when `status.yaml` has `gherkin.modified`):
 
    For each path in `gherkin.modified`:
@@ -179,7 +219,9 @@ digraph archive {
 
    Update `status.yaml` phase to `sync`.
 
-   **Last-mile ADR sweep** (Layer 2 living-doc enforcement):
+4b. **Last-mile ADR sweep** (Layer 2 living-doc enforcement)
+
+   Runs on every path — whether features were synced or sync was skipped.
 
    Count ADR files written or referenced during this change:
    - Check `docs/adr/` for files created since this change started (git diff against the change's base commit)
@@ -221,6 +263,7 @@ digraph archive {
 
    **Change:** <change-name>
    **Archived to:** beat/changes/archive/YYYY-MM-DD-<name>/
+   **Verification:** passed / issues-found (N critical) / never run (user confirmed)
    **Features:** Synced to beat/features/ (or "Sync skipped" or "No features to sync")
    **Glossary:** N terms added to beat/CONTEXT.md (or "no changes" / "M terms skipped")
    **ADRs:** N written to docs/adr/ (or "none recorded — last-mile sweep declined")

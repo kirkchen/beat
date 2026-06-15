@@ -50,6 +50,10 @@ Scan `docs/adr/` for the highest existing number and increment by one.
 Slugs are kebab-case and describe the decision (`0007-use-server-sent-events.md`,
 not `0007-sse.md`).
 
+When changes run in concurrent worktrees, two branches can mint the same
+number — numbers are finalized at merge time; renumber the later one on
+collision.
+
 ## When to offer an ADR — the three-condition gate
 
 **All three must be true.** If any one is missing, skip the ADR.
@@ -104,13 +108,15 @@ ADR, no one reads ADRs.
 
 ## When Beat offers an ADR
 
-Beat skills surface ADR candidates at four trigger points:
+Beat skills surface ADR candidates at six trigger points:
 
 | Skill | Trigger |
 |-------|---------|
+| `/beat:explore` | When a design decision crystallizes during exploration and the user asks to capture it |
 | `/beat:design` | While writing `design.md`, when a section describes a hard-to-reverse + surprising + real-trade-off decision |
 | `/beat:plan` | When the multi-role review rejects an alternative with a load-bearing reason that future reviewers shouldn't have to re-litigate |
 | `/beat:apply` | When implementation forces a hard-to-reverse choice not anticipated in `design.md` |
+| `/beat:distill` | While writing `design.md`, when a Key Decision recovered from the code meets the gate — rationale must come from evidence or the user, never invented |
 | `/beat:archive` | Last-mile sweep — if zero ADRs were written for this change, prompt once: "Anything from this change worth recording as an ADR?" |
 
 At each trigger, run the three-condition gate. If all three hold, offer to

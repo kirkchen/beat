@@ -41,4 +41,13 @@ assert_contains "$output" "no\|never\|must not\|cannot\|don't\|proceed.*other\|o
 output=$(run_claude "As beat:verify, what does Dimension 5 check and what severity tier are its findings?" 30)
 assert_contains "$output" "living.*doc\|advisory\|WARNING\|warning\|CONTEXT\.md\|ADR\|README\|sync" "verify knows Dimension 5 is living-doc sync, advisory only"
 
+output=$(run_claude "As beat:verify, after presenting the verification report, what must you write to status.yaml?" 30)
+assert_contains "$output" "verification" "verify knows to record the verification field in status.yaml"
+
+output=$(run_claude "As beat:verify, what status values can the top-level verification field record?" 30)
+assert_contains "$output" "passed\|issues-found" "verify knows verification status values (passed / issues-found)"
+
+output=$(run_claude "As beat:verify, if both verification subagents failed and verification could not run, do you still write a verification record to status.yaml?" 30)
+assert_contains "$output" "no\|skip\|don't record\|do not record\|not.*record\|never" "verify knows a failed run records nothing"
+
 print_summary

@@ -15,7 +15,7 @@ mkdir -p beat/changes/add-two-factor/features
 mkdir -p beat/features/auth
 mkdir -p src e2e/tests
 
-# Existing feature file renamed to .orig (simulating plan already ran)
+# Existing feature file renamed to .orig (simulating design already ran)
 cat > beat/features/auth/login.feature.orig << 'EOF'
 Feature: User Login
   As a user

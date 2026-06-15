@@ -27,7 +27,7 @@ beat/
 │   ├── design/                  # /beat:design — create change + generate spec artifacts
 │   ├── plan/                    # /beat:plan — task breakdown with multi-role review
 │   ├── apply/                   # /beat:apply — TDD implementation
-│   ├── verify/                  # /beat:verify — 3-dimension verification
+│   ├── verify/                  # /beat:verify — 5-dimension verification
 │   ├── archive/                 # /beat:archive — sync features + archive completed change
 │   ├── explore/                 # /beat:explore — thinking partner mode
 │   ├── setup/                   # /beat:setup — create beat/config.yaml
@@ -107,21 +107,21 @@ For purely technical changes (tooling, deps, refactor): gherkin can be skipped, 
 
 ### Key Concepts
 
-- **status.yaml** is the state machine — schema defined in `references/status-schema.md`. Phase advances forward only. Pipeline entries use inline YAML flow style: `{ status: done }`.
+- **status.yaml** is the state machine — schema defined in `references/status-schema.md`. Phase advances forward only. Pipeline entries use inline YAML flow style: `{ status: done }`. `/beat:verify` records its outcome in the top-level `verification` field (it never advances phase); `/beat:archive` warns when archiving a change without a passing verification record.
 - **config.yaml** is optional project config — schema in `references/config-schema.md`. Controls artifact language, injects project context, and adds per-artifact rules.
 - **Gherkin is mandatory by default** but can be skipped for purely technical changes (tooling, deps, refactoring without behavior change). When skipped, proposal drives plan, apply, and verify.
-- **verify** uses independent subagents (Agent tool with `subagent_type: Explore`) to avoid context bias. When verifying distilled specs (`source: distill`), it switches to accuracy mode.
-- **distill** works in reverse (code → spec), marks features with `@distilled` tag, and relies on `/beat:verify` for independent accuracy verification.
+- **verify** uses independent subagents (Agent tool: `Explore` for spec verification, `general-purpose` for code review) to avoid context bias. When verifying distilled specs (`source: distill`), it switches to accuracy mode.
+- **distill** works in reverse (code → spec), marks features with `@distilled` tag, and relies on `/beat:verify` for independent accuracy verification. A distill change sets `tasks: skipped` (nothing to implement) and flows distill → verify → archive; future changes to the distilled area use the normal flow in their own change containers.
 
 ### Living Documentation (three layers)
 
 Beat maintains three layers of project-level living documentation alongside the per-change artifacts. All three are **lazy** — created on first need, never preemptively. They complement the per-change archives, not replace them.
 
-- **Layer 1 — `beat/CONTEXT.md`** (glossary). Domain vocabulary, one canonical term per concept, opinionated about synonyms. Maintained inline by `/beat:design` (four-challenge check before writing gherkin) and `/beat:archive` (scan synced features for undefined terms). Format: `references/context-format.md`. Optional grilling via `mattpocock-skills:grill-with-docs` when ambiguity is complex.
+- **Layer 1 — `beat/CONTEXT.md`** (glossary). Domain vocabulary, one canonical term per concept, opinionated about synonyms. Maintained inline by `/beat:design` (four-challenge check before writing gherkin), `/beat:distill` (glossary check on terms recovered from code), and `/beat:archive` (scan synced features for undefined terms). Format: `references/context-format.md`. Optional grilling via `mattpocock-skills:grill-with-docs` when ambiguity is complex.
 
-- **Layer 2 — `docs/adr/NNNN-slug.md`** (decisions). 1-3 sentence ADRs gated by three conditions: hard-to-reverse + surprising without context + result of a real trade-off. Offered at four trigger points: `/beat:design` (per Key Decision), `/beat:plan` (review rejections), `/beat:apply` (implementation-forced choices), `/beat:archive` (last-mile sweep when zero ADRs written). Format: `references/adr-format.md`. ADRs live at `docs/adr/` rather than `beat/adr/` because the ADR format is an industry standard (Nygard 2011) with its own tool ecosystem; Beat only triggers and offers, while the files belong to the project and outlive Beat if the plugin is removed.
+- **Layer 2 — `docs/adr/NNNN-slug.md`** (decisions). 1-3 sentence ADRs gated by three conditions: hard-to-reverse + surprising without context + result of a real trade-off. Offered at six trigger points: `/beat:explore` (decision capture during exploration), `/beat:design` (per Key Decision), `/beat:plan` (review rejections), `/beat:apply` (implementation-forced choices), `/beat:distill` (Key Decisions recovered from code — rationale from evidence or the user, never invented), `/beat:archive` (last-mile sweep when zero ADRs written). Format: `references/adr-format.md`. ADRs live at `docs/adr/` rather than `beat/adr/` because the ADR format is an industry standard (Nygard 2011) with its own tool ecosystem; Beat only triggers and offers, while the files belong to the project and outlive Beat if the plugin is removed.
 
-- **Layer 3 — `beat/ARCHITECTURE.md` hub + module `README.md` spokes** (structure & intent). Hub stays under ~150 lines: one Mermaid diagram, modules table, constraints referencing ADRs. Each module README under ~100 lines: purpose, public interface, dependencies, tests. Vocabulary is intentionally unspecified — use the codebase's native terms (package/service/module/layer). Maintained by `/beat:apply` (hard prompt on public-interface change) and `/beat:verify` (Dimension 5, WARNING tier, advisory only). Format: `references/architecture-format.md`. Structural snapshots (file tree, symbol map) are derive-tool territory — Beat doesn't generate them.
+- **Layer 3 — `beat/ARCHITECTURE.md` hub + module `README.md` spokes** (structure & intent). Hub stays under ~150 lines: one Mermaid diagram, modules table, constraints referencing ADRs. Each module README under ~100 lines: purpose, public interface, dependencies, tests. Vocabulary is intentionally unspecified — use the codebase's native terms (package/service/module/layer). Maintained by `/beat:apply` (hard prompt on public-interface change, README scaffold offer on new module), `/beat:design` (hub update suggestion on module-level architecture change), `/beat:distill` (README scaffold offer for distilled modules), and `/beat:verify` (Dimension 5, WARNING tier, advisory only). Format: `references/architecture-format.md`. Structural snapshots (file tree, symbol map) are derive-tool territory — Beat doesn't generate them.
 
 - **Spec self-review**: After writing each artifact, `/beat:design` runs a four-check pass (placeholder / consistency / scope / ambiguity) and fixes issues inline. Adapted from `superpowers:brainstorming`.
 

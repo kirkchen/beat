@@ -29,4 +29,19 @@ assert_contains "$output" "verify\|independent\|never.*self\|cannot.*self\|must 
 output=$(run_claude "As beat:distill, what tag must all distilled scenarios have?" 30)
 assert_contains "$output" "distilled\|@distilled" "distill knows @distilled tag is required"
 
+output=$(run_claude "As beat:distill, before writing feature files, what check must you run against beat/CONTEXT.md?" 30)
+assert_contains "$output" "glossary\|term\|CONTEXT\.md\|bolded\|four.challenge" "distill knows the glossary check before feature files"
+
+output=$(run_claude "As beat:distill, for a Key Decision recovered from code where the rationale isn't in the evidence, do you invent a plausible why for the ADR?" 30)
+assert_contains "$output" "no\|never\|unverified\|unconfirmed\|don't invent\|do not invent\|ask" "distill knows never to invent ADR rationale"
+
+output=$(run_claude "As beat:distill, after you finish distilling, which skill confirms the scenarios match the code — is it plan, apply, or verify?" 30)
+assert_contains "$output" "verify" "distill routes its exit to /beat:verify (accuracy mode), not plan/apply"
+
+output=$(run_claude "As beat:distill, when creating the status.yaml for a distill change, what status do you set for tasks?" 30)
+assert_contains "$output" "skipped\|skip" "distill sets tasks status to skipped"
+
+output=$(run_claude "As beat:distill, after writing each artifact, what self-review must you run?" 30)
+assert_contains "$output" "four.check\|self-review\|placeholder\|consistency\|scope\|ambiguity" "distill knows the four-check spec self-review"
+
 print_summary

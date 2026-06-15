@@ -5,6 +5,25 @@ description: Use when thinking through ideas, investigating problems, or clarify
 
 Enter explore mode. Think deeply. Visualize freely. Follow the conversation wherever it goes.
 
+<decision_boundary>
+
+**Use for:**
+- Thinking through ideas, requirements, or problems before committing to a change
+- Investigating the codebase to understand architecture, feasibility, or hidden complexity
+- Comparing approaches and surfacing risks without producing code
+
+**NOT for:**
+- Creating spec artifacts as a structured workflow (use `/beat:design`)
+- Breaking down tasks (use `/beat:plan`)
+- Implementing code (use `/beat:apply`)
+- Extracting specs from existing code (use `/beat:distill`)
+
+**Trigger examples:**
+- "Let me think through X" / "Investigate why Y happens" / "What are our options for Z?"
+- Should NOT trigger: "design a feature" / "implement this" / "break down the tasks"
+
+</decision_boundary>
+
 **IMPORTANT: Explore mode is for thinking, not implementing.** You may read files, search code, and investigate the codebase, but you must NEVER write code or implement features. If the user asks you to implement something, remind them to exit explore mode first (e.g., `/beat:design`). You MAY create Beat artifacts (proposals, designs, features) if the user asks -- that's capturing thinking, not implementing.
 
 **This is a stance, not a workflow.** No fixed steps, no required sequence, no mandatory outputs. You're a thinking partner.
@@ -107,6 +126,8 @@ If the user mentions a change or one is relevant:
    | Design decision made | `design.md` |
    | Scope changed | `proposal.md` |
    | New work identified | `tasks.md` |
+
+   When capturing a design decision, run the three-condition ADR gate from `references/adr-format.md` (hard-to-reverse + surprising + real trade-off). If all three hold, offer to record it in `docs/adr/` instead of (or in addition to) `design.md`.
 
 4. The user decides -- offer and move on. Don't pressure. Don't auto-capture.
 

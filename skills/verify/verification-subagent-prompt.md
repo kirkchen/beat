@@ -195,6 +195,7 @@ yet, and Beat shouldn't pretend it has.
 | Gherkin Coverage | pass/partial/fail/skipped | N |
 | Proposal Alignment | pass/partial/fail/skipped | N |
 | Design Adherence | pass/partial/fail/skipped | N |
+| Living Docs Sync (advisory) | pass/partial/skipped | N |
 
 ### CRITICAL
 - [Dimension] Description -- file:line
