@@ -40,7 +40,7 @@ pipeline:
 
 `/beat:design` sets phase to the latest completed spec artifact (`proposal`, `gherkin`, or `design`). When a spec artifact is skipped, phase advances to the next non-skipped spec artifact.
 
-`/beat:distill` creates the container with `source: distill` and `tasks: { status: skipped }` (a distill change describes current behavior — nothing to implement), then advances phase like `/beat:design`. A distill change flows distill → verify → archive, so its phase moves directly from a spec-artifact value to `sync`/`archive`.
+`/beat:distill` creates the container with `source: distill` and `tasks: { status: skipped }` (a distill change describes current behavior — nothing to implement), then advances phase like `/beat:design`. A distill change flows distill → verify → archive with no `/beat:apply` step, so it never reaches the `implement`/`verify` phases. Because verify does not advance phase (see below), the change rests at its last spec-artifact phase (e.g. `design`) through verification — only `/beat:archive` moves it forward to `sync`/`archive`.
 
 `/beat:plan` sets phase to `tasks` after task breakdown, then `implement` when ready for coding.
 
@@ -70,9 +70,11 @@ verification: { status: passed, critical: 0, date: 2026-06-12 }
 | `critical` | CRITICAL finding count at the most recent run |
 | `date` | Date of the most recent run; re-running verify overwrites the whole field |
 
+`status` has only these two values. A failed run records nothing: if verification could not run at all (both subagents failed), `/beat:verify` reports the failure but writes no `verification` field — a failed run is not a verification outcome, so there is no `failed` status value. The field's absence therefore covers two cases: verify never ran, and verify ran but could not complete. Archive treats both the same.
+
 Used by:
 - **verify**: writes the field after presenting the report (the only file verify writes)
-- **archive**: warns and asks for confirmation when the field is absent (change never verified) or `status` is `issues-found`
+- **archive**: warns and asks for confirmation when the field is absent (change never verified, or verify ran but could not complete) or `status` is `issues-found`
 
 ### `modified` (optional, gherkin only)
 
