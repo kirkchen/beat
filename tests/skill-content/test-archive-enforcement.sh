@@ -38,4 +38,13 @@ assert_contains "$output" "term\|glossary\|undefined\|bolded\|CONTEXT\.md\|scan"
 output=$(run_claude "As beat:archive, if zero ADRs were written for this change, what do you do before moving to archive?" 30)
 assert_contains "$output" "prompt\|ask\|sweep\|last.mile\|ADR\|record" "archive knows the last-mile ADR sweep"
 
+output=$(run_claude "As beat:archive, before archiving, which top-level field in status.yaml must you check to know whether verification ran?" 30)
+assert_contains "$output" "verification" "archive knows to check the verification field before archiving"
+
+output=$(run_claude "As beat:archive, if the verification field is absent (verify never ran), do you archive silently?" 30)
+assert_contains "$output" "no\|warn\|confirm\|AskUserQuestion\|never verified" "archive warns and confirms when verification is absent"
+
+output=$(run_claude "As beat:archive, if verification status is issues-found with unresolved criticals, what do you do before archiving?" 30)
+assert_contains "$output" "warn\|confirm\|AskUserQuestion\|critical" "archive warns and confirms on issues-found verification"
+
 print_summary
