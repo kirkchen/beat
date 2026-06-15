@@ -41,4 +41,7 @@ assert_contains "$output" "fallback\|proceed\|initial\|continue\|without.*review
 output=$(run_claude "As beat:plan, when the review rejects an alternative approach with a load-bearing reason, what do you check?" 30)
 assert_contains "$output" "ADR\|three.condition\|gate\|hard.to.reverse\|record\|docs/adr" "plan knows to run ADR gate on rejected alternatives"
 
+output=$(run_claude "As beat:plan, if status.yaml has source: distill, do you proceed to break the change into tasks?" 30)
+assert_contains "$output" "no\|warn\|confirm\|AskUserQuestion\|verify\|nothing to plan" "plan warns and confirms before running on a source: distill change"
+
 print_summary
