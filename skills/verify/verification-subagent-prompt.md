@@ -5,12 +5,15 @@ You receive ONLY artifacts and code. Verify objectively.
 
 ## Your Inputs
 
-The dispatcher provides:
-- Feature files (if gherkin not skipped)
-- proposal.md (if exists)
-- design.md (if exists)
+The dispatcher provides **paths**, not pasted contents — read each file yourself (you already
+read source code independently; do the same for the artifacts):
+- Feature file paths (if gherkin not skipped) — base `beat/features/` + the change's `features/`
+- `proposal.md` path (if exists)
+- `design.md` path (if exists)
 - Source code under review
 - Testing context (see below)
+
+Read the artifact files at the paths given before verifying. The filesystem is the source of truth.
 
 ## Testing Context (provided by dispatcher)
 
