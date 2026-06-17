@@ -44,4 +44,10 @@ assert_contains "$output" "README\|module.*README\|update\|architecture\|public.
 output=$(run_claude "As beat:apply, if status.yaml has source: distill, do you proceed straight to implementation?" 30)
 assert_contains "$output" "no\|warn\|confirm\|AskUserQuestion\|verify\|nothing to implement" "apply warns and confirms before running on a source: distill change"
 
+output=$(run_claude "As beat:apply, if you already read the artifacts earlier in this session and git shows they have not changed, should you re-read them in full on re-entry?" 30)
+assert_contains "$output" "no\|git status\|freshness\|unchanged\|reuse\|already.*context\|validate" "apply knows not to blindly re-read unchanged artifacts on re-entry"
+
+output=$(run_claude "As beat:apply, should you re-read a file you just edited to confirm the change landed?" 30)
+assert_contains "$output" "no\|trust\|edit.*return\|don't.*re-read\|need not\|already" "apply trusts its own edits (no re-read to confirm)"
+
 print_summary
