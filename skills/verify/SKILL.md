@@ -49,6 +49,7 @@ After presenting the combined report: you MUST record the outcome in the top-lev
 | "I'll just run the tests, that's verification enough" | Tests verify behavior but not spec alignment, design adherence, or code quality. |
 | "I'll dispatch them sequentially to save context" | They're independent — parallel dispatch is faster and prevents one report from biasing the other. |
 | "The report is delivered, the status.yaml write is just bookkeeping" | The `verification` field is how archive knows verify ran. Skip it and archive warns "never verified" on a verified change. Ten seconds — write it. |
+| "Let me read the artifacts into my context first so I understand them before dispatching" | You don't verify — the subagents do, in clean independent context. Reading artifacts here only to forward them wastes context and adds transcription drift. Collect paths in step 2 and pass paths; let the fresh subagent read from disk. |
 
 ## Red Flags — STOP if you catch yourself:
 
@@ -59,6 +60,7 @@ After presenting the combined report: you MUST record the outcome in the top-lev
 - Editing code or artifacts during verification (the ONLY write is the `verification` record in status.yaml)
 - Presenting the report without recording the outcome in status.yaml
 - Falling back to self-verification because a subagent failed
+- Reading full artifact contents into the main session instead of passing paths to the subagents
 
 ## Process Flow
 
@@ -98,16 +100,23 @@ digraph verify {
    - If only one exists, use it
    - If multiple exist, use **AskUserQuestion tool** to let user select
 
-2. **Read all artifacts and determine testing context**
+2. **Read routing files and collect artifact paths (don't read artifacts into your own context)**
+
+   You do not verify anything yourself (see HARD-GATE) — you route, then forward artifact
+   *paths* to fresh subagents that read them independently. So read only the small files you
+   need in order to route, and collect (don't read) the artifact paths.
 
    Read from `beat/changes/<name>/`:
-   - `status.yaml` (schema: `references/status-schema.md`)
-   - `features/*.feature` (all Gherkin files, if gherkin status is `done`)
-   - `proposal.md` (if exists)
-   - `design.md` (if exists)
-   - `tasks.md` (if exists)
+   - `status.yaml` (schema: `references/status-schema.md`) — for drive mode, source flag, `gherkin.modified`
+   - `beat/config.yaml` (if exists, schema: `references/config-schema.md`) — for testing config
 
-   Read `beat/config.yaml` (if exists, schema: `references/config-schema.md`).
+   Collect the **artifact path set** to hand to the subagents (do NOT read their contents here):
+   - `proposal.md`, `design.md`, `tasks.md` (whichever exist)
+   - Feature files: `beat/features/` (base) + `beat/changes/<name>/features/` (new/modified)
+   - For each path in `gherkin.modified`: the file plus its `.feature.orig` backup
+
+   Reading a large artifact into this session only to paste it into a subagent prompt wastes
+   context and risks transcription drift — pass the path instead.
 
    **Determine drive mode:**
    - If `gherkin` status is `done` → **Gherkin-driven verification**
@@ -127,7 +136,8 @@ digraph verify {
    Read `verification-subagent-prompt.md` for the complete subagent prompt.
 
    Provide ONLY:
-   - All artifact contents (features, proposal, design, tasks)
+   - Artifact **paths** (features, proposal, design, tasks) — the path set collected in step 2.
+     The subagent reads them itself; do NOT paste artifact contents.
    - Testing context (drive mode, testing config, source flag, tag counts)
    - Modified files list from `gherkin.modified` with their `.feature.orig` backup paths (if any)
    - Do NOT pass conversation history or session context.
