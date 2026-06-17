@@ -143,15 +143,29 @@ digraph apply {
 
    If `status.yaml` has `source: distill`: warn — "This is a distill change; its features describe behavior the code already has, so there is nothing to implement. The intended flow is `/beat:verify` → `/beat:archive`." Use **AskUserQuestion tool** to confirm before proceeding.
 
-3. **Read all artifacts and determine testing mode**
+3. **Read artifacts (validate-then-fetch) and determine testing mode**
 
-   Read in order:
+   The filesystem is the source of truth; anything already in your context is a cache.
+   Read on cold start, or when a file is stale or unrecallable — do NOT re-read unchanged
+   artifacts that are already in your context.
+
+   **Cold start** (you have not read these artifacts in this session) — read fully, in order:
    - `proposal.md` (if exists) -- business context and risk points
    - `features/*.feature` (all files, if gherkin is done) -- implementation targets
    - `design.md` (if exists) -- technical decisions
    - `tasks.md` (if exists) -- implementation checklist
+   - `beat/config.yaml` (if exists, schema: `references/config-schema.md`)
 
-   Read `beat/config.yaml` (if exists, schema: `references/config-schema.md`).
+   **Re-entry** (you already read them earlier in this session) — validate first, then fetch only what changed:
+   - Run `git status --short beat/changes/<name>/` to see which artifacts changed on disk.
+   - Re-read ONLY files that changed (including any you edited this session). For files that are
+     unchanged AND you can still recall, reuse the in-context copy — do not re-read.
+   - When you only need to reorient on part of a large unchanged file, read a targeted range
+     (`offset`/`limit`), not the whole file.
+   - **Compaction safety net**: if `git status` shows a file unchanged but you cannot recall its
+     content (it was likely compacted away), re-read it — but targeted, not a blind whole-file read.
+   - **Self-edit trust**: do not re-read a file you just edited to "confirm" the edit; trust the
+     Edit tool's returned content.
 
    **Determine testing mode:**
    - If `testing.required: false` → **no-test mode**: skip TDD cycles for all scenarios, write implementation only
