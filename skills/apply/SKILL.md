@@ -60,6 +60,9 @@ Invoke in order: worktrees first (verify isolation), then TDD (discipline). Debu
 | "These tasks are small, I'll combine them for efficiency" | Each task is bounded for a reason. Merging recreates the oversized-output problem that decomposition solved. One task = one subagent dispatch. |
 | "The existing test is roughly correct, no need to update it" | If scenario steps changed, the test must reflect those changes. An old test passing does not mean the new behavior is correct. |
 | "I'll create a new test file, it's faster" | If @covered-by already points to an existing test, creating a new file breaks traceability. Update the existing test. |
+| "I'll re-read all the artifacts to be safe, even though I read them this session and they haven't changed" | The filesystem is the source of truth; your in-context copy is a valid cache until the file changes. Validate with `git status` and re-read only what changed (step 3). Blind re-reading bloats context and degrades recall. |
+| "Let me re-read the file I just edited to confirm the change landed" | The Edit tool already returned the updated content — trust it. Claude Code blocks edits to files changed since your last read, so a genuinely stale file is caught at edit time. |
+| "git says this file is unchanged, so my memory of it is good enough" | Only if you can actually recall it. If you can't quote it, it may have been compacted away — re-read it (a targeted range), don't implement against a blank. |
 
 ## Red Flags — STOP if you catch yourself:
 
@@ -74,6 +77,9 @@ Invoke in order: worktrees first (verify isolation), then TDD (discipline). Debu
 - Dispatching a single subagent for multiple tasks to "save time"
 - Creating a new test file for a scenario that already has `@covered-by` pointing to an existing test
 - Modifying scenario steps without updating the corresponding e2e test
+- Re-reading proposal/design/features/tasks in full on skill re-entry when `git status` shows them unchanged and they are still in context
+- Re-reading a file you just edited to "verify" it landed
+- Implementing against a file you can no longer recall without re-reading it first (it may have been compacted away)
 
 ## Mid-Implementation Triggers (mandatory)
 
@@ -87,7 +93,7 @@ Run inline as conditions arise. Don't batch.
 
 ```dot
 digraph apply {
-    "Select change, read artifacts" [shape=box];
+    "Select change, read artifacts (validate-then-fetch on re-entry)" [shape=box];
     "Invoke using-git-worktrees" [shape=box, style=bold];
     "testing.required false?" [shape=diamond];
     "No-test mode" [shape=box];
@@ -102,7 +108,7 @@ digraph apply {
     "Implementation loop" [shape=box];
     "All tasks complete" [shape=doublecircle];
 
-    "Select change, read artifacts" -> "Invoke using-git-worktrees";
+    "Select change, read artifacts (validate-then-fetch on re-entry)" -> "Invoke using-git-worktrees";
     "Invoke using-git-worktrees" -> "testing.required false?";
     "testing.required false?" -> "No-test mode" [label="yes"];
     "testing.required false?" -> "Invoke test-driven-development" [label="no"];
@@ -143,15 +149,29 @@ digraph apply {
 
    If `status.yaml` has `source: distill`: warn — "This is a distill change; its features describe behavior the code already has, so there is nothing to implement. The intended flow is `/beat:verify` → `/beat:archive`." Use **AskUserQuestion tool** to confirm before proceeding.
 
-3. **Read all artifacts and determine testing mode**
+3. **Read artifacts (validate-then-fetch) and determine testing mode**
 
-   Read in order:
+   The filesystem is the source of truth; anything already in your context is a cache.
+   Read on cold start, or when a file is stale or unrecallable — do NOT re-read unchanged
+   artifacts that are already in your context.
+
+   **Cold start** (you have not read these artifacts in this session) — read fully, in order:
    - `proposal.md` (if exists) -- business context and risk points
    - `features/*.feature` (all files, if gherkin is done) -- implementation targets
    - `design.md` (if exists) -- technical decisions
    - `tasks.md` (if exists) -- implementation checklist
+   - `beat/config.yaml` (if exists, schema: `references/config-schema.md`)
 
-   Read `beat/config.yaml` (if exists, schema: `references/config-schema.md`).
+   **Re-entry** (you already read them earlier in this session) — validate first, then fetch only what changed:
+   - Run `git status --short beat/changes/<name>/` to see which artifacts changed on disk.
+   - Re-read ONLY files that changed (including any you edited this session). For files that are
+     unchanged AND you can still recall, reuse the in-context copy — do not re-read.
+   - When you only need to reorient on part of a large unchanged file, read a targeted range
+     (`offset`/`limit`), not the whole file.
+   - **Compaction safety net**: if `git status` shows a file unchanged but you cannot recall its
+     content (it was likely compacted away), re-read it — but targeted, not a blind whole-file read.
+   - **Self-edit trust**: do not re-read a file you just edited to "confirm" the edit; trust the
+     Edit tool's returned content.
 
    **Determine testing mode:**
    - If `testing.required: false` → **no-test mode**: skip TDD cycles for all scenarios, write implementation only
@@ -304,7 +324,7 @@ digraph apply {
 - Developers may still write tests voluntarily using `testing.behavior`/`testing.e2e` if specified.
 
 **Guardrails**
-- Never implement without reading artifacts first (features in gherkin-driven, proposal in proposal-driven)
+- Never implement without being grounded in the spec — on cold start read the artifacts first (features in gherkin-driven, proposal in proposal-driven); on re-entry a still-valid in-context copy counts as grounding (see step 3, validate-then-fetch). Re-reading unchanged artifacts on every entry is not required.
 - In TDD mode: always write test before implementation
 - For `@behavior` scenarios: always add `@covered-by` annotation to .feature after writing the test
 - For `@behavior` scenarios: always add `@feature`/`@scenario` annotations in the test file

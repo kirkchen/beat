@@ -50,4 +50,7 @@ assert_contains "$output" "passed\|issues-found" "verify knows verification stat
 output=$(run_claude "As beat:verify, if both verification subagents failed and verification could not run, do you still write a verification record to status.yaml?" 30)
 assert_contains "$output" "no\|skip\|don't record\|do not record\|not.*record\|never" "verify knows a failed run records nothing"
 
+output=$(run_claude "As beat:verify, when dispatching the verification subagent, do you read all artifact contents into your own context, or pass the file paths for the subagent to read?" 30)
+assert_contains "$output" "path\|subagent.*read\|do not.*read\|don't.*read\|forward.*path\|pass.*path" "verify passes artifact paths to the subagent, not pasted contents"
+
 print_summary
