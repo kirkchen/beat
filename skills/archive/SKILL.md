@@ -189,7 +189,7 @@ digraph archive {
      > - Skip this term
      > - Skip all remaining (record the count for the summary)
 
-   When the user adds a term, append it to `beat/CONTEXT.md` following the structure in `references/context-format.md` (one-sentence definition, optional `_Avoid_` aliases). Create `beat/CONTEXT.md` lazily if it doesn't exist.
+   When the user adds a term, insert it into `beat/CONTEXT.md` where "Where a new entry goes" in `references/context-format.md` says — inside the `## <group>` section it belongs to (or `## Language` for a flat glossary), one-sentence definition, optional `_Avoid_` aliases. Never append it to the end of the file: that lands the term under `## Flagged ambiguities`. Create `beat/CONTEXT.md` lazily if it doesn't exist, writing the full skeleton first.
 
    If no project-specific bolded terms appear in the scanned features, skip this sub-step silently.
 
@@ -234,7 +234,7 @@ digraph archive {
    > - No, none qualified
    > - Yes, let me describe it now
 
-   If user describes one, run the three-condition gate from `references/adr-format.md`. If all three hold, write the ADR under `docs/adr/` with the next sequential number. If not all three hold, note the skip.
+   If user describes one, run the three-condition gate from `references/adr-format.md`. If all three hold, follow "Before writing an ADR" in that reference (apply config `rules.adr`; use the project's `docs/adr/TEMPLATE.md` if it exists, otherwise Beat's front-matter template with `source: beat/changes/<name>` — step 5b rewrites it to the archived path) and write the ADR under `docs/adr/` with the next sequential number. If not all three hold, note the skip.
 
    Either way, proceed to archive.
 
