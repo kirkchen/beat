@@ -17,6 +17,7 @@ maintained inline by `/beat:design`, `/beat:distill`, and `/beat:archive`.
 - [What goes in CONTEXT.md](#what-goes-in-contextmd)
 - [What does NOT go in CONTEXT.md](#what-does-not-go-in-contextmd)
 - [Structure](#structure)
+- [Where a new entry goes](#where-a-new-entry-goes)
 - [Rules](#rules)
 - [Path](#path)
 - [When to update](#when-to-update)
@@ -83,6 +84,26 @@ _Avoid_: module, package, feature group
   workload — resolved: a **Run** is the user-facing unit; the K8s workload is
   an internal implementation detail and not part of the domain vocabulary.
 ```
+
+## Where a new entry goes
+
+Skills add entries **inline** as terms resolve, so each addition must land in
+the right place — never at the end of the file. Appending a term after
+`## Flagged ambiguities` files a definition under the wrong heading and the
+glossary stops being trustworthy.
+
+| What you're adding | Where it goes |
+|--------------------|---------------|
+| A term definition | Inside the `## <group>` section it belongs to (e.g. `## Execution`), keeping that section's ordering (alphabetical if the section is alphabetical, otherwise at the end of the section). If the glossary is flat, inside `## Language`. |
+| A term that fits no existing group | A new `## <group>` section, inserted **before** `## Relationships`. Only open a new group when the term clearly doesn't belong to an existing one. |
+| A relationship between terms | Under `## Relationships` |
+| An ambiguity and its resolution | Under `## Flagged ambiguities` |
+| An `_Avoid_` alias for an existing term | On that term's existing entry — never as a new entry |
+
+When creating `beat/CONTEXT.md` for the first time, write the full skeleton
+from [Structure](#structure) (title, one-line description, `## Language`,
+`## Relationships`, `## Flagged ambiguities`) and put the first term inside
+`## Language`, so later insertions have sections to land in.
 
 ## Rules
 
