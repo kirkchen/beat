@@ -275,7 +275,7 @@ digraph plan {
    git commit
    ```
 
-   Only stage paths this run actually touched (check `git status`); never sweep in unrelated user changes.
+   Stage a path when `git status` shows it and this run wrote it; a path modified by the user outside this run stays unstaged.
 
    Use a descriptive message, e.g. "plan(<name>): add task breakdown".
 

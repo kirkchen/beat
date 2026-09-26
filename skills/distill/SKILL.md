@@ -239,7 +239,7 @@ digraph distill {
    git commit
    ```
 
-   Only stage paths this run actually touched (check `git status`); skip the ones that don't exist or are unchanged, and never sweep in unrelated user changes.
+   Stage a path when `git status` shows it and this run wrote it; a path that is absent, unchanged, or was modified by the user outside this run stays unstaged.
 
    Use a descriptive message: "distill(<scope>): extract BDD specs from existing code"
 

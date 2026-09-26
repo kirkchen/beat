@@ -256,7 +256,7 @@ digraph design {
    git commit
    ```
 
-   Only stage paths this run actually touched (check `git status`); skip the ones that don't exist or are unchanged, and never sweep in unrelated user changes. Leaving an ADR or glossary entry uncommitted while the change directory is committed splits the work across two commits — or loses it.
+   Stage a path when `git status` shows it and this run wrote it; a path that is absent, unchanged, or was modified by the user outside this run stays unstaged. Leaving an ADR or glossary entry uncommitted while the change directory is committed splits the work across two commits — or loses it.
 
    Use a descriptive message, e.g. "design(<name>): add spec artifacts".
 

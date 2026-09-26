@@ -226,7 +226,7 @@ digraph archive {
    3. **Components** — update the component list to match the code after this change (added, removed, renamed).
    4. **History** — append one line under `## History` (create the section if absent): `- YYYY-MM-DD <change-name>: <one-line summary of what the change did>`. This is the only append-only part of the file.
 
-   Write in the capability's existing language and section order. Do not paste the change's `design.md` verbatim and do not keep two competing versions of a section. If the two documents genuinely conflict and the code doesn't settle it, use **AskUserQuestion tool** rather than guessing. The change's own `design.md` stays untouched in the change directory and is archived with it.
+   The result reads as one document: each section appears once, in the capability's existing language and section order, describing the system as it is now. If the two documents genuinely conflict and the code doesn't settle it, use **AskUserQuestion tool** rather than guessing. The change's own `design.md` stays untouched in the change directory and is archived with it.
 
    **Handle .orig backups** (when `status.yaml` has `gherkin.modified`):
 
