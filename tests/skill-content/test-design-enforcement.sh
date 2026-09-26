@@ -48,12 +48,12 @@ output=$(run_claude "As beat:design, when a Key Decision in design.md is hard-to
 assert_contains "$output" "ADR\|docs/adr\|three.condition\|gate\|record" "design knows the ADR three-condition gate"
 
 output=$(run_claude "As beat:design, before writing an ADR for a Key Decision, what do you check in beat/config.yaml and docs/adr/?" 60 5)
-assert_contains "$output" "rules.adr\|rules\|TEMPLATE.md\|template" "design applies config rules.adr and project TEMPLATE.md before writing an ADR"
+assert_contains "$output" "rules\.adr\|TEMPLATE\.md\|Before writing an ADR" "design applies config rules.adr and project TEMPLATE.md before writing an ADR"
 
 output=$(run_claude "As beat:design, when you add a new term to beat/CONTEXT.md during the four-challenge check, where in the file do you put it?" 60 5)
-assert_contains "$output" "section\|group\|## Language\|never.*append\|Flagged ambiguities\|Where a new entry goes\|context-format" "design inserts glossary terms into their section, not the file end"
+assert_contains "$output" "Where a new entry goes\|<group>\|before .## Relationships\|full skeleton" "design inserts glossary terms into their section, not the file end"
 
 output=$(run_claude "As beat:design, when you commit at the end, do you stage only beat/changes/<name>/ or also the ADRs and beat/CONTEXT.md you wrote during this run?" 60 5)
-assert_contains "$output" "also\|docs/adr\|CONTEXT.md\|living doc\|same commit\|together" "design commits ADRs and glossary edits together with the change directory"
+assert_contains "$output" "git add docs/adr\|one unit of work\|splits the work\|living-documentation file" "design commits ADRs and glossary edits together with the change directory"
 
 print_summary
