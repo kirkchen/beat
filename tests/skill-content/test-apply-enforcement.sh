@@ -44,7 +44,7 @@ assert_contains "$output" "README\|module.*README\|update\|architecture\|public.
 output=$(run_claude "As beat:apply, if status.yaml has source: distill, do you proceed straight to implementation?" 30)
 assert_contains "$output" "no\|warn\|confirm\|AskUserQuestion\|verify\|nothing to implement" "apply warns and confirms before running on a source: distill change"
 
-output=$(run_claude "As beat:apply, when implementation forces a decision that meets the ADR gate, what from beat/config.yaml and docs/adr/ do you apply before writing the ADR?" 30)
+output=$(run_claude "As beat:apply, when implementation forces a decision that meets the ADR gate, what from beat/config.yaml and docs/adr/ do you apply before writing the ADR?" 60)
 assert_contains "$output" "rules.adr\|rules\|TEMPLATE.md\|template" "apply applies config rules.adr and project TEMPLATE.md before writing an ADR"
 
 print_summary

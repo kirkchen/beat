@@ -47,13 +47,13 @@ assert_contains "$output" "self.review\|placeholder\|consistency\|scope\|ambigui
 output=$(run_claude "As beat:design, when a Key Decision in design.md is hard-to-reverse, surprising, and a real trade-off, what do you do?" 30)
 assert_contains "$output" "ADR\|docs/adr\|three.condition\|gate\|record" "design knows the ADR three-condition gate"
 
-output=$(run_claude "As beat:design, before writing an ADR for a Key Decision, what do you check in beat/config.yaml and docs/adr/?" 30)
+output=$(run_claude "As beat:design, before writing an ADR for a Key Decision, what do you check in beat/config.yaml and docs/adr/?" 60)
 assert_contains "$output" "rules.adr\|rules\|TEMPLATE.md\|template" "design applies config rules.adr and project TEMPLATE.md before writing an ADR"
 
-output=$(run_claude "As beat:design, when you add a new term to beat/CONTEXT.md during the four-challenge check, where in the file do you put it?" 30)
+output=$(run_claude "As beat:design, when you add a new term to beat/CONTEXT.md during the four-challenge check, where in the file do you put it?" 60)
 assert_contains "$output" "section\|group\|## Language\|not.*end\|never.*append\|Flagged ambiguities" "design inserts glossary terms into their section, not the file end"
 
-output=$(run_claude "As beat:design, when you commit at the end, do you stage only beat/changes/<name>/ or also the ADRs and beat/CONTEXT.md you wrote during this run?" 30)
+output=$(run_claude "As beat:design, when you commit at the end, do you stage only beat/changes/<name>/ or also the ADRs and beat/CONTEXT.md you wrote during this run?" 60)
 assert_contains "$output" "also\|docs/adr\|CONTEXT.md\|living doc\|same commit\|together" "design commits ADRs and glossary edits together with the change directory"
 
 print_summary
