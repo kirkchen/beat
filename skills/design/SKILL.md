@@ -246,7 +246,17 @@ digraph design {
 
 5. **Commit artifacts and show final status**
 
-   Commit all change artifacts: `git add beat/changes/<name>/ && git commit`
+   Commit the change directory **and every living-documentation file this run wrote or modified** — they are one unit of work:
+
+   ```bash
+   git add beat/changes/<name>/
+   git add docs/adr/            # ADRs written at the ADR gate, plus any ADR index the project keeps there
+   git add beat/CONTEXT.md      # glossary entries from the four-challenge check
+   git add beat/ARCHITECTURE.md # if the hub suggestion was accepted
+   git commit
+   ```
+
+   Only stage paths this run actually touched (check `git status`); skip the ones that don't exist or are unchanged, and never sweep in unrelated user changes. Leaving an ADR or glossary entry uncommitted while the change directory is committed splits the work across two commits — or loses it.
 
    Use a descriptive message, e.g. "design(<name>): add spec artifacts".
 

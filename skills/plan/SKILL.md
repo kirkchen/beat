@@ -267,7 +267,15 @@ digraph plan {
 
 8. **Commit and advance phase**
 
-   Commit tasks.md and updated status.yaml: `git add beat/changes/<name>/ && git commit`
+   Commit tasks.md, updated status.yaml, **and every living-documentation file this run wrote** — an ADR recorded at the review's ADR gate (plus any ADR index the project keeps under `docs/adr/`) belongs in the same commit as the tasks it came from:
+
+   ```bash
+   git add beat/changes/<name>/
+   git add docs/adr/            # only if this run wrote an ADR
+   git commit
+   ```
+
+   Only stage paths this run actually touched (check `git status`); never sweep in unrelated user changes.
 
    Use a descriptive message, e.g. "plan(<name>): add task breakdown".
 

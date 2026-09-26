@@ -228,7 +228,18 @@ digraph distill {
 
 7. **Commit artifacts**
 
-   Commit all change artifacts: `git add beat/changes/distill-<scope-name>/ && git commit`
+   Commit the change directory **and every living-documentation file this run wrote or modified** — they are one unit of work:
+
+   ```bash
+   git add beat/changes/distill-<scope-name>/
+   git add docs/adr/            # ADRs from the ADR gate, plus any ADR index the project keeps there
+   git add beat/CONTEXT.md      # glossary entries from the glossary check
+   git add beat/ARCHITECTURE.md # if the hub row was added
+   git add <module>/README.md   # if the module README scaffold was accepted
+   git commit
+   ```
+
+   Only stage paths this run actually touched (check `git status`); skip the ones that don't exist or are unchanged, and never sweep in unrelated user changes.
 
    Use a descriptive message: "distill(<scope>): extract BDD specs from existing code"
 
