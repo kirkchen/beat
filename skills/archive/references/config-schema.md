@@ -26,6 +26,8 @@ rules:                               # optional, map
     - [Rule applied when creating design docs]
   tasks:                             # optional, array of strings
     - [Rule applied when creating task lists]
+  adr:                               # optional, array of strings
+    - [Rule applied when writing an ADR under docs/adr/]
 ```
 
 ## Fields
@@ -61,9 +63,11 @@ Skills that consume `testing`:
 
 ### `rules`
 
-Per-artifact rules applied **additively** to skill instructions. Keys must match artifact IDs: `proposal`, `gherkin`, `design`, `tasks`. Unknown keys are ignored with a warning.
+Per-artifact rules applied **additively** to skill instructions. Keys must match artifact IDs: `proposal`, `gherkin`, `design`, `tasks`, `adr`. Unknown keys are ignored with a warning.
 
 Rules are constraints, not templates — they tell the agent what to enforce, not how to structure the output.
+
+**`rules.adr`** applies wherever a skill writes an ADR — all six trigger points listed in `references/adr-format.md` (`/beat:explore`, `/beat:design`, `/beat:plan`, `/beat:apply`, `/beat:distill`, `/beat:archive`), not only the skills that create spec artifacts. Typical entries: required front matter fields, an index file to update, a naming convention. For the ADR *skeleton* itself, put a `docs/adr/TEMPLATE.md` in the project — skills use it in place of Beat's built-in template (see `references/adr-format.md`).
 
 ## How Skills Consume Config
 
@@ -76,6 +80,8 @@ Insert this step **before creating any artifact**:
 5. Apply matching `rules` (if present) as additional constraints for the artifact being created
 6. Check `testing` (if present) to determine test requirements for apply/verify
 7. If config doesn't exist, proceed normally — config is always optional
+
+"Any artifact" includes living documentation, not just the change's own spec files: an ADR written at a trigger point, a glossary term added to `beat/CONTEXT.md`, a module README. Every skill that can write one of these reads the config first — including `/beat:explore`, which creates no spec artifacts but can capture an ADR.
 
 ## Examples
 
@@ -123,6 +129,9 @@ rules:
   tasks:
     - Each task should map to exactly one scenario
     - Estimate complexity as S/M/L
+  adr:
+    - Add a row to docs/adr/README.md index for every new ADR
+    - Front matter must include `deciders`
 ```
 
 ## Rules

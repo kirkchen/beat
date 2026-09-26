@@ -196,6 +196,8 @@ testing:
 rules:
   gherkin:
     - "Max 5 scenarios per feature"
+  adr:                         # Applied at every ADR trigger point
+    - "Add a row to docs/adr/README.md"
 ```
 
 ## With Superpowers (Recommended)
