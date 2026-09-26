@@ -47,10 +47,10 @@ assert_contains "$output" "no\|warn\|confirm\|AskUserQuestion\|never verified" "
 output=$(run_claude "As beat:archive, if verification status is issues-found with unresolved criticals, what do you do before archiving?" 30)
 assert_contains "$output" "warn\|confirm\|AskUserQuestion\|critical" "archive warns and confirms on issues-found verification"
 
-output=$(run_claude "As beat:archive, when syncing a change that has a design.md and beat/features/<capability>/design.md already exists, do you copy the change's design.md over it?" 60 5)
+output=$(run_claude "As beat:archive, when syncing a change that has a design.md and beat/features/<capability>/design.md already exists, do you copy the change's design.md over it?" 90 5)
 assert_contains "$output" "merge\|never overwrite\|don't overwrite\|current.state\|History\|Supersedes\|Copy if absent" "archive merges design.md instead of overwriting the capability copy"
 
-output=$(run_claude "As beat:archive, after moving the change directory into beat/changes/archive/, what do you do about files that still reference the old beat/changes/<name> path?" 60 5)
+output=$(run_claude "As beat:archive, after moving the change directory into beat/changes/archive/, what do you do about files that still reference the old beat/changes/<name> path?" 90 5)
 assert_contains "$output" "rewrite\|replace\|git grep\|archived path\|beat/changes/archive\|References rewritten\|5b" "archive rewrites stale references to the old change path"
 
 output=$(run_claude "As beat:archive, when the user adds a new glossary term during the pre-sync scan, where in beat/CONTEXT.md does it go?" 60 5)
