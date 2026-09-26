@@ -47,4 +47,16 @@ assert_contains "$output" "no\|warn\|confirm\|AskUserQuestion\|never verified" "
 output=$(run_claude "As beat:archive, if verification status is issues-found with unresolved criticals, what do you do before archiving?" 30)
 assert_contains "$output" "warn\|confirm\|AskUserQuestion\|critical" "archive warns and confirms on issues-found verification"
 
+output=$(run_claude "As beat:archive, when syncing a change that has a design.md and beat/features/<capability>/design.md already exists, do you copy the change's design.md over it?" 30)
+assert_contains "$output" "no\|merge\|never overwrite\|don't overwrite\|current state\|rewrite" "archive merges design.md instead of overwriting the capability copy"
+
+output=$(run_claude "As beat:archive, after moving the change directory into beat/changes/archive/, what do you do about files that still reference the old beat/changes/<name> path?" 30)
+assert_contains "$output" "rewrite\|replace\|update\|grep\|archived path\|beat/changes/archive" "archive rewrites stale references to the old change path"
+
+output=$(run_claude "As beat:archive, when the user adds a new glossary term during the pre-sync scan, where in beat/CONTEXT.md does it go?" 30)
+assert_contains "$output" "section\|group\|## Language\|not.*end\|never.*append\|Flagged ambiguities" "archive inserts glossary terms into their section, not the file end"
+
+output=$(run_claude "As beat:archive, when the last-mile sweep results in writing an ADR, what do you read or check before writing the file?" 30)
+assert_contains "$output" "config\|rules.adr\|TEMPLATE.md\|template\|front matter" "archive applies config rules.adr and project TEMPLATE.md before writing an ADR"
+
 print_summary
