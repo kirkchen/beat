@@ -4,6 +4,40 @@ All notable changes to Beat are documented in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and Beat adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- `rules.adr` in `beat/config.yaml`: rules applied at every ADR trigger point
+  (`/beat:explore`, `/beat:design`, `/beat:plan`, `/beat:apply`,
+  `/beat:distill`, `/beat:archive`). A project `docs/adr/TEMPLATE.md`, when
+  present, replaces Beat's built-in ADR skeleton.
+- Beat's ADR template now carries front matter (`status`, `date`, `source`).
+  `source` points at the originating change directory and is kept current by
+  `/beat:archive`.
+- `references/context-format.md` specifies where a new glossary entry goes:
+  inside its group section (or `## Language`), never appended after
+  `## Flagged ambiguities`.
+
+### Changed
+
+- `/beat:archive` merges the change's `design.md` into an existing
+  `beat/features/<capability>/design.md` and rewrites it as the current state
+  (with a `## History` line) instead of overwriting it.
+- `/beat:archive` rewrites every tracked reference to `beat/changes/<name>`
+  to the archived path after moving the directory, so ADR `source` fields and
+  living-doc links keep resolving.
+- `/beat:design`, `/beat:plan`, and `/beat:distill` commit the ADRs, ADR
+  index, `beat/CONTEXT.md`, and `beat/ARCHITECTURE.md` edits they made
+  together with the change directory, instead of staging only
+  `beat/changes/<name>/`.
+
+### Fixed
+
+- `/beat:explore` did not read `beat/config.yaml` before writing an ADR, and
+  no ADR trigger point applied config rules — ADRs written outside
+  `/beat:design` could not follow project conventions.
+
 ## [0.3.0] - 2026-06-15
 
 ### Added

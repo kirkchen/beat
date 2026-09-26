@@ -103,12 +103,12 @@ For purely technical changes (tooling, deps, refactor): gherkin can be skipped, 
 - **plan**: Creates execution plan (tasks.md) with multi-role review against spec artifacts + commits
 - **apply**: TDD implementation — gherkin-driven (every scenario must have a test) or proposal-driven (when gherkin skipped). Verifies worktree isolation (should exist from design/plan).
 - **verify**: Dispatches independent subagent to verify against artifacts
-- **archive**: Syncs features to `beat/features/` as living documentation + moves change to `beat/changes/archive/`
+- **archive**: Syncs features to `beat/features/` as living documentation (merging the change's `design.md` into an existing capability `design.md` rather than overwriting it) + moves change to `beat/changes/archive/` + rewrites every tracked reference to the old `beat/changes/<name>` path
 
 ### Key Concepts
 
 - **status.yaml** is the state machine — schema defined in `references/status-schema.md`. Phase advances forward only. Pipeline entries use inline YAML flow style: `{ status: done }`. `/beat:verify` records its outcome in the top-level `verification` field (it never advances phase); `/beat:archive` warns when archiving a change without a passing verification record.
-- **config.yaml** is optional project config — schema in `references/config-schema.md`. Controls artifact language, injects project context, and adds per-artifact rules.
+- **config.yaml** is optional project config — schema in `references/config-schema.md`. Controls artifact language, injects project context, and adds per-artifact rules (`proposal`, `gherkin`, `design`, `tasks`, `adr`). `rules.adr` applies at every ADR trigger point, so every skill that can write an ADR (including `/beat:explore`) reads the config; a project `docs/adr/TEMPLATE.md` takes precedence over Beat's built-in ADR template.
 - **Gherkin is mandatory by default** but can be skipped for purely technical changes (tooling, deps, refactoring without behavior change). When skipped, proposal drives plan, apply, and verify.
 - **verify** uses independent subagents (Agent tool: `Explore` for spec verification, `general-purpose` for code review) to avoid context bias. When verifying distilled specs (`source: distill`), it switches to accuracy mode.
 - **distill** works in reverse (code → spec), marks features with `@distilled` tag, and relies on `/beat:verify` for independent accuracy verification. A distill change sets `tasks: skipped` (nothing to implement) and flows distill → verify → archive; future changes to the distilled area use the normal flow in their own change containers.
