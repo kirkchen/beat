@@ -246,7 +246,7 @@ digraph plan {
    2. Surprising without context?
    3. Result of a real trade-off?
 
-   If **all three** hold, use **AskUserQuestion tool**: *"Review rejected '<alt>' because '<reason>' — record as ADR?"* On Yes, write the ADR under `docs/adr/`, increment numbering, cross-reference from `tasks.md` or `design.md` as appropriate. On No, continue.
+   If **all three** hold, use **AskUserQuestion tool**: *"Review rejected '<alt>' because '<reason>' — record as ADR?"* On Yes, follow "Before writing an ADR" in `references/adr-format.md` (apply config `rules.adr`; use the project's `docs/adr/TEMPLATE.md` if it exists, otherwise Beat's front-matter template with `source: beat/changes/<name>`), write the ADR under `docs/adr/`, increment numbering, cross-reference from `tasks.md` or `design.md` as appropriate. On No, continue. Step 8 commits the ADR together with tasks.md.
 
    Read `beat/changes/<name>/tasks.md`, then use the **Edit tool** to apply:
    - Add missing tasks or steps identified by the review

@@ -77,7 +77,7 @@ Invoke in order: worktrees first (verify isolation), then TDD (discipline). Debu
 
 ## Mid-Implementation Triggers (mandatory)
 
-- **ADR** — hard-to-reverse + surprising + real-trade-off decision not in `design.md` → write ADR (`references/adr-format.md`)
+- **ADR** — hard-to-reverse + surprising + real-trade-off decision not in `design.md` → write ADR (`references/adr-format.md`). Before writing: apply `rules.adr` from the `beat/config.yaml` you read in step 3, and use the project's `docs/adr/TEMPLATE.md` if it exists (otherwise Beat's front-matter template, `source: beat/changes/<name>`). Commit the ADR (and any project ADR index) in the same commit as the code that forced the decision.
 - **README** — module public-interface change → update module README (`references/architecture-format.md`)
 - **New module** — creating a new module (new top-level directory with its own concerns) → offer to scaffold its README (`references/architecture-format.md`)
 
@@ -151,7 +151,7 @@ digraph apply {
    - `design.md` (if exists) -- technical decisions
    - `tasks.md` (if exists) -- implementation checklist
 
-   Read `beat/config.yaml` (if exists, schema: `references/config-schema.md`).
+   Read `beat/config.yaml` (if exists, schema: `references/config-schema.md`). Besides `testing`, keep `language`, `context`, and `rules.adr` at hand — the mid-implementation ADR trigger uses them.
 
    **Determine testing mode:**
    - If `testing.required: false` → **no-test mode**: skip TDD cycles for all scenarios, write implementation only

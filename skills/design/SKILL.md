@@ -186,7 +186,7 @@ digraph design {
 
    Read `beat/CONTEXT.md` if it exists (schema: `references/context-format.md`). Create it lazily when the first term is added — never preemptively.
 
-   Walk through the brainstorming output and any draft scenario text. For each project-specific term, run these checks and update `beat/CONTEXT.md` **inline** as findings emerge (never batch):
+   Walk through the brainstorming output and any draft scenario text. For each project-specific term, run these checks and update `beat/CONTEXT.md` **inline** as findings emerge (never batch). Insert each entry where "Where a new entry goes" in `references/context-format.md` says — a term goes inside its `## <group>` section (or `## Language`), never appended to the end of the file after `## Flagged ambiguities`:
 
    1. **Against the glossary** — the term conflicts with an existing entry? Call it out, resolve, update.
    2. **Sharpen fuzzy** — the term is vague or overloaded (e.g. "account" meaning Customer and User both)? Pick the canonical word, list the others as `_Avoid_`.
@@ -240,8 +240,8 @@ digraph design {
        1. Hard to reverse? (cost of changing your mind is meaningful)
        2. Surprising without context? (future reader will wonder *"why on earth this way?"*)
        3. Result of a real trade-off? (genuine alternatives existed)
-       If **all three** hold, use **AskUserQuestion tool**: *"This decision meets the ADR gate. Lift it into `docs/adr/`?"* On Yes, write a 1-3 sentence ADR using the template in `references/adr-format.md`, increment the highest existing number in `docs/adr/` by one, and add a cross-reference from `design.md` (`See docs/adr/NNNN-slug.md`). On No, continue.
-       Create `docs/adr/` lazily — only on first ADR.
+       If **all three** hold, use **AskUserQuestion tool**: *"This decision meets the ADR gate. Lift it into `docs/adr/`?"* On Yes, follow "Before writing an ADR" in `references/adr-format.md` (apply config `rules.adr`; use the project's `docs/adr/TEMPLATE.md` if it exists, otherwise Beat's front-matter template with `source: beat/changes/<name>`), write the 1-3 sentence ADR, increment the highest existing number in `docs/adr/` by one, and add a cross-reference from `design.md` (`See docs/adr/NNNN-slug.md`). On No, continue.
+       Create `docs/adr/` lazily — only on first ADR. Track every ADR (and any project ADR index) written here — step 5 commits them with the change.
      - **Architecture hub suggestion** (Layer 3, advisory) — if `design.md` describes a module-level architecture change (new module, module split/merge, changed module boundaries or responsibilities), suggest updating `beat/ARCHITECTURE.md` — the hub diagram, modules table, or constraints (see `references/architecture-format.md`). Create the hub lazily, only if the project is multi-module and the user accepts. Never block.
 
 5. **Commit artifacts and show final status**

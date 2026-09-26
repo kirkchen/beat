@@ -176,7 +176,7 @@ digraph distill {
 
    Read `beat/CONTEXT.md` if it exists (schema: `references/context-format.md`). Create it lazily when the first term is added — never preemptively.
 
-   Distill is often the first time an established codebase builds its glossary, and the code itself is the source. For each project-specific term that will appear in scenarios, adapt the four challenges from `references/context-format.md` and update `beat/CONTEXT.md` **inline** as terms resolve (never batch):
+   Distill is often the first time an established codebase builds its glossary, and the code itself is the source. For each project-specific term that will appear in scenarios, adapt the four challenges from `references/context-format.md` and update `beat/CONTEXT.md` **inline** as terms resolve (never batch). Insert each entry where "Where a new entry goes" in `references/context-format.md` says — inside its `## <group>` section (or `## Language`), never appended after `## Flagged ambiguities`; when creating the file, write the full skeleton first:
 
    1. **Against the glossary** — the term conflicts with an existing entry? Surface, resolve, update.
    2. **Sharpen fuzzy** — the code uses synonyms for one concept (e.g. `user`/`account`/`member` for the same entity)? Pick the canonical word, list the others as `_Avoid_`.
@@ -206,7 +206,7 @@ digraph distill {
      2. Surprising without context?
      3. Result of a real trade-off?
      Recovered decisions are prime candidates — "surprising without context" is exactly what code archaeology surfaces. **Caveat**: the code shows *what* was decided, not *why*. Take rationale from evidence (commit history, comments, docs) or from the user; if neither is available, record the decision with rationale marked unverified (e.g. "Rationale unconfirmed — recovered from code"). Never invent a why.
-     If **all three** hold, use **AskUserQuestion tool**: *"This recovered decision meets the ADR gate. Lift it into `docs/adr/`?"* On Yes, write a 1-3 sentence ADR per the template in `references/adr-format.md`, incrementing the highest existing number. On No, continue. Create `docs/adr/` lazily — only on first ADR.
+     If **all three** hold, use **AskUserQuestion tool**: *"This recovered decision meets the ADR gate. Lift it into `docs/adr/`?"* On Yes, follow "Before writing an ADR" in `references/adr-format.md` (apply config `rules.adr`; use the project's `docs/adr/TEMPLATE.md` if it exists, otherwise Beat's front-matter template with `source: beat/changes/distill-<scope-name>`), write the 1-3 sentence ADR, incrementing the highest existing number. On No, continue. Create `docs/adr/` lazily — only on first ADR. Step 7 commits the ADR with the change.
    - If you choose not to write design.md: set `design: { status: skipped }` in status.yaml — never leave it `pending`
 
    **Spec self-review (after writing each artifact):**
