@@ -217,7 +217,7 @@ digraph archive {
 
    When features map to **multiple capabilities**, copy `proposal.md` and `design.md` to the primary capability only (the one receiving the most feature files). On a tie, ask the user which capability owns them. Don't duplicate them across capabilities.
 
-   **Merging `design.md` into an existing capability design** (Layer 3-adjacent living doc):
+   **Merging `design.md` into an existing capability design:**
 
    The capability's `design.md` is a **current-state** document that accumulates every change that touched the capability. The change's `design.md` is a **delta** written before implementation. When `beat/features/<capability>/design.md` already exists, never copy over it — read both and rewrite the capability file so it describes the system as it now is:
 
@@ -283,13 +283,13 @@ digraph archive {
 
    Moving the directory breaks every link that pointed at it: ADR `source` fields and links, `See beat/changes/<name>/...` cross-references in synced features and design docs, glossary or README mentions, and self-references inside the moved directory (e.g. `tasks.md` pointing at its own `design.md`).
 
-   Find them across the repository (tracked files only, so `node_modules`, build output and `.git` are never touched):
+   Find them across the repository. Step 5 used plain `mv` and step 4b may have just written an ADR, so the files that matter most are **untracked** at this point — `git grep` skips them unless told otherwise. `--untracked` includes them while still honouring `.gitignore`, so `node_modules`, build output and `.git` are never touched. The trailing group stops `beat/changes/<name>` from matching a different change whose name merely starts the same way (`beat/changes/<name>-v2`):
 
    ```bash
-   git grep -l "beat/changes/<name>" -- . ':!beat/changes/archive/YYYY-MM-DD-<name>/status.yaml'
+   git grep -lE --untracked 'beat/changes/<name>(/|[^A-Za-z0-9_-]|$)' -- . ':!beat/changes/archive/YYYY-MM-DD-<name>/status.yaml'
    ```
 
-   In every file listed, replace `beat/changes/<name>` with `beat/changes/archive/YYYY-MM-DD-<name>` — match the exact old path as a prefix so that `beat/changes/<name>-v2` (a different change) is untouched. Use the **Edit tool** with `replace_all` per file, or `sed` when the file count is large. Then re-run the grep: it must return nothing.
+   In every file listed, replace `beat/changes/<name>` with `beat/changes/archive/YYYY-MM-DD-<name>` — only where the old path is followed by `/`, whitespace, punctuation, or end of line, never where it continues into a longer change name. Use the **Edit tool** per occurrence (`replace_all` is safe only when no `beat/changes/<name>-…` sibling exists in that file), or `sed -E` with the same boundary group when the file count is large. Then re-run the grep: it must return nothing.
 
    Do not rewrite `status.yaml` inside the archived directory (it records the change by name, not path) and do not touch files under `.git/`.
 

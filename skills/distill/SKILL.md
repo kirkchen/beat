@@ -232,14 +232,15 @@ digraph distill {
 
    ```bash
    git add beat/changes/distill-<scope-name>/
-   git add docs/adr/            # ADRs from the ADR gate, plus any ADR index the project keeps there
-   git add beat/CONTEXT.md      # glossary entries from the glossary check
-   git add beat/ARCHITECTURE.md # if the hub row was added
-   git add <module>/README.md   # if the module README scaffold was accepted
+   git add docs/adr/NNNN-<slug>.md   # each ADR from the ADR gate, by file name
+   git add docs/adr/<index-file>     # only if the project keeps an ADR index there and this run updated it
+   git add beat/CONTEXT.md           # glossary entries from the glossary check
+   git add beat/ARCHITECTURE.md      # if the hub row was added
+   git add <module>/README.md        # if the module README scaffold was accepted
    git commit
    ```
 
-   Stage a path when `git status` shows it and this run wrote it; a path that is absent, unchanged, or was modified by the user outside this run stays unstaged.
+   Stage files by name, never `docs/adr/` as a directory: a path is staged when `git status` shows it and this run wrote it; a path that is absent, unchanged, or was modified by the user outside this run stays unstaged.
 
    Use a descriptive message: "distill(<scope>): extract BDD specs from existing code"
 

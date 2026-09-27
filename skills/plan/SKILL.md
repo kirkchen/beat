@@ -271,11 +271,12 @@ digraph plan {
 
    ```bash
    git add beat/changes/<name>/
-   git add docs/adr/            # only if this run wrote an ADR
+   git add docs/adr/NNNN-<slug>.md   # only if this run wrote an ADR, by file name
+   git add docs/adr/<index-file>     # only if the project keeps an ADR index there and this run updated it
    git commit
    ```
 
-   Stage a path when `git status` shows it and this run wrote it; a path modified by the user outside this run stays unstaged.
+   Stage files by name, never `docs/adr/` as a directory: a path is staged when `git status` shows it and this run wrote it; a path modified by the user outside this run stays unstaged.
 
    Use a descriptive message, e.g. "plan(<name>): add task breakdown".
 

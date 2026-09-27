@@ -250,13 +250,14 @@ digraph design {
 
    ```bash
    git add beat/changes/<name>/
-   git add docs/adr/            # ADRs written at the ADR gate, plus any ADR index the project keeps there
-   git add beat/CONTEXT.md      # glossary entries from the four-challenge check
-   git add beat/ARCHITECTURE.md # if the hub suggestion was accepted
+   git add docs/adr/NNNN-<slug>.md   # each ADR written at the ADR gate, by file name
+   git add docs/adr/<index-file>     # only if the project keeps an ADR index there and this run updated it
+   git add beat/CONTEXT.md           # glossary entries from the four-challenge check
+   git add beat/ARCHITECTURE.md      # if the hub suggestion was accepted
    git commit
    ```
 
-   Stage a path when `git status` shows it and this run wrote it; a path that is absent, unchanged, or was modified by the user outside this run stays unstaged. Leaving an ADR or glossary entry uncommitted while the change directory is committed splits the work across two commits — or loses it.
+   Stage files by name, never `docs/adr/` as a directory: a path is staged when `git status` shows it and this run wrote it; a path that is absent, unchanged, or was modified by the user outside this run stays unstaged. Leaving an ADR or glossary entry uncommitted while the change directory is committed splits the work across two commits — or loses it.
 
    Use a descriptive message, e.g. "design(<name>): add spec artifacts".
 
