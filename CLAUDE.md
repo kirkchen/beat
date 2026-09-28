@@ -103,7 +103,7 @@ For purely technical changes (tooling, deps, refactor): gherkin can be skipped, 
 - **plan**: Creates execution plan (tasks.md) with multi-role review against spec artifacts + commits
 - **apply**: TDD implementation — gherkin-driven (every scenario must have a test) or proposal-driven (when gherkin skipped). Verifies worktree isolation (should exist from design/plan).
 - **verify**: Dispatches independent subagent to verify against artifacts
-- **archive**: Syncs features to `beat/features/` as living documentation (merging the change's `design.md` into an existing capability `design.md` rather than overwriting it) + moves change to `beat/changes/archive/` + rewrites every tracked reference to the old `beat/changes/<name>` path
+- **archive**: Syncs features to `beat/features/` as living documentation (merging the change's `design.md` into an existing capability `design.md` rather than overwriting it) + moves change to `beat/changes/archive/` + rewrites every tracked reference to the old `beat/changes/<name>` path + commits the archive as the last commit on the feature branch, then hands off to `superpowers:finishing-a-development-branch` for merge/PR. Archive runs before the PR, never after it is merged.
 
 ### Key Concepts
 
