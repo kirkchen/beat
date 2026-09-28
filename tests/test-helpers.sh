@@ -162,6 +162,88 @@ assert_file_exists() {
     fi
 }
 
+assert_tool_used() {
+    local log_file="$1"
+    local tool_regex="$2"
+    local test_name="${3:-Tool $tool_regex used}"
+
+    if grep -qE "\"type\":\"tool_use\",\"id\":\"[^\"]*\",\"name\":\"(${tool_regex})\"" "$log_file"; then
+        echo -e "${GREEN}[PASS]${NC} $test_name"
+        PASS_COUNT=$((PASS_COUNT + 1))
+        return 0
+    else
+        echo -e "${RED}[FAIL]${NC} $test_name"
+        echo "  Expected a tool_use whose name matches: $tool_regex"
+        echo "  Tools used in log:"
+        grep -oE '"type":"tool_use","id":"[^"]*","name":"[^"]*"' "$log_file" 2>/dev/null | grep -oE '"name":"[^"]*"' | sort | uniq -c | sed 's/^/    /' || echo "    (none)"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+        return 1
+    fi
+}
+
+# Glob-style path assertions against a project directory. The pattern is matched
+# with `find -path`, so `*` also crosses directory boundaries
+# (`beat/features/*.orig` matches `beat/features/auth/login.feature.orig`).
+assert_path_matches() {
+    local project_dir="$1"
+    local pattern="$2"
+    local test_name="${3:-Path exists: $pattern}"
+    local matches
+    matches=$(find "$project_dir" -type f -path "$project_dir/$pattern" -not -path '*/.git/*' 2>/dev/null | head -5)
+
+    if [[ -n "$matches" ]]; then
+        echo -e "${GREEN}[PASS]${NC} $test_name"
+        echo "$matches" | sed "s|^$project_dir/|    |"
+        PASS_COUNT=$((PASS_COUNT + 1))
+        return 0
+    else
+        echo -e "${RED}[FAIL]${NC} $test_name"
+        echo "  No file matches: $pattern"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+        return 1
+    fi
+}
+
+assert_path_absent() {
+    local project_dir="$1"
+    local pattern="$2"
+    local test_name="${3:-Path absent: $pattern}"
+    local matches
+    matches=$(find "$project_dir" -type f -path "$project_dir/$pattern" -not -path '*/.git/*' 2>/dev/null | head -5)
+
+    if [[ -z "$matches" ]]; then
+        echo -e "${GREEN}[PASS]${NC} $test_name"
+        PASS_COUNT=$((PASS_COUNT + 1))
+        return 0
+    else
+        echo -e "${RED}[FAIL]${NC} $test_name"
+        echo "  Expected no file to match: $pattern"
+        echo "$matches" | sed "s|^$project_dir/|    |"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+        return 1
+    fi
+}
+
+# Passes when the file differs from the given commit, whether the change was
+# committed since or is still in the working tree.
+assert_file_changed_since() {
+    local project_dir="$1"
+    local base_sha="$2"
+    local file_path="$3"
+    local test_name="${4:-File changed: $file_path}"
+
+    if ! git -C "$project_dir" diff --quiet "$base_sha" -- "$file_path"; then
+        echo -e "${GREEN}[PASS]${NC} $test_name"
+        PASS_COUNT=$((PASS_COUNT + 1))
+        return 0
+    else
+        echo -e "${RED}[FAIL]${NC} $test_name"
+        echo "  File unchanged since $base_sha: $file_path"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+        return 1
+    fi
+}
+
 # --- Project Helpers ---
 
 create_test_project() {
