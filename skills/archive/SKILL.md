@@ -5,7 +5,7 @@ description: Use when a Beat change is complete (implemented, or distilled and v
 
 Archive a completed change. Checks completion, syncs features to living documentation, then moves to archive.
 
-**When it runs:** on the feature branch, after `/beat:verify` and **before** the PR or merge. The archive is the last commit on the branch and ships in the same PR as the code, so `main` never carries an active `beat/changes/<name>` directory for a feature that has already landed. Archive itself hands off to the merge/PR step (step 7) — it is never something to do after the PR is merged.
+**When it runs:** after `/beat:verify` and **before** the PR or merge, on whatever branch the change lives on (normally the worktree branch `/beat:design` created). The archive is the last commit on that branch and ships in the same PR as the code, so `main` never carries an active `beat/changes/<name>` directory for a feature that has already landed. Archive itself hands off to the merge/PR step (step 7) — it is never something to do after the PR is merged. Archive never creates or switches branches: if the user is on the base branch, archive there and let step 7 handle branch state.
 
 <decision_boundary>
 
@@ -45,7 +45,8 @@ After moving the change directory: you MUST rewrite every reference to the old
 `beat/changes/<name>` path (ADRs, features, glossary, READMEs, other changes)
 to the archived path. A moved directory with dangling links is not archived.
 Before invoking finishing-a-development-branch: you MUST commit the archive result
-on the current feature branch — archive runs before the PR/merge, never after it.
+on the current branch (never create or switch one) — archive runs before the
+PR/merge, never after it.
 Do NOT skip any of these because the user wants speed.
 </HARD-GATE>
 
@@ -306,7 +307,7 @@ digraph archive {
 
 5c. **Commit the archive**
 
-   Everything this run produced is one unit of work and must be on the feature branch before step 7 hands off to merge/PR:
+   Everything this run produced is one unit of work and must be committed on the current branch — do not create or switch branches — before step 7 hands off to merge/PR:
 
    ```bash
    git add beat/changes/            # the moved directory (deletions + new archive path)
