@@ -75,12 +75,16 @@ EOF
 
 # Existing e2e test
 cat > e2e/tests/login.spec.ts << 'EOF'
+import { test, expect } from '@playwright/test';
+
 // @feature: login.feature
 // @scenario: User logs in with valid credentials
-test('User logs in with valid credentials', async () => {
-  await loginPage.goto();
-  await loginPage.fillCredentials('user', 'pass');
-  await expect(dashboard).toBeVisible();
+test('User logs in with valid credentials', async ({ page }) => {
+  await page.goto('/login');
+  await page.getByLabel('Username').fill('user');
+  await page.getByLabel('Password').fill('pass');
+  await page.getByRole('button', { name: 'Log in' }).click();
+  await expect(page.getByTestId('dashboard')).toBeVisible();
 });
 EOF
 
@@ -91,7 +95,7 @@ testing:
   e2e: playwright
 EOF
 
-echo '{ "name": "test-project", "type": "module" }' > package.json
+echo '{ "name": "test-project", "type": "module", "scripts": { "test:e2e": "playwright test" }, "devDependencies": { "@playwright/test": "^1.40.0" } }' > package.json
 
 git add -A && git commit -q -m "init: test project for apply-modify pressure test"
 echo "$PROJECT_DIR"

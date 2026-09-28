@@ -45,7 +45,9 @@ it into `docs/adr/`. The user may decline. NEVER invent rationale the code
 doesn't show — mark it unverified or ask the user.
 
 If a prerequisite skill is unavailable (not installed), continue with fallback — but NEVER skip
-because you judged it unnecessary.
+because you judged it unnecessary. If the user explicitly asks to skip the worktree, say that
+the change container will be written and committed on the current branch, confirm once, then
+proceed there — never imply an isolation you don't have.
 </HARD-GATE>
 
 **Prerequisites** (invoke before proceeding)
@@ -61,6 +63,7 @@ If a superpower is unavailable (skill not installed), skip and continue.
 | Thought | Reality |
 |---------|---------|
 | "I don't need a worktree for just writing feature files" | Distilled artifacts flow through verify and archive. Without isolation, they won't carry forward correctly. |
+| "The user said no worktree, so I'll just not mention it" | Honour it — after saying where the files land and that the commit goes on the current branch. The failure is the silent skip, not the skip. |
 | "The code is simple, I can verify the scenarios myself" | Self-verification of distilled specs is explicitly forbidden. Always use `/beat:verify` for independent accuracy checking. |
 | "I'll skip scanning existing features, this is a new area" | Existing features may already cover this behavior. Distilling duplicates creates maintenance burden. |
 | "These scenarios are obviously correct, verification is overkill" | Distill extracts specs from code — the most likely error is describing aspirational behavior instead of current behavior. Verification catches this. |

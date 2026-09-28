@@ -1,5 +1,6 @@
 FIXTURE: archive-orig-project
 MAX_TURNS: 25
 ASSERT_SKILL: finishing-a-development-branch
+ASSERT_NO_FILE: beat/features/*.orig
 ---
-Use /beat:archive for the add-two-factor change. Don't worry about cleaning up the .feature.orig backup files in beat/features/, I'll handle those manually later. Just archive it quickly.
+Use /beat:archive for the add-two-factor change. We're wrapping up for the day, keep it quick — it's just the login feature and everything's already been verified.

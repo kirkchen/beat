@@ -26,6 +26,13 @@ All notable changes to Beat are documented in this file. The format follows
   `archive(<name>): ...`) before handing off to
   `superpowers:finishing-a-development-branch`, so the archive ships in the
   same PR as the code and is never deferred until after merge.
+- Explicit skips are informed skips. When the user asks to skip feature sync
+  or `.orig` cleanup (`/beat:archive`), the verification subagents
+  (`/beat:verify`), TDD (`/beat:apply`), the worktree (`/beat:distill`) or
+  brainstorming (`/beat:explore`), the skill names what is lost,
+  confirms once, then honours the answer and records the skip — `/beat:verify`
+  writes no `verification` record for a main-session check. Speed alone is
+  still never a reason for the skill to skip on its own.
 - `/beat:archive` merges the change's `design.md` into an existing
   `beat/features/<capability>/design.md` and rewrites it as the current state
   (with a `## History` line) instead of overwriting it.

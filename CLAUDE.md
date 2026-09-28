@@ -218,7 +218,7 @@ cd tests && ./run-all.sh --integration
 **Notes:**
 - Tests use `claude -p --output-format stream-json --verbose` and grep for tool invocations
 - Some tests are non-deterministic (LLM behavior varies) — a single flaky fail doesn't indicate a real problem
-- Pressure tests assert Beat's responsibility boundary only (did it invoke the Superpowers skill?), not Superpowers' execution
+- Pressure tests assert the rule the prompt pressures, nothing more: for a Superpowers gate, that the skill was invoked (`ASSERT_SKILL`), never how Superpowers executed it; for one of Beat's own gates (feature sync, `.orig` cleanup, subagent dispatch, updating an existing test), the observable result (`ASSERT_FILE`, `ASSERT_NO_FILE`, `ASSERT_FILE_CHANGED`, `ASSERT_TOOL`). A scenario whose assertion cannot fail on the behaviour it pressures is not a test. Pressure scenarios tempt the agent without ordering a skip; explicit-override scenarios (`*-explicit-*`) have the user order one and assert the informed-skip promise via `ASSERT_OUTPUT`
 - macOS compatible (Perl-based timeout fallback, no GNU coreutils needed)
 
 **Manual testing** is still useful for verifying the full user experience:
