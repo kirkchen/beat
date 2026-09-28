@@ -34,6 +34,10 @@ Dispatch the verification subagent AND code-reviewer in parallel — they are in
 If a subagent fails, proceed with findings from the other. If BOTH fail, report the failure —
 do NOT fall back to self-verification.
 
+If the user explicitly asks you to skip the subagents, say that a main-session check carries
+context bias and is not a verification, confirm once, and if they insist do the quick check they
+asked for — but write nothing to the `verification` field. Only a subagent run is an outcome.
+
 After presenting the combined report: you MUST record the outcome in the top-level
 `verification` field of status.yaml (see step 6). If verification could not run at all
 (both subagents failed), do NOT record — a failed run is not a verification outcome.
@@ -47,6 +51,7 @@ After presenting the combined report: you MUST record the outcome in the top-lev
 | "I already reviewed the code during apply" | That's exactly why you need an independent verifier. Familiarity breeds blind spots. |
 | "Running two subagents is overkill for this" | Code quality and spec alignment are independent dimensions. A single agent conflates them. |
 | "I'll just run the tests, that's verification enough" | Tests verify behavior but not spec alignment, design adherence, or code quality. |
+| "The user told me not to dispatch agents, so a quick look counts as verify" | It counts as a quick look. Say so, confirm once, do it — and leave `verification` unset, so archive still warns that this change was never verified. |
 | "I'll dispatch them sequentially to save context" | They're independent — parallel dispatch is faster and prevents one report from biasing the other. |
 | "The report is delivered, the status.yaml write is just bookkeeping" | The `verification` field is how archive knows verify ran. Skip it and archive warns "never verified" on a verified change. Ten seconds — write it. |
 

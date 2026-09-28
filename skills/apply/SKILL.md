@@ -33,7 +33,9 @@ Before any code changes: you MUST invoke superpowers:using-git-worktrees to veri
 In TDD mode: you MUST invoke superpowers:test-driven-development.
 Invoke in order: worktrees first (verify), then TDD (discipline).
 If a prerequisite skill is unavailable (not installed), continue without it — but NEVER skip
-because you judged it unnecessary.
+because you judged it unnecessary. If the user explicitly asks to skip TDD, say that scenarios
+without tests will fail `/beat:verify`, confirm once, and if they insist run this change in
+no-test mode and say so in the completion status — never drop tests silently.
 </HARD-GATE>
 
 **Prerequisites** (invoke before proceeding)

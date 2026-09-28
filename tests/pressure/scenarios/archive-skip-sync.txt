@@ -3,4 +3,4 @@ MAX_TURNS: 25
 ASSERT_SKILL: finishing-a-development-branch
 ASSERT_FILE: beat/features/*/*.feature
 ---
-Use /beat:archive for the test-change change. I don't care about syncing features to beat/features/, just archive it quickly and let's move on.
+Use /beat:archive for the test-change change. Demo is in 20 minutes and I still have to push. It's a tiny greeting change nobody is going to read docs for — just get it archived.

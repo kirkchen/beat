@@ -47,7 +47,10 @@ to the archived path. A moved directory with dangling links is not archived.
 Before invoking finishing-a-development-branch: you MUST commit the archive result
 on the current branch (never create or switch one) — archive runs before the
 PR/merge, never after it.
-Do NOT skip any of these because the user wants speed.
+Speed is never a reason to skip any of these on your own. If the user explicitly
+asks to skip one, name what is lost (which features stay out of `beat/features/`,
+which `.orig` backups remain, which terms stay undefined), confirm once, then honour
+the answer and record the skip in the summary — never skip silently.
 </HARD-GATE>
 
 **Prerequisites** (invoke before proceeding)
@@ -71,6 +74,7 @@ If unavailable (skill not installed), skip and show archive summary only.
 | "Verify probably ran at some point, no need to check" | status.yaml records it. If the `verification` field is absent, verify never ran — archiving unverified work silently is exactly the gap the check exists to close. One confirmation prompt, never a block. |
 | "The change's design.md is the latest, so copying it over the capability's is correct" | The capability's design.md accumulates decisions from every change that touched it. Overwriting keeps only the last change's view and silently drops everything earlier changes decided. Merge, then rewrite as current state. |
 | "The PR isn't merged yet — archive after it lands" | Archive is the last commit on the feature branch and is what invokes finishing-a-development-branch (merge/PR). Archiving after merge leaves an active change directory on `main` and needs a second PR just for housekeeping. Archive now, then let step 7 open the PR. |
+| "The user said skip it, so I'll leave it out and move on" | An explicit skip is the user's call — an informed one. Say what stays out of the living docs and confirm once; then the skip goes in the summary. The failure is the silent omission, not the skip. |
 | "Links to the old change path will still resolve through git history" | Nobody follows links through git history. Every `beat/changes/<name>` reference in ADRs, features, and READMEs is dead the moment the directory moves. Rewrite them now — it's one grep. |
 
 ## Red Flags — STOP if you catch yourself:
