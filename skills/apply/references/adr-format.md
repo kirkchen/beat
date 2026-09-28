@@ -15,6 +15,7 @@ Create the `docs/adr/` directory **lazily** — only when the first ADR is added
 
 ## Contents
 
+- [Before writing an ADR](#before-writing-an-adr)
 - [Template](#template)
 - [Optional sections](#optional-sections)
 - [Numbering](#numbering)
@@ -24,23 +25,59 @@ Create the `docs/adr/` directory **lazily** — only when the first ADR is added
 - [When Beat offers an ADR](#when-beat-offers-an-adr)
 - [Relationship with `design.md`](#relationship-with-designmd)
 
+## Before writing an ADR
+
+Every skill that writes an ADR — at any of the six trigger points below — runs
+these steps first. Skipping them is how ADRs end up in a shape the project's
+own tooling rejects.
+
+1. **Read `beat/config.yaml`** (if it exists — schema: `references/config-schema.md`).
+   Apply `language` to the ADR body, and apply every entry under `rules.adr` as
+   an additional constraint. `rules.adr` is additive: it supplements this
+   format, it never replaces the three-condition gate.
+2. **Check for a project template.** If `docs/adr/TEMPLATE.md` exists, use it
+   as the ADR skeleton instead of the template below. Keep every field the
+   project template defines, fill in the ones you can (`status`, `date`,
+   `source`, title, body), and leave the rest for the user. Only when there is
+   no project template does Beat's own template apply.
+3. **Number and slug** per [Numbering](#numbering).
+
 ## Template
 
+Used only when the project has no `docs/adr/TEMPLATE.md`.
+
 ```md
+---
+status: accepted
+date: YYYY-MM-DD
+source: beat/changes/<change-name>
+---
+
 # {Short title of the decision}
 
 {1-3 sentences: what's the context, what did we decide, and why.}
 ```
 
-That's it. An ADR can be a single paragraph. The value is in recording *that*
-a decision was made and *why* — not in filling out sections.
+Front matter fields:
+
+- **`status`** — `proposed | accepted | deprecated | superseded by ADR-NNNN`.
+  New ADRs written from a Beat skill default to `accepted` (the user just
+  confirmed the decision); use `proposed` when the user asks to park it.
+- **`date`** — the day the ADR is written, ISO `YYYY-MM-DD`.
+- **`source`** — where the decision came from. For a decision captured inside
+  a change, the path to that change's directory (`beat/changes/<name>`;
+  `/beat:archive` rewrites this to the archived path when the change moves).
+  For a decision captured outside any change (e.g. `/beat:explore` with no
+  active change), the skill name (`/beat:explore`).
+
+Beyond the front matter, that's it. An ADR can be a single paragraph. The value
+is in recording *that* a decision was made and *why* — not in filling out
+sections.
 
 ## Optional sections
 
 Only include these when they add genuine value. Most ADRs won't need any of them.
 
-- **Status** frontmatter (`proposed | accepted | deprecated | superseded by ADR-NNNN`)
-  — useful when decisions are revisited
 - **Considered Options** — only when the rejected alternatives are worth remembering
 - **Consequences** — only when non-obvious downstream effects need to be called out
 
@@ -122,6 +159,13 @@ Beat skills surface ADR candidates at six trigger points:
 At each trigger, run the three-condition gate. If all three hold, offer to
 write the ADR inline and continue. If the user declines, note the skip and
 move on — Beat never blocks on ADR creation.
+
+On Yes, follow [Before writing an ADR](#before-writing-an-adr) (config
+`rules.adr`, project `TEMPLATE.md`, numbering) and then write the file. The
+ADR is part of the same unit of work as the artifact that triggered it: the
+skill that wrote it stages and commits it alongside the change directory
+(including any ADR index the project keeps under `docs/adr/`), never leaves it
+sitting uncommitted in the working tree.
 
 ## Relationship with `design.md`
 

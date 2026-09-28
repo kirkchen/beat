@@ -44,4 +44,13 @@ assert_contains "$output" "skipped\|skip" "distill sets tasks status to skipped"
 output=$(run_claude "As beat:distill, after writing each artifact, what self-review must you run?" 30)
 assert_contains "$output" "four.check\|self-review\|placeholder\|consistency\|scope\|ambiguity" "distill knows the four-check spec self-review"
 
+output=$(run_claude "As beat:distill, before writing an ADR for a recovered Key Decision, what do you check in beat/config.yaml and docs/adr/?" 60 5)
+assert_contains "$output" "rules\.adr\|TEMPLATE\.md\|Before writing an ADR" "distill applies config rules.adr and project TEMPLATE.md before writing an ADR"
+
+output=$(run_claude "As beat:distill, when adding a recovered term to beat/CONTEXT.md, where in the file does it go?" 60 5)
+assert_contains "$output" "Where a new entry goes\|<group>\|before .## Relationships\|full skeleton" "distill inserts glossary terms into their section, not the file end"
+
+output=$(run_claude "As beat:distill, when you commit, do you stage only the change directory or also beat/CONTEXT.md, docs/adr/ and module READMEs written in this run?" 60 5)
+assert_contains "$output" "git add docs/adr\|one unit of work\|splits the work\|living-documentation file" "distill commits living docs together with the change directory"
+
 print_summary

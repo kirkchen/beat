@@ -129,6 +129,8 @@ If the user mentions a change or one is relevant:
 
    When capturing a design decision, run the three-condition ADR gate from `references/adr-format.md` (hard-to-reverse + surprising + real trade-off). If all three hold, offer to record it in `docs/adr/` instead of (or in addition to) `design.md`.
 
+   **Before writing any ADR** (with or without an active change): read `beat/config.yaml` if it exists and apply `rules.adr`; use the project's `docs/adr/TEMPLATE.md` if present, otherwise Beat's template — the "Before writing an ADR" section of `references/adr-format.md` spells this out. Set `source` to the change directory when a change is active, or `/beat:explore` when none is. Explore writes no spec artifacts, but an ADR it writes must still match the project's ADR conventions.
+
 4. The user decides -- offer and move on. Don't pressure. Don't auto-capture.
 
 ---

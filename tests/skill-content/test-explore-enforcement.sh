@@ -14,4 +14,7 @@ assert_contains "$output" "no\|never\|must not\|don't\|cannot" "explore knows no
 output=$(run_claude "As beat:explore, should you automatically capture insights to Beat artifacts?" 30)
 assert_contains "$output" "no\|offer\|ask\|don't auto" "explore knows not to auto-capture"
 
+output=$(run_claude "As beat:explore, before recording a captured decision as an ADR, do you read beat/config.yaml, and what in it applies?" 60 5)
+assert_contains "$output" "rules\.adr\|TEMPLATE\.md\|Before writing an ADR" "explore reads config rules.adr before writing an ADR"
+
 print_summary

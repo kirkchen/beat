@@ -151,8 +151,10 @@ Initialize Beat configuration in the current project.
    Use **AskUserQuestion tool**:
    > "Want to set rules for how artifacts are generated?"
 
-   1. "Yes, let me specify" -- ask per-artifact rules
+   1. "Yes, let me specify" -- ask per-artifact rules (`proposal`, `gherkin`, `design`, `tasks`, and `adr` for ADRs written at any trigger point)
    2. "Skip for now" -- create config with context only
+
+   If `docs/adr/TEMPLATE.md` already exists, mention that skills will use it as the ADR skeleton automatically — `rules.adr` is for constraints beyond the template (e.g. an index to update).
 
 7. **Write config**
 

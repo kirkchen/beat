@@ -44,4 +44,10 @@ assert_contains "$output" "ADR\|three.condition\|gate\|hard.to.reverse\|record\|
 output=$(run_claude "As beat:plan, if status.yaml has source: distill, do you proceed to break the change into tasks?" 30)
 assert_contains "$output" "no\|warn\|confirm\|AskUserQuestion\|verify\|nothing to plan" "plan warns and confirms before running on a source: distill change"
 
+output=$(run_claude "As beat:plan, when the review's ADR gate leads you to write an ADR, what do you do before writing the file?" 60 5)
+assert_contains "$output" "rules\.adr\|TEMPLATE\.md\|Before writing an ADR" "plan applies config rules.adr and project TEMPLATE.md before writing an ADR"
+
+output=$(run_claude "As beat:plan, when committing tasks.md, do you also commit an ADR written during the review?" 60 5)
+assert_contains "$output" "git add docs/adr\|one unit of work\|same commit as the tasks" "plan commits review ADRs together with tasks.md"
+
 print_summary

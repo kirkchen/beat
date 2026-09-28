@@ -35,6 +35,12 @@ that are not yet defined in `beat/CONTEXT.md`, and prompt the user to add them.
 Before moving to archive: you MUST run the last-mile ADR sweep — if zero ADRs
 were written for this change, prompt once before archiving. This applies whether
 or not features were synced.
+When syncing `design.md` into a capability that already has one: you MUST merge
+the change's decisions into the existing document and rewrite it as the current
+state — NEVER overwrite it with the change's copy.
+After moving the change directory: you MUST rewrite every reference to the old
+`beat/changes/<name>` path (ADRs, features, glossary, READMEs, other changes)
+to the archived path. A moved directory with dangling links is not archived.
 Do NOT skip any of these because the user wants speed.
 </HARD-GATE>
 
@@ -57,6 +63,8 @@ If unavailable (skill not installed), skip and show archive summary only.
 | "Glossary terms can be added later, it's just docs" | Once the features sync into `beat/features/`, the undefined terms become user-facing living documentation. Future readers can't tell which terms are canonical vs. ad hoc. The scan-and-prompt is two minutes — do it before sync. |
 | "We didn't write any ADRs but the design.md captures everything" | design.md gets archived with the change. Cross-change decisions need to live in `docs/adr/`. The last-mile sweep is one prompt; if nothing qualifies, it costs nothing. |
 | "Verify probably ran at some point, no need to check" | status.yaml records it. If the `verification` field is absent, verify never ran — archiving unverified work silently is exactly the gap the check exists to close. One confirmation prompt, never a block. |
+| "The change's design.md is the latest, so copying it over the capability's is correct" | The capability's design.md accumulates decisions from every change that touched it. Overwriting keeps only the last change's view and silently drops everything earlier changes decided. Merge, then rewrite as current state. |
+| "Links to the old change path will still resolve through git history" | Nobody follows links through git history. Every `beat/changes/<name>` reference in ADRs, features, and READMEs is dead the moment the directory moves. Rewrite them now — it's one grep. |
 
 ## Red Flags — STOP if you catch yourself:
 
@@ -67,6 +75,8 @@ If unavailable (skill not installed), skip and show archive summary only.
 - Syncing features without first scanning for project-specific terms missing from `beat/CONTEXT.md`
 - Archiving a change with zero ADRs without running the last-mile sweep prompt
 - Archiving a change with no `verification` record (or `status: issues-found`) without confirming with the user
+- Copying the change's `design.md` over an existing `beat/features/<capability>/design.md`
+- Finishing archive while any file still references `beat/changes/<name>` (the pre-move path)
 
 ## Process Flow
 
@@ -86,6 +96,7 @@ digraph archive {
     "Skip sync" [shape=box];
     "Last-mile ADR sweep" [shape=box, style=bold];
     "Move to archive" [shape=box];
+    "Rewrite references\nto old change path" [shape=box, style=bold];
     "Show summary" [shape=box];
     "Invoke finishing-a-development-branch" [shape=doublecircle, style=bold];
 
@@ -106,7 +117,8 @@ digraph archive {
     "Sync features" -> "Last-mile ADR sweep";
     "Skip sync" -> "Last-mile ADR sweep";
     "Last-mile ADR sweep" -> "Move to archive";
-    "Move to archive" -> "Show summary";
+    "Move to archive" -> "Rewrite references\nto old change path";
+    "Rewrite references\nto old change path" -> "Show summary";
     "Show summary" -> "Invoke finishing-a-development-branch";
 }
 ```
@@ -189,7 +201,7 @@ digraph archive {
      > - Skip this term
      > - Skip all remaining (record the count for the summary)
 
-   When the user adds a term, append it to `beat/CONTEXT.md` following the structure in `references/context-format.md` (one-sentence definition, optional `_Avoid_` aliases). Create `beat/CONTEXT.md` lazily if it doesn't exist.
+   When the user adds a term, insert it into `beat/CONTEXT.md` where "Where a new entry goes" in `references/context-format.md` says — inside the `## <group>` section it belongs to (or `## Language` for a flat glossary), one-sentence definition, optional `_Avoid_` aliases. Never append it to the end of the file: that lands the term under `## Flagged ambiguities`. Create `beat/CONTEXT.md` lazily if it doesn't exist, writing the full skeleton first.
 
    If no project-specific bolded terms appear in the scanned features, skip this sub-step silently.
 
@@ -201,9 +213,20 @@ digraph archive {
    |-----------------|------------------------|----------|
    | `features/*.feature` | `beat/features/<capability>/` | Add or update feature files |
    | `proposal.md` | `beat/features/<capability>/proposal.md` | Copy to capability |
-   | `design.md` | `beat/features/<capability>/design.md` | Copy to capability |
+   | `design.md` | `beat/features/<capability>/design.md` | Copy if absent; **merge** if present (see below) |
 
    When features map to **multiple capabilities**, copy `proposal.md` and `design.md` to the primary capability only (the one receiving the most feature files). On a tie, ask the user which capability owns them. Don't duplicate them across capabilities.
+
+   **Merging `design.md` into an existing capability design** (Layer 3-adjacent living doc):
+
+   The capability's `design.md` is a **current-state** document that accumulates every change that touched the capability. The change's `design.md` is a **delta** written before implementation. When `beat/features/<capability>/design.md` already exists, never copy over it — read both and rewrite the capability file so it describes the system as it now is:
+
+   1. **Approach** — restate the capability's overall approach as it stands after this change. Fold in this change's approach where it extends the existing one; replace the parts it changed.
+   2. **Key Decisions** — keep every existing decision still in force. Add this change's decisions. A decision this change reverses is not deleted: rewrite it as the new decision and note what it superseded (`Supersedes: <old decision> — see <archived change path or ADR>`). Keep existing `See docs/adr/NNNN-slug.md` cross-references.
+   3. **Components** — update the component list to match the code after this change (added, removed, renamed).
+   4. **History** — append one line under `## History` (create the section if absent): `- YYYY-MM-DD <change-name>: <one-line summary of what the change did>`. This is the only append-only part of the file.
+
+   The result reads as one document: each section appears once, in the capability's existing language and section order, describing the system as it is now. If the two documents genuinely conflict and the code doesn't settle it, use **AskUserQuestion tool** rather than guessing. The change's own `design.md` stays untouched in the change directory and is archived with it.
 
    **Handle .orig backups** (when `status.yaml` has `gherkin.modified`):
 
@@ -234,7 +257,7 @@ digraph archive {
    > - No, none qualified
    > - Yes, let me describe it now
 
-   If user describes one, run the three-condition gate from `references/adr-format.md`. If all three hold, write the ADR under `docs/adr/` with the next sequential number. If not all three hold, note the skip.
+   If user describes one, run the three-condition gate from `references/adr-format.md`. If all three hold, follow "Before writing an ADR" in that reference (apply config `rules.adr`; use the project's `docs/adr/TEMPLATE.md` if it exists, otherwise Beat's front-matter template with `source: beat/changes/<name>` — step 5b rewrites it to the archived path) and write the ADR under `docs/adr/` with the next sequential number. If not all three hold, note the skip.
 
    Either way, proceed to archive.
 
@@ -256,6 +279,22 @@ digraph archive {
    mv beat/changes/<name> beat/changes/archive/YYYY-MM-DD-<name>
    ```
 
+5b. **Rewrite references to the old change path**
+
+   Moving the directory breaks every link that pointed at it: ADR `source` fields and links, `See beat/changes/<name>/...` cross-references in synced features and design docs, glossary or README mentions, and self-references inside the moved directory (e.g. `tasks.md` pointing at its own `design.md`).
+
+   Find them across the repository (tracked files only, so `node_modules`, build output and `.git` are never touched):
+
+   ```bash
+   git grep -l "beat/changes/<name>" -- . ':!beat/changes/archive/YYYY-MM-DD-<name>/status.yaml'
+   ```
+
+   In every file listed, replace `beat/changes/<name>` with `beat/changes/archive/YYYY-MM-DD-<name>` — match the exact old path as a prefix so that `beat/changes/<name>-v2` (a different change) is untouched. Use the **Edit tool** with `replace_all` per file, or `sed` when the file count is large. Then re-run the grep: it must return nothing.
+
+   Do not rewrite `status.yaml` inside the archived directory (it records the change by name, not path) and do not touch files under `.git/`.
+
+   Record the number of files rewritten for the summary.
+
 6. **Show summary**
 
    ```
@@ -265,8 +304,10 @@ digraph archive {
    **Archived to:** beat/changes/archive/YYYY-MM-DD-<name>/
    **Verification:** passed / issues-found (N critical) / never run (user confirmed)
    **Features:** Synced to beat/features/ (or "Sync skipped" or "No features to sync")
+   **Design doc:** merged into beat/features/<capability>/design.md (or "created" / "no design.md in change")
    **Glossary:** N terms added to beat/CONTEXT.md (or "no changes" / "M terms skipped")
    **ADRs:** N written to docs/adr/ (or "none recorded — last-mile sweep declined")
+   **References rewritten:** N files updated from beat/changes/<name> to the archived path (or "none found")
    **Artifacts:** N done, M skipped
    **Tasks:** X/Y complete (or "No tasks file")
    ```
@@ -281,3 +322,5 @@ digraph archive {
 - Sync features inline before archiving
 - Show clear summary of what happened
 - If archive target already exists, don't overwrite
+- Never overwrite an existing capability `design.md` — merge and rewrite as current state
+- After the move, no tracked file may still reference `beat/changes/<name>`

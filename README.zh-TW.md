@@ -188,6 +188,8 @@ testing:
 rules:
   gherkin:
     - "每個 feature 最多 5 個 scenario"
+  adr:                         # 套用在每個 ADR 觸發點
+    - "在 docs/adr/README.md 加一列索引"
 ```
 
 ## 搭配 Superpowers（推薦）
