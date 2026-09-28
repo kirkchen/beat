@@ -32,7 +32,9 @@ Enter explore mode. Think deeply. Visualize freely. Follow the conversation wher
 Before any response: you MUST invoke superpowers:brainstorming.
 Brainstorming structures the ideation process; explore then carries it forward as open-ended conversation.
 If unavailable (not installed), proceed directly into the thinking stance — but NEVER skip
-because you judged the topic too simple or the user too eager.
+because you judged the topic too simple or the user too eager. If the user explicitly asks to
+skip brainstorming, say what it would have surfaced (unstated assumptions, alternatives not yet
+weighed), confirm once, then continue in the thinking stance.
 </HARD-GATE>
 
 **Prerequisites** (invoke before proceeding)
@@ -49,6 +51,7 @@ If unavailable (skill not installed), proceed directly into the thinking stance.
 |---------|---------|
 | "The user wants a quick answer, brainstorming will slow us down" | Brainstorming IS the answer — it surfaces assumptions and alternatives. Quick answers skip the thinking explore is meant to provide. |
 | "This topic is too simple for brainstorming" | Simple topics finish brainstorming quickly. The overhead is negligible, but the missed insight is not. |
+| "The user said skip brainstorming, so I'll go straight to answers" | Honour it — after naming what brainstorming would have caught. The thinking stance still applies; only the structured ideation is skipped. |
 | "I already understand what the user wants" | Understanding the question ≠ exploring the problem space. Brainstorming prevents premature convergence. |
 
 ---
