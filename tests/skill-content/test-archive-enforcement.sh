@@ -59,4 +59,10 @@ assert_contains "$output" "Where a new entry goes\|<group>\|before .## Relations
 output=$(run_claude "As beat:archive, when the last-mile sweep results in writing an ADR, what do you read or check before writing the file?" 60 5)
 assert_contains "$output" "rules\.adr\|TEMPLATE\.md\|Before writing an ADR" "archive applies config rules.adr and project TEMPLATE.md before writing an ADR"
 
+output=$(run_claude "As beat:archive, should a change be archived before its pull request is opened, or only after the PR is merged?" 60 5)
+assert_contains "$output" "last commit on the\|before the PR\|before opening the PR\|never after\|same PR" "archive runs before the PR, not after merge"
+
+output=$(run_claude "As beat:archive, after rewriting references to the old change path, what must you do before invoking finishing-a-development-branch?" 60 5)
+assert_contains "$output" "5c\|Commit the archive\|archive(<name>)\|archive(" "archive commits its result before handing off to finishing-a-development-branch"
+
 print_summary

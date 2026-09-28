@@ -5,6 +5,8 @@ description: Use when a Beat change is complete (implemented, or distilled and v
 
 Archive a completed change. Checks completion, syncs features to living documentation, then moves to archive.
 
+**When it runs:** on the feature branch, after `/beat:verify` and **before** the PR or merge. The archive is the last commit on the branch and ships in the same PR as the code, so `main` never carries an active `beat/changes/<name>` directory for a feature that has already landed. Archive itself hands off to the merge/PR step (step 7) — it is never something to do after the PR is merged.
+
 <decision_boundary>
 
 **Use for:**
@@ -16,6 +18,7 @@ Archive a completed change. Checks completion, syncs features to living document
 - Verifying implementation against spec (use `/beat:verify`)
 - Implementing remaining tasks (use `/beat:apply`)
 - Creating or modifying spec artifacts (use `/beat:design`)
+- Waiting for the PR to be merged first — archive is the last commit on the branch, before the PR, and it invokes the merge/PR step itself
 
 **Trigger examples:**
 - "Archive the change" / "The change is done, wrap it up" / "Sync the features"
@@ -41,6 +44,8 @@ state — NEVER overwrite it with the change's copy.
 After moving the change directory: you MUST rewrite every reference to the old
 `beat/changes/<name>` path (ADRs, features, glossary, READMEs, other changes)
 to the archived path. A moved directory with dangling links is not archived.
+Before invoking finishing-a-development-branch: you MUST commit the archive result
+on the current feature branch — archive runs before the PR/merge, never after it.
 Do NOT skip any of these because the user wants speed.
 </HARD-GATE>
 
@@ -64,6 +69,7 @@ If unavailable (skill not installed), skip and show archive summary only.
 | "We didn't write any ADRs but the design.md captures everything" | design.md gets archived with the change. Cross-change decisions need to live in `docs/adr/`. The last-mile sweep is one prompt; if nothing qualifies, it costs nothing. |
 | "Verify probably ran at some point, no need to check" | status.yaml records it. If the `verification` field is absent, verify never ran — archiving unverified work silently is exactly the gap the check exists to close. One confirmation prompt, never a block. |
 | "The change's design.md is the latest, so copying it over the capability's is correct" | The capability's design.md accumulates decisions from every change that touched it. Overwriting keeps only the last change's view and silently drops everything earlier changes decided. Merge, then rewrite as current state. |
+| "The PR isn't merged yet — archive after it lands" | Archive is the last commit on the feature branch and is what invokes finishing-a-development-branch (merge/PR). Archiving after merge leaves an active change directory on `main` and needs a second PR just for housekeeping. Archive now, then let step 7 open the PR. |
 | "Links to the old change path will still resolve through git history" | Nobody follows links through git history. Every `beat/changes/<name>` reference in ADRs, features, and READMEs is dead the moment the directory moves. Rewrite them now — it's one grep. |
 
 ## Red Flags — STOP if you catch yourself:
@@ -77,6 +83,7 @@ If unavailable (skill not installed), skip and show archive summary only.
 - Archiving a change with no `verification` record (or `status: issues-found`) without confirming with the user
 - Copying the change's `design.md` over an existing `beat/features/<capability>/design.md`
 - Finishing archive while any file still references `beat/changes/<name>` (the pre-move path)
+- Deferring archive until the PR is merged, or invoking finishing-a-development-branch with the archive result uncommitted
 
 ## Process Flow
 
@@ -97,6 +104,7 @@ digraph archive {
     "Last-mile ADR sweep" [shape=box, style=bold];
     "Move to archive" [shape=box];
     "Rewrite references\nto old change path" [shape=box, style=bold];
+    "Commit archive" [shape=box, style=bold];
     "Show summary" [shape=box];
     "Invoke finishing-a-development-branch" [shape=doublecircle, style=bold];
 
@@ -118,7 +126,8 @@ digraph archive {
     "Skip sync" -> "Last-mile ADR sweep";
     "Last-mile ADR sweep" -> "Move to archive";
     "Move to archive" -> "Rewrite references\nto old change path";
-    "Rewrite references\nto old change path" -> "Show summary";
+    "Rewrite references\nto old change path" -> "Commit archive";
+    "Commit archive" -> "Show summary";
     "Show summary" -> "Invoke finishing-a-development-branch";
 }
 ```
@@ -295,6 +304,21 @@ digraph archive {
 
    Record the number of files rewritten for the summary.
 
+5c. **Commit the archive**
+
+   Everything this run produced is one unit of work and must be on the feature branch before step 7 hands off to merge/PR:
+
+   ```bash
+   git add beat/changes/            # the moved directory (deletions + new archive path)
+   git add beat/features/           # synced features, capability README/proposal/design.md
+   git add beat/CONTEXT.md          # glossary terms added in step 4
+   git add docs/adr/                # ADRs from the last-mile sweep, plus any ADR index
+   git add <files rewritten in 5b>  # references updated to the archived path
+   git commit -m "archive(<name>): sync features and archive change"
+   ```
+
+   Stage only paths `git status` shows and this run wrote (a path the user modified outside this run stays unstaged). After the commit, `git status` must be clean apart from files unrelated to the archive — finishing-a-development-branch runs the test suite and offers merge/PR on top of this commit; it does not commit for you.
+
 6. **Show summary**
 
    ```
@@ -308,13 +332,14 @@ digraph archive {
    **Glossary:** N terms added to beat/CONTEXT.md (or "no changes" / "M terms skipped")
    **ADRs:** N written to docs/adr/ (or "none recorded — last-mile sweep declined")
    **References rewritten:** N files updated from beat/changes/<name> to the archived path (or "none found")
+   **Commit:** <sha> archive(<name>): sync features and archive change
    **Artifacts:** N done, M skipped
    **Tasks:** X/Y complete (or "No tasks file")
    ```
 
 7. **Finish the development branch**
 
-   After showing the summary, invoke `superpowers:finishing-a-development-branch` (if available) to guide the user through merge, PR creation, or cleanup. If not available, skip this step.
+   After showing the summary, invoke `superpowers:finishing-a-development-branch` (if available) to guide the user through merge, PR creation, or cleanup. The archive commit from step 5c is already on the branch, so whichever option the user picks carries it. If not available, skip this step.
 
 **Guardrails**
 - Always prompt for change selection if not provided
@@ -324,3 +349,4 @@ digraph archive {
 - If archive target already exists, don't overwrite
 - Never overwrite an existing capability `design.md` — merge and rewrite as current state
 - After the move, no tracked file may still reference `beat/changes/<name>`
+- Archive runs before the PR/merge and commits its result; it is never deferred until after the PR lands

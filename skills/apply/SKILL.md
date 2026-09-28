@@ -281,7 +281,7 @@ digraph apply {
 
    Suggested next steps:
    - `/beat:verify` -- validate implementation against artifacts
-   - `/beat:archive` -- sync features and archive the change
+   - `/beat:archive` -- sync features and archive the change (run before opening the PR; archive is the last commit on the branch)
    ```
 
 **Testing Rule: Conditional TDD**
