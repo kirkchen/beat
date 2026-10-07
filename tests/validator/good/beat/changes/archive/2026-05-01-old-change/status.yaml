@@ -1,0 +1,10 @@
+name: old-change
+created: 2026-05-01
+phase: archive
+source: distill
+verification: { status: passed, critical: 0, date: 2026-05-02 }
+pipeline:
+  proposal: { status: done }
+  gherkin: { status: done }
+  design: { status: done }
+  tasks: { status: skipped }

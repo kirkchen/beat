@@ -1,0 +1,12 @@
+name: slack-thread-dedupe
+created: 2026-06-10
+phase: verify
+preset: standard
+preset_upgrade: { from: minimal, by: /beat:apply, date: 2026-06-11, reason: "diff touches packages/slack-bot and packages/domain" }
+route: slack-ingress/dedupe
+verification: { status: issues-found, critical: 1, warning: 0, date: 2026-06-11, sha: 3f9c1a2, mode: full }
+pipeline:
+  proposal: { status: skipped }
+  gherkin: { status: done, modified: ["beat/features/slack/thread.feature"] }
+  design: { status: skipped }
+  tasks: { status: done }
