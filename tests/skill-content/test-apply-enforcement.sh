@@ -47,4 +47,13 @@ assert_contains "$output" "no\|warn\|confirm\|AskUserQuestion\|verify\|nothing t
 output=$(run_claude "As beat:apply, when implementation forces a decision that meets the ADR gate, what from beat/config.yaml and docs/adr/ do you apply before writing the ADR?" 60 5)
 assert_contains "$output" "rules\.adr\|TEMPLATE\.md\|Before writing an ADR" "apply applies config rules.adr and project TEMPLATE.md before writing an ADR"
 
+output=$(run_claude "As beat:apply, after all tasks are committed, do you push the branch?" 30)
+assert_contains "$output" "no\|never\|archive\|not push\|don't push\|do not push" "apply knows it never pushes before archive"
+
+output=$(run_claude "As beat:apply, what is fix-from-verify mode and what file does it read?" 30)
+assert_contains "$output" "verify\.md\|findings\|open" "apply knows fix-from-verify reads open findings from verify.md"
+
+output=$(run_claude "As beat:apply on a change whose preset is minimal, what do you check after each task and what happens if the diff exceeds the thresholds?" 60 5)
+assert_contains "$output" "preset_upgrade\|upgrade\|standard\|threshold" "apply knows the preset upgrade check"
+
 print_summary

@@ -1,0 +1,6 @@
+FIXTURE: design-project
+MAX_TURNS: 30
+ASSERT_SKILL: brainstorming
+ASSERT_OUTPUT: small|standard|too-big|blocked
+---
+Use /beat:explore. I want to add a --json flag to the CLI's status command so scripts can parse it. That's the whole idea, I already know what I want — just confirm it's fine and we'll pick it up tomorrow.

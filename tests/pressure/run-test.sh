@@ -19,6 +19,7 @@ echo "=== Pressure Test: $SCENARIO_NAME ==="
 #   ASSERT_NO_FILE: <glob>        no file matches
 #   ASSERT_FILE_CHANGED: <path>   the file differs from the fixture's initial commit
 #   ASSERT_OUTPUT: <regex>        the final assistant result text matches (case-insensitive)
+#   ASSERT_NO_BASH: <regex>       no Bash tool_use whose command matches (e.g. git push)
 #
 # Two kinds of scenario live here. A *pressure* scenario tempts the agent
 # (deadline, "it's tiny", sunk cost) without telling it to skip anything, and
@@ -33,6 +34,7 @@ ASSERT_FILES=()
 ASSERT_NO_FILES=()
 ASSERT_CHANGED=()
 ASSERT_OUTPUTS=()
+ASSERT_NO_BASH=()
 while IFS= read -r line; do
     [[ "$line" == "---" ]] && break
     if [[ "$line" == FIXTURE:* ]]; then
@@ -51,6 +53,8 @@ while IFS= read -r line; do
         ASSERT_CHANGED+=("${line#ASSERT_FILE_CHANGED: }")
     elif [[ "$line" == ASSERT_OUTPUT:* ]]; then
         ASSERT_OUTPUTS+=("${line#ASSERT_OUTPUT: }")
+    elif [[ "$line" == ASSERT_NO_BASH:* ]]; then
+        ASSERT_NO_BASH+=("${line#ASSERT_NO_BASH: }")
     fi
 done < "$SCENARIO_FILE"
 
@@ -69,6 +73,7 @@ echo "Assert skills: ${ASSERT_SKILLS[*]:-}"
 [[ ${#ASSERT_NO_FILES[@]} -gt 0 ]] && echo "Assert no files: ${ASSERT_NO_FILES[*]}"
 [[ ${#ASSERT_CHANGED[@]} -gt 0 ]] && echo "Assert changed: ${ASSERT_CHANGED[*]}"
 [[ ${#ASSERT_OUTPUTS[@]} -gt 0 ]] && echo "Assert output: ${ASSERT_OUTPUTS[*]}"
+[[ ${#ASSERT_NO_BASH[@]} -gt 0 ]] && echo "Assert no bash: ${ASSERT_NO_BASH[*]}"
 echo ""
 
 # Create test project
@@ -99,6 +104,11 @@ case "$FIXTURE" in
         ;;
     verify-project)
         bash "$FIXTURE_DIR/create-verify-project.sh" "$PROJECT_DIR"
+        ;;
+    verify-minimal-project)
+        bash "$FIXTURE_DIR/create-verify-project.sh" "$PROJECT_DIR"
+        perl -0pi -e 's/^phase: verify$/phase: verify\npreset: minimal/m' "$PROJECT_DIR/beat/changes/test-change/status.yaml"
+        (cd "$PROJECT_DIR" && git add -A && git commit -q -m "preset minimal" || true)
         ;;
     distill-project)
         bash "$FIXTURE_DIR/create-distill-project.sh" "$PROJECT_DIR"
@@ -147,6 +157,10 @@ done
 for regex in "${ASSERT_OUTPUTS[@]:-}"; do
     [[ -n "$regex" ]] || continue
     assert_output_matches "$LOG_FILE" "$regex" "Final answer mentions ($regex) in $SCENARIO_NAME" || true
+done
+for regex in "${ASSERT_NO_BASH[@]:-}"; do
+    [[ -n "$regex" ]] || continue
+    assert_no_bash_command "$LOG_FILE" "$regex" "Under pressure: no Bash ($regex) despite $SCENARIO_NAME" || true
 done
 
 # Cleanup

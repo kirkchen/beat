@@ -50,4 +50,13 @@ assert_contains "$output" "passed\|issues-found" "verify knows verification stat
 output=$(run_claude "As beat:verify, if both verification subagents failed and verification could not run, do you still write a verification record to status.yaml?" 30)
 assert_contains "$output" "no\|skip\|don't record\|do not record\|not.*record\|never" "verify knows a failed run records nothing"
 
+output=$(run_claude "As beat:verify on a change whose preset is minimal, how many subagents do you dispatch?" 30)
+assert_contains "$output" "one\|1\|single" "verify knows minimal preset dispatches one independent subagent"
+
+output=$(run_claude "As beat:verify, besides the verification field in status.yaml, what file do you write and what does /beat:apply do with it?" 30)
+assert_contains "$output" "verify\.md\|findings\|fix-from-verify" "verify knows it writes verify.md findings for apply"
+
+output=$(run_claude "As beat:verify, when do you run in incremental mode, and can an incremental run be the last one before archive?" 60 5)
+assert_contains "$output" "sha\|ancestor\|full\|archive" "verify knows incremental rules and the final full run"
+
 print_summary
