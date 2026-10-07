@@ -11,6 +11,8 @@
 // Usage:
 //   node validate-beat.mjs [<project-root>] [--all]       validate active changes, routes, config and
 //                                                         .orig residue (--all includes beat/changes/archive/)
+//   node validate-beat.mjs --change <name>                validate one change (status.yaml, verify.md, its route)
+//                                                         plus config and .orig residue — what a skill runs mid-pipeline
 //   node validate-beat.mjs --file <path>                  validate one status.yaml / route status.yaml / verify.md
 //   node validate-beat.mjs --pre-archive <change>         the change may be archived: verification passed,
 //                                                         mode full, sha is an ancestor of HEAD, tasks all checked
@@ -93,8 +95,8 @@ function stripComment(line) {
 }
 
 export function parseYaml(text) {
-  const lines = text.split('\n').map(stripComment).map((l, i) => ({ text: l, n: i + 1 }))
-    .filter(l => l.text.trim() !== '' && l.text.trim() !== '---');
+  const lines = text.split('\n').map((raw, i) => ({ text: stripComment(raw), raw, n: i + 1 }))
+    .filter(l => l.raw.trim() !== '' && l.text.trim() !== '---');
   let pos = 0;
   const indentOf = l => l.text.match(/^ */)[0].length;
 
@@ -106,7 +108,8 @@ export function parseYaml(text) {
   }
   function seq(indent) {
     const arr = [];
-    while (pos < lines.length && indentOf(lines[pos]) === indent && lines[pos].text.trim().startsWith('- ')) {
+    while (pos < lines.length && (lines[pos].text.trim() === '' || (indentOf(lines[pos]) === indent && lines[pos].text.trim().startsWith('- ')))) {
+      if (lines[pos].text.trim() === '') { pos++; continue; }
       const body = lines[pos].text.trim().slice(2);
       pos++;
       arr.push(body.startsWith('{') || body.startsWith('[') ? parseFlow(body) : parseScalar(body));
@@ -117,6 +120,7 @@ export function parseYaml(text) {
     const obj = {};
     while (pos < lines.length) {
       const l = lines[pos];
+      if (l.text.trim() === '') { pos++; continue; }
       const ind = indentOf(l);
       if (ind < indent) break;
       if (ind > indent) throw new YamlError(`line ${l.n}: unexpected indent`);
@@ -124,7 +128,13 @@ export function parseYaml(text) {
       if (!m) throw new YamlError(`line ${l.n}: expected "key: value", got "${l.text.trim()}"`);
       const key = m[1]; const rest = m[2];
       pos++;
-      if (rest === undefined || rest === '') {
+      if (rest !== undefined && /^[|>][-+]?$/.test(rest.trim())) {
+        // block scalar: every following line indented deeper than the key belongs to it
+        const parts = [];
+        const rawIndent = l => l.raw.match(/^ */)[0].length;
+        while (pos < lines.length && rawIndent(lines[pos]) > indent) { parts.push(lines[pos].raw.slice(indent + 2)); pos++; }
+        obj[key] = rest.trim().startsWith('>') ? parts.join(' ') : parts.join('\n');
+      } else if (rest === undefined || rest === '') {
         const next = lines[pos];
         obj[key] = next && indentOf(next) > indent ? block(indentOf(next)) : null;
       } else if (rest.startsWith('{') || rest.startsWith('[')) {
@@ -181,7 +191,7 @@ export function validateStatus(doc, { file, projectRoot }) {
   }
   const changeDir = file && projectRoot ? dirname(join(projectRoot, file)) : null;
   const archived = /(^|\/)archive\//.test(String(file ?? ''));
-  if (!archived && doc.preset === undefined && doc.phase !== 'new') errors.push(`${where}: preset is required once design has started (full | standard | minimal | technical | custom)`);
+  if (!archived && doc.preset === undefined && doc.phase !== 'new') warnings.push(`${where}: preset missing — later phases run at standard strength until /beat:design (or a hand edit) sets it`);
   if (doc.route !== undefined) {
     const m = String(doc.route).match(/^([a-z0-9-]+)\/([a-z0-9-]+)$/);
     if (!m) errors.push(`${where}: route must be "<route-name>/<node-id>"`);
@@ -503,7 +513,7 @@ async function main() {
   const args = process.argv.slice(2);
   const takeOpt = name => { const i = args.indexOf(name); if (i < 0) return null; const v = args[i + 1]; args.splice(i, 2); return v; };
   const all = (() => { const i = args.indexOf('--all'); if (i >= 0) { args.splice(i, 1); return true; } return false; })();
-  const file = takeOpt('--file'), pre = takeOpt('--pre-archive'), stale = takeOpt('--stale-paths'), handoff = takeOpt('--handoff');
+  const file = takeOpt('--file'), pre = takeOpt('--pre-archive'), stale = takeOpt('--stale-paths'), handoff = takeOpt('--handoff'), change = takeOpt('--change');
   const projectRoot = args[0] ?? process.cwd();
 
   if (handoff) {
@@ -521,7 +531,14 @@ async function main() {
   else {
     const beatDir = join(projectRoot, 'beat');
     try { await stat(beatDir); } catch { console.error(`no beat/ directory under ${projectRoot}`); process.exit(1); }
-    files = [...await walk(join(beatDir, 'changes'), [], all), ...await walk(join(beatDir, 'routes'), [], all)];
+    if (change) {
+      const dir = join(beatDir, 'changes', change);
+      if (!existsSync(join(dir, 'status.yaml'))) { console.error(`beat/changes/${change}/status.yaml not found`); process.exit(1); }
+      files = ['status.yaml', 'verify.md'].map(f => join(dir, f)).filter(existsSync);
+      try { const r = parseYaml(readFileSyncUtf8(join(dir, 'status.yaml'))).route; if (r) { const rf = join(beatDir, 'routes', String(r).split('/')[0], 'status.yaml'); if (existsSync(rf)) files.push(rf); } } catch {}
+    } else {
+      files = [...await walk(join(beatDir, 'changes'), [], all), ...await walk(join(beatDir, 'routes'), [], all)];
+    }
     const cfg = join(beatDir, 'config.yaml');
     if (existsSync(cfg)) {
       try { results.push(validateConfig(parseYaml(readFileSyncUtf8(cfg)), { file: 'beat/config.yaml' })); }

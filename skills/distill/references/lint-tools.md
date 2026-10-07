@@ -15,13 +15,14 @@ If `node` is not available, say so in the handoff block's `checks` line and do t
 
 ## validate-beat.mjs
 
-Checks `status.yaml` (schema, phase vs. artifacts, preset, route link, verify.md cross-check, sha ancestry), route `status.yaml` (node types, `blocked_by` cycles, change links), `verify.md` front matter, `beat/config.yaml`, and `.feature.orig` residue.
+Checks `status.yaml` (schema, phase vs. artifacts, route link, verify.md cross-check, sha ancestry; a missing `preset` is a warning so changes created before presets existed keep working), route `status.yaml` (node types, `blocked_by` cycles, change links), `verify.md` front matter, `beat/config.yaml`, and `.feature.orig` residue.
 
 | Call | When |
 |------|------|
 | `validate-beat.mjs --file beat/changes/<name>/status.yaml` | After any skill writes status.yaml |
 | `validate-beat.mjs --file beat/changes/<name>/verify.md` | After verify writes verify.md |
-| `validate-beat.mjs` (whole project, active changes only; `--all` includes archive) | Before verify dispatches subagents; in CI |
+| `validate-beat.mjs --change <name>` | Before verify dispatches subagents, and whenever a skill wants the whole picture of one change (status.yaml, verify.md, its route, config, `.orig` residue) without being blocked by other changes' drift |
+| `validate-beat.mjs` (whole project, active changes only; `--all` includes archive) | In CI, or when cleaning up a project |
 | `validate-beat.mjs --pre-archive <name>` | Archive step 3b — verification passed, mode full, sha is an ancestor of HEAD, tasks all checked |
 | `validate-beat.mjs --stale-paths <name>` | Archive step 5b, after the move — lists files still pointing at `beat/changes/<name>`; rerun until it prints none |
 | `validate-beat.mjs --handoff <file\|->` | Optional self-check of a handoff block (tests use it) |

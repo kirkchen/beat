@@ -262,7 +262,7 @@ digraph archive {
    2. Delete the `.feature.orig` backup from `beat/features/`
    3. If the project uses pytest-bdd: update `@scenario` decorator paths in test files (from `beat/changes/.../x.feature` → `beat/features/<capability>/x.feature`)
 
-   Run `node <skill-dir>/scripts/validate-beat.mjs` (whole project) — it reports any `.feature.orig` left in `beat/features/` that no active change claims. Then run `node <skill-dir>/scripts/lint-features.mjs` so the synced features and the README index are clean.
+   Run `node <skill-dir>/scripts/validate-beat.mjs --change <name>` — it reports any `.feature.orig` left in `beat/features/` that no active change claims. Then run `node <skill-dir>/scripts/lint-features.mjs` so the synced features and the README index are clean.
 
    Create `beat/features/<capability>/README.md` if it doesn't exist (placeholder description).
    Create or update `beat/features/README.md` with global navigation.

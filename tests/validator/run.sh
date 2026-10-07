@@ -30,7 +30,6 @@ for expect in \
   'references unknown node "zzz"' \
   'change "ghost" not found' \
   'decision nodes need a question' \
-  'preset is required' \
   'pipeline.tasks is done but tasks.md is missing' \
   'orphan backup' \
   'unknown field "unknown_top"' \
@@ -39,6 +38,9 @@ for expect in \
   if echo "$out" | grep -qF -- "$expect"; then echo "PASS expects: $expect"; else echo "FAIL missing: $expect"; fail=1; fi
 done
 
+echo "== --change scope"
+if node "$VALIDATOR" good --change slack-thread-dedupe >/dev/null 2>&1; then echo "PASS --change good"; else echo "FAIL --change good"; fail=1; fi
+if node "$VALIDATOR" bad --change badverify >/dev/null 2>&1; then echo "FAIL --change bad should fail"; fail=1; else echo "PASS --change bad fails"; fi
 echo "== modes"
 if node "$VALIDATOR" good --pre-archive slack-thread-dedupe >/dev/null 2>&1; then echo "FAIL pre-archive should reject issues-found"; fail=1; else echo "PASS pre-archive rejects issues-found"; fi
 if node "$VALIDATOR" --handoff good/handoff.md >/dev/null 2>&1; then echo "PASS handoff good"; else echo "FAIL handoff good"; fail=1; fi
