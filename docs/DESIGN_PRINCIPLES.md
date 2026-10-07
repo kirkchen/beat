@@ -52,6 +52,8 @@ Phases advance forward only: `new → proposal → gherkin → design → tasks 
 
 **Trade-off:** If you discover a spec problem during implementation, you update the artifact in-place and continue forward instead of "going back." This feels unnatural at first. We accept this because forward-only eliminates an entire class of state confusion, and updating an artifact is the same action regardless of which phase you're in.
 
+Forward-only is about the `phase` of one change. Two loops sit around it without rewinding anything: `verify` writes findings to `verify.md` and `apply fix-from-verify` works through them (the phase stays `verify`); and `explore` can end in a route or a blocked node, which feeds a *later* change rather than reopening this one.
+
 ## Optional is Real
 
 Proposal, design, and tasks are genuinely optional — not "optional but you should always do them."
@@ -161,6 +163,48 @@ Design is creative — defining the problem, exploring behaviors, making technic
 The pause between them is intentional. It gives the team a chance to review spec artifacts, challenge assumptions, and align on approach **before** committing to execution.
 
 **What we rejected:** A single "design-and-plan" phase. This works for small changes but collapses two distinct thinking modes (creative exploration vs. structural decomposition) into one, producing worse output for complex changes.
+
+---
+
+### Why Explore Declares an Exit
+
+An exploration that just stops is the most expensive kind: the next session re-explores it. `/beat:explore` therefore ends by naming one of four exits — `small`, `standard`, `too-big`, `blocked` — with the facts that justify it (which files, which modules, which decisions are still open). The user can override the exit; the skill cannot omit it.
+
+**What we rejected:** Asking the user a sizing question. Brainstorming already classified the work (Spike / Bounded / Architectural); explore maps that onto its exits so the work is sized once. A question would be the double prompt the exit was meant to remove.
+
+### Why Routes Hold No State
+
+Work too big for one change gets a route: `beat/routes/<name>/route.md` (destination, decisions so far, what is still fog) and a `status.yaml` of nodes with `blocked_by` edges. Node status is never written — a `change` node is done when its change is archived, a `research` or `prototype` node when its result file exists. The frontier is derived.
+
+**What we rejected:** A route-level state machine. Change `status.yaml` already drifts when agents write it by hand; a second one that must agree with the first would drift faster. Storing only edges leaves nothing to disagree.
+
+**Trade-off:** No dispatcher can read a route and start work in parallel without computing status first. We accept this: a human reading the frontier is cheap, and a tracker-backed DAG (what wayfinder does with issues) is a different product.
+
+### Size Before Ceremony
+
+The artifact preset chosen in design (`full`, `standard`, `minimal`, `technical`) sets the strength of every later phase: `minimal` and `technical` get a test-coverage-only plan review and one verify subagent instead of two. The judgment happens once, at design, on observable facts.
+
+**What we rejected:** A separate "quick" skill. It would duplicate the worktree, config and commit steps of three skills and leave the user to guess which pipeline a change is in. One field in `status.yaml` is cheaper than a second pipeline.
+
+**Trade-off:** An agent could call everything `minimal`. The guard is mechanical, not prose: `/beat:apply` measures the diff after every task and upgrades the preset to `standard` when it crosses the configured thresholds, so the review that was skipped happens at verify.
+
+---
+
+## Scripts Over Prose
+
+A rule that can be decided by reading files is a script, not a paragraph. `validate-beat.mjs` and `lint-features.mjs` settle schema shape, annotation targets, layer tags, stale paths and `.orig` residue; the skills say "run it, fix what it lists" and spend their prose on what a script cannot judge — behavior-level wording, design adherence, whether a decision meets the ADR gate.
+
+**What we rejected:** Keeping those rules as Hard Gates and rationalization tables. Prose enforcement works until the agent is under pressure; a non-zero exit code works every time, and it is the same on Claude Code, Codex and after `npx skills add` because each skill carries its own copy of the scripts.
+
+**Trade-off:** A linter has false positives (a bare decimal in a step, a tag the project invented). Those are warnings, configurable in `config.yaml` `lint`, and the agent decides. Errors are reserved for things that are wrong in every project.
+
+## Companions, Not Owners
+
+Beat invokes other skill sets at fixed points and takes their result back; it never hands them the state. superpowers supplies rigor inside a phase (brainstorming, worktrees, writing-plans, TDD, finishing the branch). mattpocock-skills supplies what a phase cannot produce on its own (a grilling, a research note, a prototype, a retro). Both are optional with inline fallbacks.
+
+**What we rejected:** Letting a companion skill decide the next step. brainstorming wants to hand off to writing-plans, subagent-driven-development wants to finish the branch, writing-plans wants to ask how to execute. Beat's phases answer those questions, so the skills are invoked for their work and the hand-offs are suppressed.
+
+**Trade-off:** Some duplication — a spec self-review in both brainstorming and design, a plan review in both writing-plans and plan. We accept it because the alternative is two owners of one state.
 
 ---
 

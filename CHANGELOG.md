@@ -52,6 +52,10 @@ All notable changes to Beat are documented in this file. The format follows
   `warning`, `sha`, `mode`.
 - SessionStart hook and the Codex `AGENTS.md` snippet describe the exits,
   verify loop and handoff block.
+- README "Companion Skills" says which superpowers / mattpocock skill each
+  phase invokes and when; `docs/DESIGN_PRINCIPLES.md` gains "Why Explore
+  Declares an Exit", "Why Routes Hold No State", "Size Before Ceremony",
+  "Scripts Over Prose" and "Companions, Not Owners" (zh-TW mirrored).
 
 ## [0.4.0] - 2026-09-28
 

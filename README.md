@@ -191,6 +191,22 @@ Three test layers, each using your project's own frameworks:
 | **Behavior** | `@behavior` | Business logic with `@covered-by` tracing |
 | **Unit** | — | Technical edge cases, no feature binding |
 
+## Lint Tools
+
+The checks that can be decided by reading files are scripts, not prompts. Every skill carries them under `skills/<name>/scripts/` (Node 18+, no packages):
+
+- `validate-beat.mjs` — `status.yaml`, route `status.yaml`, `verify.md`, `beat/config.yaml`, `.feature.orig` residue; `--change <name>` for one change, `--pre-archive`, `--stale-paths`, `--handoff`.
+- `lint-features.mjs` — `@covered-by` targets and annotations, one layer tag per scenario, user story, known tags, placeholders, README index.
+
+Skills run them at fixed steps (design and distill before committing, apply after each scenario, verify before dispatching subagents, archive before and after the move) and fix what they list. To run them in your own CI, point at the installed plugin or copy the two files:
+
+```bash
+node skills/verify/scripts/validate-beat.mjs .          # active changes, routes, config
+node skills/verify/scripts/lint-features.mjs             # all feature files
+```
+
+Project-specific tags go in `beat/config.yaml` under `lint:`. See `references/lint-tools.md`.
+
 ## Configuration
 
 `/beat:setup` auto-detects your stack. All config is optional:
@@ -210,17 +226,31 @@ rules:
     - "Add a row to docs/adr/README.md"
 ```
 
-## With Superpowers (Recommended)
+## Companion Skills
 
-Beat works standalone, but pairs well with [superpowers](https://github.com/obra/superpowers) for structured brainstorming, git worktree isolation, and TDD discipline:
+Beat owns the state (`status.yaml`, routes, `verify.md`) and the order of phases. Two other skill sets plug into it at fixed points. Neither is required; each falls back to a simpler inline step when missing.
 
-| Capability | With superpowers | Without |
-|-----------|-----------------|---------|
-| Brainstorming | Structured ideation before specs | Direct conversation |
-| Worktree isolation | Changes in isolated git worktree | Work on current branch |
-| TDD discipline | Enforced red-green-refactor | Standard implementation |
-| Task generation | Detailed plan with review | Simple checklist |
-| Post-archive | Guided PR/merge workflow | Manual |
+**[superpowers](https://github.com/obra/superpowers)** brings discipline *inside* a phase:
+
+| Beat phase | Invokes | Without it |
+|-----------|---------|-----------|
+| explore | `brainstorming` — classifies the work (Spike / Bounded / Architectural), which explore maps onto its exit | Direct conversation |
+| design, plan, apply, distill | `using-git-worktrees` — isolates the change | Work on the current branch |
+| design | `brainstorming` before proposal / design.md | Write from the description |
+| plan | `writing-plans` — produces tasks.md | Simple checklist |
+| apply | `test-driven-development`; `systematic-debugging` when stuck; `subagent-driven-development` for independent tasks | Tests still required, less ceremony |
+| archive | `finishing-a-development-branch` — merge / PR after the archive commit | Manual push and PR |
+
+**[mattpocock-skills](https://github.com/mattpocock/skills)** brings tools at the *edges* of the pipeline — where Beat needs an answer before it can continue:
+
+| Beat moment | Invokes | Without it |
+|-------------|---------|-----------|
+| design, when a domain term is genuinely ambiguous | `grill-with-docs` — one-question-at-a-time grilling that writes the glossary and ADRs | The inline four-challenge check |
+| explore exits `blocked` with `kind: research` | `research` — unattended investigation written to a markdown file | Run the research yourself and record the result path |
+| explore exits `blocked` with `kind: prototype` and `config.yaml` has no `prototype.surface` | `prototype` — a throwaway build to settle a design question | Build it where the project keeps prototypes (Storybook, a CLI, a page) |
+| after archive | `retro` — turns what the change taught you into lint rules, hooks, or steering files | Edit `config.yaml` rules and CLAUDE.md by hand |
+
+Rule of thumb: when a phase needs *more rigor* (think harder, test first, finish the branch properly), it is a superpowers skill. When a phase needs *something it cannot produce itself* (an answer, a prototype, a glossary, a lesson), it is a mattpocock skill. Beat never hands the state to either; it invokes them and takes the result back.
 
 ## Design Principles
 

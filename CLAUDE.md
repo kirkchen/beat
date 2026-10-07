@@ -174,9 +174,9 @@ In test files (use the project language's comment syntax):
 
 ## Dependencies
 
-Requires the [superpowers](https://github.com/obra/superpowers) plugin for TDD, brainstorming, and debugging integrations referenced by `design`, `plan`, `apply`, and `explore` skills.
+Requires the [superpowers](https://github.com/obra/superpowers) plugin for the rigor inside a phase: `brainstorming` (explore, design), `using-git-worktrees` (design, plan, apply, distill), `writing-plans` (plan), `test-driven-development` / `systematic-debugging` / `subagent-driven-development` (apply), `finishing-a-development-branch` (archive). Each has an inline fallback when not installed. Beat suppresses the hand-offs those skills would otherwise make (brainstorming → writing-plans, SDD → finishing) because Beat's phases decide the next step.
 
-Optionally integrates with [mattpocock-skills](https://github.com/mattpocock/skills) — `/beat:design` can hand off to `grill-with-docs` when CONTEXT.md ambiguity is complex enough to warrant a full grilling session. Graceful fallback when not installed.
+Optionally integrates with [mattpocock-skills](https://github.com/mattpocock/skills) at the edges of the pipeline: `grill-with-docs` (design, when a glossary term is genuinely ambiguous), `research` and `prototype` (explore, for a `blocked` exit of that kind), `retro` (mentioned after archive). All optional with graceful fallback. The route map format is adapted from its `wayfinder` skill (see `NOTICE.md`). The "when which" guidance lives in README "Companion Skills" and `docs/DESIGN_PRINCIPLES.md` "Companions, Not Owners".
 
 `NOTICE.md` records third-party attribution for content adapted from these projects (both MIT-licensed).
 
