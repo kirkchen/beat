@@ -42,10 +42,12 @@ beat/
 │   ├── route-schema.md          # beat/routes/<name>/ map + nodes (research / prototype / decision / change); status is derived
 │   ├── verify-findings.md       # verify.md front matter — findings that /beat:apply fix-from-verify consumes
 │   ├── handoff-report.md        # The "## Beat Handoff" block every skill ends with
+│   ├── lint-tools.md            # How and when skills run validate-beat.mjs / lint-features.mjs
 │   ├── tool-mapping.md          # Cross-platform tool name mapping (root only)
 │   └── codex-agents-snippet.md  # Per-project AGENTS.md snippet for Codex (root only)
-├── scripts/sync-references.mjs  # Syncs /references into each skill's references/ (see header for rationale)
-├── scripts/validate-beat.mjs    # Deterministic schema check for status.yaml, route status.yaml, verify.md (tests/validator/)
+├── scripts/sync-references.mjs  # Syncs /references and /scripts into each skill's references/ and scripts/ (see header)
+├── scripts/validate-beat.mjs    # Deterministic checks: status.yaml, routes, verify.md, config, .orig residue, --pre-archive, --stale-paths, --handoff
+├── scripts/lint-features.mjs    # Feature-file linter (annotations, layer tags, user story, tags, placeholders, README index)
 ├── NOTICE.md                    # Third-party attribution (mattpocock-skills, superpowers — both MIT)
 ├── hooks/                       # Claude Code hooks (Codex ignores; replaced by AGENTS.md snippet)
 │   ├── hooks.json               # SessionStart hook config
@@ -198,7 +200,11 @@ Each skill is a single SKILL.md file with YAML frontmatter (`name`, `description
 
 ### References sync
 
-`/references` is the source of truth; `skills/<name>/references/` are synced copies. After editing anything under `/references`, run `node scripts/sync-references.mjs` (or `--check` for CI). Do not hand-edit synced copies. Rationale in the script header.
+`/references` and `/scripts` are the source of truth; `skills/<name>/references/` and `skills/<name>/scripts/` are synced copies. After editing anything under either, run `node scripts/sync-references.mjs` (or `--check` for CI). Do not hand-edit synced copies. Rationale in the script header.
+
+### Lint tools
+
+Two scripts carry the checks that are deterministic (`references/lint-tools.md`): `validate-beat.mjs` (status.yaml / routes / verify.md / config schema, `.orig` residue, `--pre-archive`, `--stale-paths`, `--handoff`) and `lint-features.mjs` (feature-file conventions). Skills call them as `node <skill-dir>/scripts/<name>.mjs` so they work the same under the Claude Code plugin, the Codex plugin (`plugins/beat/scripts` symlink plus the per-skill copies) and `npx skills add` (which copies one skill folder, scripts included). They need Node 18+ and no packages. When a rule can be written as a script, put it there and reduce the prose to "run it, fix what it lists".
 
 ### Testing Changes
 

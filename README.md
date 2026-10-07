@@ -61,6 +61,15 @@ codex plugin marketplace add https://github.com/kirkchen/beat
 
 Then in the Codex UI plugins panel, install `Beat`. See [docs/INSTALL-CODEX.md](docs/INSTALL-CODEX.md) for the full flow and the AGENTS.md snippet that replaces the SessionStart hook (Codex doesn't support hooks).
 
+**With `npx skills add`** (any agent that reads `SKILL.md` folders):
+
+```bash
+npx skills add kirkchen/beat --skill design   # one skill
+npx skills add kirkchen/beat                  # all of them
+```
+
+Each skill folder is self-contained: the schemas it reads (`references/`) and the lint scripts it runs (`scripts/`) are copied along with it. The scripts need Node 18+.
+
 Then, in your project:
 
 ```bash

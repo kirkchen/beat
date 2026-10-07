@@ -29,8 +29,18 @@ All notable changes to Beat are documented in this file. The format follows
 - `config.yaml` `prototype.surface` / `prototype.command` tell explore where
   a prototype node is built (for example Storybook). Stories may be merged;
   prototype implementation code never is.
-- `scripts/validate-beat.mjs` checks status.yaml, route status.yaml and
-  verify.md against the schemas; `tests/validator/` runs it on fixtures.
+- `scripts/validate-beat.mjs` checks status.yaml (schema, phase vs. artifacts,
+  preset, route link, verify.md cross-check, sha ancestry), route status.yaml,
+  verify.md, `beat/config.yaml` and `.feature.orig` residue, with `--pre-archive`,
+  `--stale-paths` and `--handoff` modes. `scripts/lint-features.mjs` lints
+  feature files (annotations, layer tags, user story, tags, placeholders, README
+  index). Skills run both at fixed steps (`references/lint-tools.md`); the
+  prose those checks replaced is gone. `tests/validator/` runs the fixtures;
+  `.github/workflows/ci.yml` runs them on every PR.
+- Scripts are synced into each skill folder (`skills/<name>/scripts/`) and
+  symlinked into the Codex overlay, so they are available under the Claude
+  Code plugin, the Codex plugin and `npx skills add`.
+- `config.yaml` `lint` section: `tags`, `layer_tags`, `pending_tag`.
 - Optional `mattpocock-skills` hooks: `research` and `prototype` from explore,
   `retro` mentioned at the end of archive.
 

@@ -47,6 +47,9 @@ assert_contains "$output" "no\|warn\|confirm\|AskUserQuestion\|verify\|nothing t
 output=$(run_claude "As beat:apply, when implementation forces a decision that meets the ADR gate, what from beat/config.yaml and docs/adr/ do you apply before writing the ADR?" 60 5)
 assert_contains "$output" "rules\.adr\|TEMPLATE\.md\|Before writing an ADR" "apply applies config rules.adr and project TEMPLATE.md before writing an ADR"
 
+output=$(run_claude "As beat:apply, what script do you run before moving to the next scenario, and what does it check?" 30)
+assert_contains "$output" "lint-features\|covered-by\|lint" "apply knows to run lint-features per scenario"
+
 output=$(run_claude "As beat:apply, after all tasks are committed, do you push the branch?" 30)
 assert_contains "$output" "no\|never\|archive\|not push\|don't push\|do not push" "apply knows it never pushes before archive"
 
