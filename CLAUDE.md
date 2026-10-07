@@ -29,7 +29,7 @@ beat/
 │   ├── apply/                   # /beat:apply — TDD implementation
 │   ├── verify/                  # /beat:verify — 5-dimension verification
 │   ├── archive/                 # /beat:archive — sync features + archive completed change
-│   ├── explore/                 # /beat:explore — thinking partner mode
+│   ├── explore/                 # /beat:explore — thinking partner mode; ends by declaring an exit (small / standard / too-big / blocked)
 │   ├── setup/                   # /beat:setup — create beat/config.yaml
 │   └── distill/                 # /beat:distill — reverse-engineer specs from code
 ├── references/                  # Source of truth for shared schemas — edit here, then run scripts/sync-references.mjs
@@ -39,9 +39,13 @@ beat/
 │   ├── context-format.md        # beat/CONTEXT.md glossary format (Layer 1 living docs)
 │   ├── adr-format.md            # docs/adr/ ADR format + three-condition gate (Layer 2 living docs)
 │   ├── architecture-format.md   # beat/ARCHITECTURE.md hub + module README format (Layer 3 living docs)
+│   ├── route-schema.md          # beat/routes/<name>/ map + nodes (research / prototype / decision / change); status is derived
+│   ├── verify-findings.md       # verify.md front matter — findings that /beat:apply fix-from-verify consumes
+│   ├── handoff-report.md        # The "## Beat Handoff" block every skill ends with
 │   ├── tool-mapping.md          # Cross-platform tool name mapping (root only)
 │   └── codex-agents-snippet.md  # Per-project AGENTS.md snippet for Codex (root only)
 ├── scripts/sync-references.mjs  # Syncs /references into each skill's references/ (see header for rationale)
+├── scripts/validate-beat.mjs    # Deterministic schema check for status.yaml, route status.yaml, verify.md (tests/validator/)
 ├── NOTICE.md                    # Third-party attribution (mattpocock-skills, superpowers — both MIT)
 ├── hooks/                       # Claude Code hooks (Codex ignores; replaced by AGENTS.md snippet)
 │   ├── hooks.json               # SessionStart hook config
@@ -53,6 +57,7 @@ beat/
 │   ├── skill-triggering/        # Layer 1: Description CSO validation
 │   ├── skill-content/           # Layer 2: Enforcement awareness smoke tests
 │   ├── pressure/                # Layer 3: Anti-rationalization under pressure
+│   ├── validator/               # Deterministic fixtures for scripts/validate-beat.mjs (no LLM)
 │   └── pipeline/                # Layer 4: End-to-end pipeline (--integration)
 └── README.md
 ```
@@ -74,8 +79,13 @@ When installed in a user's project, Beat creates this structure:
 │   │   │   ├── features/        # Gherkin feature files (mandatory by default)
 │   │   │   │   └── *.feature
 │   │   │   ├── design.md        # Optional: technical decisions
-│   │   │   └── tasks.md         # Optional: implementation checklist
+│   │   │   ├── tasks.md         # Optional: implementation checklist
+│   │   │   └── verify.md        # Written by /beat:verify: findings front matter + report
 │   │   └── archive/             # Completed changes (YYYY-MM-DD-<name>/)
+│   ├── routes/                  # Work too big for one change (lazy)
+│   │   └── <route-name>/
+│   │       ├── route.md         # Destination / decisions so far / not yet specified / out of scope
+│   │       └── status.yaml      # Nodes + blocked_by edges; node status derived from changes
 │   └── features/                # Persistent living documentation
 │       └── <capability>/        # Organized by capability after sync
 │           ├── *.feature
@@ -89,25 +99,28 @@ When installed in a user's project, Beat creates this structure:
 ### Pipeline Flow
 
 ```
-explore → design → plan → apply → verify → archive
-           │         │
-           │         └── tasks (with multi-role review)
-           └── [proposal] → gherkin → [design]
-                optional     default    optional
-                             mandatory
+explore ──exit──► design → plan → apply ⇄ verify → archive
+   │                │        │        (fix-from-verify / incremental)
+   │                │        └── tasks (review depth follows preset)
+   │                └── [proposal] → gherkin → [design]   (preset: full / standard / minimal / technical)
+   ├─ too-big → beat/routes/<name>/ (map + nodes); each change node re-enters at explore/design
+   └─ blocked → research (AFK) / prototype (HITL) / decision (HITL) node, then explore again
 ```
 
 For purely technical changes (tooling, deps, refactor): gherkin can be skipped, proposal becomes the driver.
 
+Explore ends by declaring one exit (`small`, `standard`, `too-big`, `blocked`) with the facts behind it. The preset chosen in design sets the strength of later phases: `minimal`/`technical` get a test-coverage-only plan review and a single verify subagent, and `/beat:apply` upgrades them to `standard` when the diff crosses `config.yaml` `preset_upgrade` thresholds. Verify writes `verify.md`; `apply fix-from-verify` consumes it; re-runs are incremental from `verification.sha`, and archive requires a final full run. Apply never pushes — pushing comes after archive. Every skill ends with the `## Beat Handoff` block.
+
 - **design**: Creates worktree + change container + generates spec artifacts (proposal, gherkin, design.md) + commits
 - **plan**: Creates execution plan (tasks.md) with multi-role review against spec artifacts + commits
 - **apply**: TDD implementation — gherkin-driven (every scenario must have a test) or proposal-driven (when gherkin skipped). Verifies worktree isolation (should exist from design/plan).
-- **verify**: Dispatches independent subagent to verify against artifacts
+- **verify**: Dispatches independent subagent(s) to verify against artifacts (two in parallel at standard strength, one at minimal); writes `verify.md` findings; incremental on re-run
 - **archive**: Syncs features to `beat/features/` as living documentation (merging the change's `design.md` into an existing capability `design.md` rather than overwriting it) + moves change to `beat/changes/archive/` + rewrites every tracked reference to the old `beat/changes/<name>` path + commits the archive as the last commit on the feature branch, then hands off to `superpowers:finishing-a-development-branch` for merge/PR. Archive runs before the PR, never after it is merged.
 
 ### Key Concepts
 
-- **status.yaml** is the state machine — schema defined in `references/status-schema.md`. Phase advances forward only. Pipeline entries use inline YAML flow style: `{ status: done }`. `/beat:verify` records its outcome in the top-level `verification` field (it never advances phase); `/beat:archive` warns when archiving a change without a passing verification record.
+- **status.yaml** is the state machine — schema defined in `references/status-schema.md`. Phase advances forward only. Pipeline entries use inline YAML flow style: `{ status: done }`. `preset` records the artifact preset and drives later-phase strength; `route` links a change to its route node. `/beat:verify` records its outcome in the top-level `verification` field (status, counts, `sha`, `mode`; it never advances phase); `/beat:archive` warns when archiving a change without a passing, full verification record. No field outside the schema — `node scripts/validate-beat.mjs <project>` rejects unknown keys.
+- **routes** (`beat/routes/<name>/`, schema `references/route-schema.md`) hold work too big for one change: a map plus nodes with `blocked_by` edges. Node status is always derived (a change node is done when its change is archived), never written, so there is no second state machine to drift. Rhythm or any dispatcher only sees one change per task; parallelism is a human reading the frontier.
 - **config.yaml** is optional project config — schema in `references/config-schema.md`. Controls artifact language, injects project context, and adds per-artifact rules (`proposal`, `gherkin`, `design`, `tasks`, `adr`). `rules.adr` applies at every ADR trigger point, so every skill that can write an ADR (including `/beat:explore`) reads the config; a project `docs/adr/TEMPLATE.md` takes precedence over Beat's built-in ADR template.
 - **Gherkin is mandatory by default** but can be skipped for purely technical changes (tooling, deps, refactoring without behavior change). When skipped, proposal drives plan, apply, and verify.
 - **verify** uses independent subagents (Agent tool: `Explore` for spec verification, `general-purpose` for code review) to avoid context bias. When verifying distilled specs (`source: distill`), it switches to accuracy mode.
@@ -181,7 +194,7 @@ Each skill is a single SKILL.md file with YAML frontmatter (`name`, `description
 
 ### Schema Changes
 
-`references/status-schema.md` and `references/config-schema.md` are the single sources of truth. Every skill that reads/writes these files must follow the schemas exactly. If you change a schema, audit all skills that reference it.
+`references/status-schema.md`, `references/config-schema.md`, `references/route-schema.md` and `references/verify-findings.md` are the single sources of truth. Every skill that reads/writes these files must follow the schemas exactly. If you change a schema, audit all skills that reference it, update `scripts/validate-beat.mjs`, and run `tests/validator/run.sh`.
 
 ### References sync
 
@@ -209,6 +222,7 @@ cd tests && ./run-all.sh --integration
 | Skill Content | Skills know their enforcement rules (smoke test) | `skill-content/` |
 | Pressure | Anti-rationalization holds under implicit pressure | `pressure/` |
 | Pipeline Integration | End-to-end design → plan → apply → verify → archive | `pipeline/` (--integration only) |
+| Validator | Schema fixtures for `scripts/validate-beat.mjs`, deterministic, seconds | `validator/run.sh` |
 
 **When to run tests:**
 - After changing any skill description → run `skill-triggering/run-all.sh`

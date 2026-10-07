@@ -4,6 +4,45 @@ All notable changes to Beat are documented in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and Beat adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- `/beat:explore` ends by declaring an exit — `small`, `standard`, `too-big`
+  or `blocked` — with the observable facts behind it. `too-big` creates a
+  route (`beat/routes/<name>/`, `references/route-schema.md`): a map plus
+  research / prototype / decision / change nodes with `blocked_by` edges.
+  Node status is derived from the changes, never written.
+- `preset` in status.yaml drives later-phase strength: `minimal` and
+  `technical` get a test-coverage-only plan review and one verify subagent;
+  `/beat:apply` upgrades them to `standard` when the diff crosses
+  `config.yaml` `preset_upgrade` thresholds (`preset_upgrade` is recorded).
+- `/beat:verify` writes `verify.md` (`references/verify-findings.md`): YAML
+  front matter with one line per finding, then the report. `/beat:apply
+  fix-from-verify` works through the open findings and marks them fixed.
+  Re-runs are incremental from `verification.sha`; archive asks for a final
+  full run.
+- Every skill ends with a `## Beat Handoff` block
+  (`references/handoff-report.md`) of command-derived facts and the next
+  command; an optional `rhythm-stage-result[nonce]` line when a nonce is
+  injected.
+- `config.yaml` `prototype.surface` / `prototype.command` tell explore where
+  a prototype node is built (for example Storybook). Stories may be merged;
+  prototype implementation code never is.
+- `scripts/validate-beat.mjs` checks status.yaml, route status.yaml and
+  verify.md against the schemas; `tests/validator/` runs it on fixtures.
+- Optional `mattpocock-skills` hooks: `research` and `prototype` from explore,
+  `retro` mentioned at the end of archive.
+
+### Changed
+
+- `/beat:apply` never pushes; pushing belongs to
+  `finishing-a-development-branch` after `/beat:archive`.
+- `status.yaml` forbids fields outside the schema; `verification` gains
+  `warning`, `sha`, `mode`.
+- SessionStart hook and the Codex `AGENTS.md` snippet describe the exits,
+  verify loop and handoff block.
+
 ## [0.4.0] - 2026-09-28
 
 ### Added

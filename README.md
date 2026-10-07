@@ -104,7 +104,7 @@ Now you have living documentation of what your system actually does. Next time y
 ## Full Pipeline
 
 ```
-explore → design → plan → apply → verify → archive
+explore → design → plan → apply ⇄ verify → archive
 ```
 
 | Command | What it does | When to use |
@@ -120,11 +120,12 @@ explore → design → plan → apply → verify → archive
 
 | Change size | Commands | Example |
 |------------|----------|---------|
-| Bug fix | `design → apply → archive` | Fix off-by-one in date calc |
-| Feature | `design → apply → verify → archive` | Add password reset flow |
-| Large feature | `design → plan → apply → verify → archive` | Payment processing system |
+| Bug fix | `design (minimal) → apply → verify → archive` — one review role, one verify subagent | Fix off-by-one in date calc |
+| Feature | `design → plan → apply → verify → archive` | Add password reset flow |
+| Too big for one change | `explore` declares `too-big` → `beat/routes/<name>/` map → each node is its own change | Payment processing system |
+| Needs a look first | `explore` declares `blocked` → research (agent) / prototype (storybook, human picks) / decision node → explore again | "Thread or inline replies?" |
 
-Every change lives in `beat/changes/<name>/` with a `status.yaml` tracking where you are.
+Every change lives in `beat/changes/<name>/` with a `status.yaml` tracking where you are. `/beat:explore` ends by naming one of those paths; `/beat:verify` writes its findings to `verify.md` and `/beat:apply fix-from-verify` works through them; every skill ends with a `## Beat Handoff` block saying what to run next.
 
 ## What Beat Generates
 
