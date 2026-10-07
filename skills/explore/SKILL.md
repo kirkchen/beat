@@ -1,6 +1,6 @@
 ---
 name: explore
-description: Use when thinking through ideas, problems, or requirements before a Beat change, or picking the next route node
+description: Use when thinking through ideas, problems, or requirements before a Beat change, or asking what's next on a Beat route
 ---
 
 Enter explore mode. Think deeply. Visualize freely. Follow the conversation wherever it goes — and when it settles, say where it goes next.
