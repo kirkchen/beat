@@ -287,7 +287,7 @@ digraph plan {
 
    Use a descriptive message, e.g. "plan(<name>): add task breakdown".
 
-   Update phase to `implement` in `status.yaml` (advancing from `tasks` → `implement`).
+   Update phase to `implement` in `status.yaml` (advancing from `tasks` → `implement`), then run `node <skill-dir>/scripts/validate-beat.mjs --file beat/changes/<name>/status.yaml` (see `references/lint-tools.md`) and fix anything it reports.
 
    ```
    ## Plan Complete: <change-name>

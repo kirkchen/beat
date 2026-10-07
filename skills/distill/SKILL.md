@@ -229,7 +229,9 @@ digraph distill {
 
    If the distilled scope is a module (its own directory with a public interface) and it has no `README.md`, offer once to scaffold one per `references/architecture-format.md`. If `beat/ARCHITECTURE.md` exists and is missing this module's row, offer to add it. Advisory — the user may decline; never block.
 
-7. **Commit artifacts**
+7. **Lint and commit artifacts**
+
+   Run `node <skill-dir>/scripts/lint-features.mjs beat/changes/<name>/features/*.feature` and `node <skill-dir>/scripts/validate-beat.mjs --file beat/changes/<name>/status.yaml` (see `references/lint-tools.md`); fix every error before committing. Distilled scenarios have no tests yet, so `@covered-by` warnings are expected here.
 
    Commit the change directory **and every living-documentation file this run wrote or modified** — they are one unit of work:
 

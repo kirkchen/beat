@@ -68,7 +68,7 @@ If unavailable (skill not installed), skip and show archive summary only.
 | "The change is already archived, finishing-a-development-branch is optional cleanup" | Archive without branch guidance leaves orphan branches and uncommitted work. The skill ensures nothing is forgotten. |
 | "I'll just tell the user to create a PR manually" | finishing-a-development-branch offers structured options (merge, PR, cleanup) tailored to the current state. Manual advice misses context. |
 | "Skipping sync is fine, the user can run it later" | There is no separate sync skill. Archive is the only place features get synced. Skipping means features are lost from living documentation. |
-| "The .orig backups can be cleaned up later" | Orphaned `.orig` files hide scenarios from BDD runners permanently. Cleanup is part of archive, not a separate step. |
+| "The .orig backups can be cleaned up later" | Orphaned `.orig` files hide scenarios from BDD runners permanently, and validate-beat flags them as errors from now on. Cleanup is part of archive. |
 | "The last verify was incremental and clean, that's good enough" | Incremental runs never re-read the artifacts the diff didn't touch. One full run before archive is what makes the verification record mean something. Offer it. |
 | "Glossary terms can be added later, it's just docs" | Once the features sync into `beat/features/`, the undefined terms become user-facing living documentation. Future readers can't tell which terms are canonical vs. ad hoc. The scan-and-prompt is two minutes — do it before sync. |
 | "We didn't write any ADRs but the design.md captures everything" | design.md gets archived with the change. Cross-change decisions need to live in `docs/adr/`. The last-mile sweep is one prompt; if nothing qualifies, it costs nothing. |
@@ -182,7 +182,7 @@ digraph archive {
 
 3b. **Check verification ran** (schema: `references/status-schema.md`)
 
-   Read the top-level `verification` field from `status.yaml`:
+   Run `node <skill-dir>/scripts/validate-beat.mjs --pre-archive <name>` (see `references/lint-tools.md`). It reports each of the conditions below plus unchecked tasks; use its output to decide which warning to raise. Then read the top-level `verification` field from `status.yaml`:
 
    - **Absent:** warn "This change was never verified (`/beat:verify` has not run)." Use **AskUserQuestion tool** to confirm archiving anyway.
    - **`status: issues-found`:** warn "Verification found N critical issue(s) on <date>." Use **AskUserQuestion tool** to confirm.
@@ -262,7 +262,7 @@ digraph archive {
    2. Delete the `.feature.orig` backup from `beat/features/`
    3. If the project uses pytest-bdd: update `@scenario` decorator paths in test files (from `beat/changes/.../x.feature` → `beat/features/<capability>/x.feature`)
 
-   Verify no `.feature.orig` files remain in `beat/features/` before proceeding.
+   Run `node <skill-dir>/scripts/validate-beat.mjs` (whole project) — it reports any `.feature.orig` left in `beat/features/` that no active change claims. Then run `node <skill-dir>/scripts/lint-features.mjs` so the synced features and the README index are clean.
 
    Create `beat/features/<capability>/README.md` if it doesn't exist (placeholder description).
    Create or update `beat/features/README.md` with global navigation.
@@ -310,15 +310,7 @@ digraph archive {
 
    Moving the directory breaks every link that pointed at it: ADR `source` fields and links, `See beat/changes/<name>/...` cross-references in synced features and design docs, glossary or README mentions, and self-references inside the moved directory (e.g. `tasks.md` pointing at its own `design.md`).
 
-   Find them across the repository. Step 5 used plain `mv` and step 4b may have just written an ADR, so the files that matter most are **untracked** at this point — `git grep` skips them unless told otherwise. `--untracked` includes them while still honouring `.gitignore`, so `node_modules`, build output and `.git` are never touched. The trailing group stops `beat/changes/<name>` from matching a different change whose name merely starts the same way (`beat/changes/<name>-v2`):
-
-   ```bash
-   git grep -lE --untracked 'beat/changes/<name>(/|[^A-Za-z0-9_-]|$)' -- . ':!beat/changes/archive/YYYY-MM-DD-<name>/status.yaml'
-   ```
-
-   In every file listed, replace `beat/changes/<name>` with `beat/changes/archive/YYYY-MM-DD-<name>` — only where the old path is followed by `/`, whitespace, punctuation, or end of line, never where it continues into a longer change name. Use the **Edit tool** per occurrence (`replace_all` is safe only when no `beat/changes/<name>-…` sibling exists in that file), or `sed -E` with the same boundary group when the file count is large. Then re-run the grep: it must return nothing.
-
-   Do not rewrite `status.yaml` inside the archived directory (it records the change by name, not path) and do not touch files under `.git/`.
+   Run `node <skill-dir>/scripts/validate-beat.mjs --stale-paths <name>` (see `references/lint-tools.md`). It lists every tracked or untracked file that still references `beat/changes/<name>` (excluding the archived status.yaml, which records the change by name). In each listed file replace `beat/changes/<name>` with `beat/changes/archive/YYYY-MM-DD-<name>` — only where the old path is followed by `/`, whitespace, punctuation or end of line, never where it continues into a longer change name. Rerun until it prints no files.
 
    Record the number of files rewritten for the summary.
 

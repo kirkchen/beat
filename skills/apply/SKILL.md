@@ -66,7 +66,7 @@ Invoke in order: worktrees first (verify isolation), then TDD (discipline). Debu
 | "The change is small, I don't need a worktree" | Worktrees protect against contamination. The worktree should already exist from design/plan — verify, don't skip. |
 | "I'll write the test after the implementation, same result" | TDD is about design feedback, not just test coverage. Writing tests after loses the design signal. |
 | "This is a refactor, TDD doesn't apply" | Refactors need tests most — they prove behavior is preserved. If testing.required is false, TDD is already skipped. |
-| "I'll add @covered-by annotations at the end for all scenarios" | Annotations must be added per-scenario immediately after writing the test. Batching them leads to forgetting. |
+| "I'll add @covered-by annotations at the end for all scenarios" | Annotations are added per scenario and lint-features runs per scenario. Batching means the lint never ran on the ones you forgot. |
 | "The e2e test setup is too complex, I'll write a unit test instead" | The scenario is tagged @e2e for a reason. If e2e setup is genuinely blocked, announce the blocker and ask — don't silently downgrade. |
 | "This @behavior test is obvious, a skeleton is enough" | Every test must be executable. A skeleton that doesn't run is not a test. |
 | "These tasks are small, I'll combine them for efficiency" | Each task is bounded for a reason. Merging recreates the oversized-output problem that decomposition solved. One task = one subagent dispatch. |
@@ -82,10 +82,9 @@ Invoke in order: worktrees first (verify isolation), then TDD (discipline). Debu
 - Writing implementation code before writing a failing test (in TDD mode)
 - Thinking "I'll set up the worktree after this first file"
 - Skipping TDD because "the test would be trivial"
-- Moving to the next scenario without adding `@covered-by` to the .feature file
+- Moving to the next scenario without a clean `lint-features.mjs` run
 - Skipping e2e test creation because "the e2e framework is complex to set up"
 - Writing a test skeleton instead of an executable test
-- Thinking "I'll add the annotations at the end after all scenarios are done"
 - Dispatching a single subagent for multiple tasks to "save time"
 - Creating a new test file for a scenario that already has `@covered-by` pointing to an existing test
 - Modifying scenario steps without updating the corresponding e2e test
@@ -275,23 +274,16 @@ digraph apply {
 
    e. **Continue to next**
 
-   f. **Scenario completion checklist** (verify before moving to next scenario):
+   f. **Scenario completion check** (before moving to the next scenario):
 
-      **For `@e2e` scenarios (TDD mode):**
-      - [ ] E2e test or step definition exists and is executable
-      - [ ] Test references the scenario (`@feature`/`@scenario` annotations or BDD binding)
-      - [ ] `# @covered-by: <path>` annotation added to .feature file (between tag and Scenario line)
+      Run `node <skill-dir>/scripts/lint-features.mjs --require-covered-by beat/changes/<name>/features/*.feature` (see `references/lint-tools.md`). It checks the `@covered-by` annotation, its position, that the test file exists and carries the `@scenario:` annotation, and the layer tag. Fix every error it lists; rerun until it exits 0. In no-test mode run it without `--require-covered-by`.
 
-      **For `@behavior` scenarios (TDD mode):**
-      - [ ] Test file exists with `@feature` and `@scenario` comments
-      - [ ] `# @covered-by: <path>` annotation added to .feature file (between tag and Scenario line)
-      - [ ] Test is executable (not a skeleton)
-
-      **For all scenarios:**
+      Then confirm by hand what lint cannot see:
+      - [ ] The test is executable, not a skeleton (run it)
       - [ ] Implementation code handles the scenario's behavior
       - [ ] Task checkbox marked complete (if using tasks.md)
 
-      Do NOT move to the next scenario until all applicable items are checked.
+      Do NOT move to the next scenario until lint is clean and all items are checked.
 
    **Pause if:**
    - Task/scenario is unclear -> ask for clarification
@@ -309,7 +301,7 @@ digraph apply {
 
 8. **On completion or pause, show status**
 
-   If all done: update `status.yaml` phase to `verify`
+   If all done: update `status.yaml` phase to `verify`, then run `node <skill-dir>/scripts/validate-beat.mjs --file beat/changes/<name>/status.yaml` and fix anything it reports.
    ```
    ## Implementation Complete
 

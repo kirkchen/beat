@@ -259,7 +259,9 @@ digraph design {
        Create `docs/adr/` lazily — only on first ADR. Track every ADR (and any project ADR index) written here — step 5 commits them with the change.
      - **Architecture hub suggestion** (Layer 3, advisory) — if `design.md` describes a module-level architecture change (new module, module split/merge, changed module boundaries or responsibilities), suggest updating `beat/ARCHITECTURE.md` — the hub diagram, modules table, or constraints (see `references/architecture-format.md`). Create the hub lazily, only if the project is multi-module and the user accepts. Never block.
 
-5. **Commit artifacts and show final status**
+5. **Lint, commit artifacts and show final status**
+
+   Run `node <skill-dir>/scripts/lint-features.mjs beat/changes/<name>/features/*.feature` (only when gherkin was written) and `node <skill-dir>/scripts/validate-beat.mjs --file beat/changes/<name>/status.yaml` (see `references/lint-tools.md`). Fix every error before committing; warnings are advisory here because tests do not exist yet.
 
    Commit the change directory **and every living-documentation file this run wrote or modified** — they are one unit of work:
 

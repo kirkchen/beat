@@ -26,6 +26,11 @@ preset_upgrade:                      # optional, map — thresholds that turn a 
   lines: 200                         # optional, integer (default 200) — net lines added, tests excluded
   modules: 1                         # optional, integer (default 1) — top-level modules touched
 
+lint:                                # optional, map — read by scripts/lint-features.mjs
+  tags: [@k8s]                       # optional, extra tags accepted besides the core set
+  layer_tags: [@manual-smoke]        # optional, extra tags that count as a testing layer
+  pending_tag: "@pending"            # optional, tag that exempts a @behavior scenario from @covered-by
+
 rules:                               # optional, map
   proposal:                          # optional, array of strings
     - [Rule applied when creating proposals]
@@ -77,6 +82,10 @@ Tells `/beat:explore` where a prototype node is built when exploration ends in `
 ### `preset_upgrade`
 
 Thresholds `/beat:apply` checks after each task on a `minimal` or `technical` change. When the accumulated diff (tests excluded) exceeds any threshold, apply upgrades `preset` to `standard`, records `preset_upgrade` in status.yaml (see `references/status-schema.md`), and continues — the next `/beat:verify` runs at standard strength. Defaults when absent: `files: 3`, `lines: 200`, `modules: 1`. A module is a top-level directory under `src/`, `packages/`, `apps/`, or the repo root for single-module projects.
+
+### `lint`
+
+Project-specific vocabulary for `scripts/lint-features.mjs` (see `references/lint-tools.md`). The core tags (`@e2e`, `@behavior`, `@happy-path`, `@error-handling`, `@edge-case`, `@distilled`, `@wip`) are always accepted; anything else must be listed in `tags` or the linter warns. `layer_tags` names tags that satisfy the one-layer-tag rule for scenarios that are verified some other way (manual smoke, for example). `pending_tag` marks a `@behavior` scenario whose test is deliberately not written yet.
 
 ### `rules`
 

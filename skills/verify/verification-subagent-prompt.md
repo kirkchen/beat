@@ -11,6 +11,11 @@ The dispatcher provides:
 - design.md (if exists)
 - Source code under review
 - Testing context (see below)
+- Lint output from `validate-beat.mjs` and `lint-features.mjs` (when provided)
+
+## Lint output
+
+When the dispatcher hands you lint output, those results are settled: report each lint error as a finding verbatim (missing test file → CRITICAL, everything else → WARNING) and do not re-check the rules the linter covers — `@covered-by` targets and annotations, layer tags, user story, known tags, placeholders, status.yaml schema. Spend your reading on what the linter cannot judge: behavior-level wording, test quality, proposal and design alignment, living docs.
 
 ## Testing Context (provided by dispatcher)
 

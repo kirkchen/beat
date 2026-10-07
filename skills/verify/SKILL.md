@@ -141,6 +141,10 @@ digraph verify {
    - **Tag layer**: Every scenario in a .feature file is expected to have a corresponding test (in TDD mode).
    - **Modified files**: Does `status.yaml` have `gherkin.modified`? If yes, collect the listed paths and their `.feature.orig` backup paths — the verification subagent needs them for semantic verification (Dimension 1B+).
 
+2b. **Run the lint tools first**
+
+   Run `node <skill-dir>/scripts/validate-beat.mjs` and `node <skill-dir>/scripts/lint-features.mjs` for the whole project (see `references/lint-tools.md`). Keep both outputs; they go to the subagents as pre-computed findings so the subagents do not re-derive what a script already settled (annotation targets, layer tags, user story, schema). A lint error is a finding at WARNING, or CRITICAL when it is a missing test file.
+
 3. **Dispatch the subagent(s)**
 
    **Agent A — Verification subagent** (subagent_type: `Explore`):
@@ -151,6 +155,7 @@ digraph verify {
    - Testing context (drive mode, testing config, source flag, tag counts)
    - Modified files list from `gherkin.modified` with their `.feature.orig` backup paths (if any)
    - Run mode; for incremental: `base`, the diff stat, the related scenarios/goals/decisions, and the previous findings still `open`
+   - The lint output from step 2b
    - Do NOT pass conversation history or session context.
 
    **Agent B — Code quality review** (subagent_type: `general-purpose`):
@@ -202,7 +207,7 @@ digraph verify {
    - Do NOT advance `phase` — verification outcome lives only in this field
    - Skip both writes entirely if verification could not run — report the failure instead
 
-   Run `node scripts/validate-beat.mjs --file beat/changes/<name>/verify.md` and the same for `status.yaml` when the plugin's `scripts/` directory is reachable; fix any schema error before presenting.
+   Run `node <skill-dir>/scripts/validate-beat.mjs --file beat/changes/<name>/verify.md` and the same for `status.yaml` (see `references/lint-tools.md`); fix any schema error before presenting.
 
    Then end with the handoff block from `references/handoff-report.md`: `findings` from the counts above; `next` is `/beat:apply <name> fix-from-verify` when anything is open, `/beat:archive <name>` when clean and this run was `full`, or `/beat:verify <name> full` when clean but incremental.
 
