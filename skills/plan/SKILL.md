@@ -59,7 +59,7 @@ If a superpower is unavailable (skill not installed), skip and continue.
 | "I already understand the scope from the proposal/gherkin" | Understanding scope ≠ properly decomposed tasks. writing-plans catches scope gaps you haven't noticed. |
 | "The user wants speed, invoking superpowers will slow us down" | Skipping prerequisites produces lower-quality tasks that cause rework during apply. |
 | "The spec artifacts are clear enough, review is overkill" | Review catches blind spots that the spec author can't see. The more obvious the spec seems, the more likely assumptions are hiding. |
-| "I'll skip review for this small change" | Small changes still benefit from a test coverage check. Review scales with complexity — it's fast for simple changes. |
+| "I'll skip review for this small change" | Small changes still get the test coverage check — the preset decides how many roles, never whether to review. `minimal`/`technical` means one role, not zero. |
 | "The review rejected option X — let's just note it in tasks.md" | If the rejection reason is load-bearing for future reviewers, it'll be re-litigated. Run the ADR gate; if all three conditions hold, write the ADR. |
 
 ## Red Flags — STOP if you catch yourself:
@@ -152,7 +152,9 @@ digraph plan {
 
 4. **Assess change complexity and suggest review roles**
 
-   Evaluate complexity based on:
+   **Preset `minimal` or `technical`** (from `status.yaml`): the review is the **Test coverage** role alone. Say so in one line, skip the AskUserQuestion below, and go to step 5. The user can still ask for more roles; `/beat:apply` upgrades the preset if the change turns out bigger.
+
+   Otherwise, evaluate complexity based on:
    - Number of feature files and scenarios
    - Number of components/services mentioned in design.md
    - Whether `@e2e` scenarios exist (implies integration surface)
@@ -291,6 +293,8 @@ digraph plan {
 
    Ready for implementation! Run `/beat:apply` to start.
    ```
+
+   Then end with the handoff block from `references/handoff-report.md` (`next: /beat:apply <name>`).
 
 **Guardrails**
 - NEVER proceed without at least one spec artifact (gherkin or proposal) being done

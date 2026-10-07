@@ -152,9 +152,13 @@ digraph design {
    - If `beat/changes/<name>/` doesn't exist: create it (directory + status.yaml + features/.gitkeep)
    - If it exists: use it, read `status.yaml` (schema: `references/status-schema.md`) to find remaining artifacts
 
-3. **Ask which spec artifacts to include**
+   **From a route node:** when the input names a route node (`<route>/<node-id>`, or `/beat:explore` just handed one off), read `beat/routes/<route>/route.md` and `status.yaml` (schema: `references/route-schema.md`). Write `route: <route>/<node-id>` into the new change's status.yaml, and add `change: <name>` to that node in the route's status.yaml. The route's "Decisions so far" and the `result` files of the node's blockers are context for every artifact below.
 
-   Read `status.yaml`. For artifacts still `pending`, ask user once upfront:
+3. **Settle the preset**
+
+   Read `status.yaml`. If `preset` is already set (explore declared `small` and named `minimal` or `technical`, or the user passed one), use it and skip the question — say which preset is in effect and why.
+
+   Otherwise, for artifacts still `pending`, ask user once upfront:
 
    Use **AskUserQuestion tool**:
    > "Which spec artifacts do you want? (Tasks are handled separately by `/beat:plan`)"
@@ -163,6 +167,8 @@ digraph design {
    > 3. Minimal: Gherkin only (recommended for small bug fixes)
    > 4. Technical: Proposal only, no Gherkin (for tooling/infra/refactor changes with no behavior change)
    > 5. Custom: Let me choose each one
+
+   Write `preset: <full|standard|minimal|technical|custom>` to `status.yaml`. The preset does more than pick artifacts: `minimal` and `technical` run `/beat:plan` with a test-coverage review only and `/beat:verify` with one independent subagent, and `/beat:apply` upgrades them to `standard` if the diff outgrows `config.yaml` `preset_upgrade` thresholds. Say this in one line when a small preset is chosen.
 
    Mark skipped artifacts as `skipped` in `status.yaml`.
    Tasks are always set to `pending` — task breakdown happens in `/beat:plan`.
@@ -213,6 +219,7 @@ digraph design {
    - **Gherkin**:
      - Read `references/feature-writing.md` for conventions on description blocks, scenario organization, and review checklist
      - Before writing, scan `beat/features/**/*.feature` and `beat/changes/*/features/*.feature` (excluding current change) — read `Feature:` and `Scenario:` lines to map existing coverage, deep-read only overlapping features, avoid duplication and align style
+     - **From an approved prototype:** if the change's route node is blocked by a `prototype` node whose `result` names an approved variant, read that result and the stories it lists. Every story state becomes a scenario or is written under an explicit `Out of scope` note in the feature description — none is silently dropped. `@e2e` scenarios may point `@covered-by` at the story's play function.
      - SpecFlow style, tags `@happy-path`/`@error-handling`/`@edge-case`
      - Feature description carries PRD essence (must include: As a / I want / So that)
      - Every scenario MUST have a testing layer tag: `@e2e` (user journeys needing a running app) or `@behavior` (business logic testable without a full app; default `@behavior`)
@@ -271,10 +278,13 @@ digraph design {
    - features/*.feature (or skipped if Technical option)
    - design.md (or skipped)
 
+   Preset: <preset>  Route: <route>/<node> (or "standalone")
    Tasks: pending (run `/beat:plan` to create execution plan)
 
    Spec artifacts ready! Review them, then run `/beat:plan` for task breakdown.
    ```
+
+   Then end with the handoff block from `references/handoff-report.md` (`next: /beat:plan <name>`).
 
 **Guardrails**
 - Gherkin is mandatory by default -- only skip for purely technical changes (option 4: Technical)
@@ -283,3 +293,5 @@ digraph design {
 - If context is critically unclear, ask -- but prefer reasonable defaults to keep momentum
 - Verify each artifact file exists after writing before proceeding
 - Tasks are NOT created in this skill — they are handled by `/beat:plan`
+- Always write `preset` to status.yaml — later phases read it to decide their strength
+- Never copy implementation code from a `prototype/<node-id>` branch into the change; only stories and the approved-variant note carry over
