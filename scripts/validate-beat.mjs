@@ -9,10 +9,17 @@
 //   a script is neither. CI and skills can run it after every write.
 //
 // Usage:
-//   node scripts/validate-beat.mjs [<project-root>]   validate beat/ under the root (default: cwd)
-//   node scripts/validate-beat.mjs --file <path>      validate one file (type inferred from its path)
+//   node validate-beat.mjs [<project-root>] [--all]       validate active changes, routes, config and
+//                                                         .orig residue (--all includes beat/changes/archive/)
+//   node validate-beat.mjs --file <path>                  validate one status.yaml / route status.yaml / verify.md
+//   node validate-beat.mjs --pre-archive <change>         the change may be archived: verification passed,
+//                                                         mode full, sha is an ancestor of HEAD, tasks all checked
+//   node validate-beat.mjs --stale-paths <change>         list files still referencing beat/changes/<change>
+//                                                         (run after the archive move; exit 1 when any remain)
+//   node validate-beat.mjs --handoff <file|->              check a "## Beat Handoff" block (file or stdin)
 //
-// Exit 1 on any error. Warnings never fail the run.
+// Exit 1 on any error. Warnings never fail the run. Checks that need git are
+// skipped with a warning when the project is not a git checkout.
 //
 // The parser below handles the YAML subset the schemas allow (block maps,
 // inline flow maps, inline arrays, block sequences, scalars, comments) and
@@ -20,7 +27,8 @@
 // the schema.
 
 import { readFile, readdir, stat } from 'node:fs/promises';
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 const readFileSyncUtf8 = p => readFileSync(p, 'utf8');
 import { join, relative, basename, dirname } from 'node:path';
 
@@ -171,12 +179,23 @@ export function validateStatus(doc, { file, projectRoot }) {
       if (!u.reason) errors.push(`${where}: preset_upgrade.reason is required`);
     }
   }
+  const changeDir = file && projectRoot ? dirname(join(projectRoot, file)) : null;
+  const archived = /(^|\/)archive\//.test(String(file ?? ''));
+  if (!archived && doc.preset === undefined && doc.phase !== 'new') errors.push(`${where}: preset is required once design has started (full | standard | minimal | technical | custom)`);
   if (doc.route !== undefined) {
     const m = String(doc.route).match(/^([a-z0-9-]+)\/([a-z0-9-]+)$/);
     if (!m) errors.push(`${where}: route must be "<route-name>/<node-id>"`);
     else if (projectRoot) {
       const routeFile = join(projectRoot, 'beat', 'routes', m[1], 'status.yaml');
       if (!existsSync(routeFile)) errors.push(`${where}: route "${m[1]}" has no beat/routes/${m[1]}/status.yaml`);
+      else {
+        try {
+          const r = parseYaml(readFileSyncUtf8(routeFile));
+          const node = r.nodes?.[m[2]];
+          if (!node) errors.push(`${where}: route "${m[1]}" has no node "${m[2]}"`);
+          else if (node.change !== doc.name) errors.push(`${where}: route node ${doc.route} points at change "${node.change ?? ''}", not "${doc.name}"`);
+        } catch (e) { warnings.push(`${where}: could not read route status.yaml (${e.message})`); }
+      }
     }
   }
   if (doc.verification !== undefined) {
@@ -204,7 +223,144 @@ export function validateStatus(doc, { file, projectRoot }) {
       if (!STATUSES.includes(e.status)) errors.push(`${where}: pipeline.${k}.status must be one of ${STATUSES.join(', ')}`);
       if (k === 'gherkin' && e.modified !== undefined && !Array.isArray(e.modified)) errors.push(`${where}: pipeline.gherkin.modified must be an array`);
     }
+    // artifact files vs pipeline status, phase vs pipeline
+    if (changeDir && existsSync(changeDir)) {
+      const has = f => existsSync(join(changeDir, f));
+      const featureFiles = existsSync(join(changeDir, 'features')) ? readdirSync(join(changeDir, 'features')).filter(f => f.endsWith('.feature')) : [];
+      const artifact = { proposal: has('proposal.md'), gherkin: featureFiles.length > 0, design: has('design.md'), tasks: has('tasks.md') };
+      for (const k of expected) {
+        const st = p[k]?.status;
+        if (st === 'done' && !artifact[k]) errors.push(`${where}: pipeline.${k} is done but ${k === 'gherkin' ? 'features/*.feature' : k + '.md'} is missing`);
+        if (st === 'skipped' && artifact[k]) warnings.push(`${where}: pipeline.${k} is skipped but ${k === 'gherkin' ? 'features/*.feature' : k + '.md'} exists`);
+      }
+      const phaseIdx = PHASES.indexOf(doc.phase);
+      const needDone = { proposal: 1, gherkin: 2, design: 3, tasks: 4 };
+      for (const k of expected) {
+        if (phaseIdx > needDone[k] && p[k]?.status === 'pending') errors.push(`${where}: phase is ${doc.phase} but pipeline.${k} is still pending`);
+      }
+      if (phaseIdx >= PHASES.indexOf('verify') && artifact.tasks) {
+        const open = (readFileSyncUtf8(join(changeDir, 'tasks.md')).match(/^\s*- \[ \]/gm) || []).length;
+        if (open > 0) errors.push(`${where}: phase is ${doc.phase} but tasks.md has ${open} unchecked task(s)`);
+      }
+      // gherkin.modified consistency
+      for (const m of (p.gherkin?.modified ?? [])) {
+        if (projectRoot && !existsSync(join(projectRoot, `${m}.orig`))) errors.push(`${where}: gherkin.modified lists ${m} but ${m}.orig does not exist`);
+        if (!featureFiles.includes(basename(m))) errors.push(`${where}: gherkin.modified lists ${m} but features/${basename(m)} is not in the change`);
+      }
+      // verify.md cross-check
+      if (has('verify.md')) {
+        try {
+          const fm = frontMatter(readFileSyncUtf8(join(changeDir, 'verify.md')));
+          const v = fm ? parseYaml(fm) : null;
+          if (v) {
+            if (v.change !== doc.name) errors.push(`${where}: verify.md is for change "${v.change}", not "${doc.name}"`);
+            if (doc.verification) {
+              if (doc.verification.sha !== undefined && String(v.sha) !== String(doc.verification.sha)) errors.push(`${where}: verification.sha ${doc.verification.sha} differs from verify.md sha ${v.sha}`);
+              const open = (v.findings ?? []).filter(f => f && f.status === 'open');
+              const crit = open.filter(f => f.severity === 'CRITICAL').length;
+              const warnN = open.filter(f => f.severity === 'WARNING').length;
+              if (doc.verification.critical !== crit) errors.push(`${where}: verification.critical is ${doc.verification.critical} but verify.md has ${crit} open CRITICAL finding(s)`);
+              if (doc.verification.warning !== undefined && doc.verification.warning !== warnN) errors.push(`${where}: verification.warning is ${doc.verification.warning} but verify.md has ${warnN} open WARNING finding(s)`);
+            }
+          }
+        } catch (e) { warnings.push(`${where}: could not cross-check verify.md (${e.message})`); }
+      } else if (doc.verification && !archived) {
+        warnings.push(`${where}: verification recorded but verify.md is missing`);
+      }
+      // sha ancestry
+      if (doc.verification?.sha && projectRoot && !archived) {
+        const anc = isAncestor(projectRoot, String(doc.verification.sha));
+        if (anc === false) warnings.push(`${where}: verification.sha ${doc.verification.sha} is not an ancestor of HEAD — next verify must be full`);
+      }
+    }
   }
+  return { errors, warnings };
+}
+
+function git(projectRoot, args) {
+  try { return execFileSync('git', args, { cwd: projectRoot, stdio: ['ignore', 'pipe', 'ignore'] }).toString(); } catch { return null; }
+}
+function isAncestor(projectRoot, sha) {
+  if (git(projectRoot, ['rev-parse', '--is-inside-work-tree']) === null) return null;
+  try { execFileSync('git', ['merge-base', '--is-ancestor', sha, 'HEAD'], { cwd: projectRoot, stdio: 'ignore' }); return true; } catch { return false; }
+}
+
+export function validateConfig(doc, { file }) {
+  const errors = [], warnings = [];
+  checkKeys(doc, ['language', 'context', 'testing', 'prototype', 'preset_upgrade', 'lint', 'rules'], file, errors);
+  if (doc.context !== undefined && String(doc.context).length > 50 * 1024) errors.push(`${file}: context exceeds 50KB`);
+  else if (doc.context !== undefined && String(doc.context).length > 2 * 1024) warnings.push(`${file}: context exceeds the 2KB soft limit`);
+  if (doc.testing) checkKeys(doc.testing, ['required', 'behavior', 'e2e', 'framework'], `${file} testing`, errors);
+  if (doc.prototype) checkKeys(doc.prototype, ['surface', 'command'], `${file} prototype`, errors);
+  if (doc.preset_upgrade) {
+    checkKeys(doc.preset_upgrade, ['files', 'lines', 'modules'], `${file} preset_upgrade`, errors);
+    for (const k of ['files', 'lines', 'modules']) if (doc.preset_upgrade[k] !== undefined && typeof doc.preset_upgrade[k] !== 'number') errors.push(`${file}: preset_upgrade.${k} must be a number`);
+  }
+  if (doc.lint) checkKeys(doc.lint, ['tags', 'layer_tags', 'pending_tag'], `${file} lint`, errors);
+  if (doc.rules) for (const k of Object.keys(doc.rules)) if (!['proposal', 'gherkin', 'design', 'tasks', 'adr'].includes(k)) warnings.push(`${file}: rules.${k} is not a known artifact and will be ignored`);
+  return { errors, warnings };
+}
+
+export function validateHandoff(text, { file }) {
+  const errors = [], warnings = [];
+  const m = text.match(/## Beat Handoff\n([\s\S]*?)(?:\n\s*\n|$)/);
+  if (!m) return { errors: [`${file}: no "## Beat Handoff" block`], warnings };
+  const keys = {};
+  for (const line of m[1].split('\n')) for (const kv of line.matchAll(/(^|\s)([a-z-]+):\s*(\S[^\n]*?)(?=\s{2,}[a-z-]+:|$)/g)) keys[kv[2]] = kv[3].trim();
+  for (const k of ['change', 'phase', 'commit', 'branch', 'dirty', 'next', 'blocked-on']) if (!(k in keys)) errors.push(`${file}: handoff block missing "${k}"`);
+  if (keys.dirty && !['yes', 'no'].includes(keys.dirty)) errors.push(`${file}: dirty must be yes or no`);
+  if (keys.next && (keys.next.includes('\n') || /\bor\b/.test(keys.next))) errors.push(`${file}: next must be exactly one command`);
+  if (keys.commit && !/^[0-9a-f]{7,40}$/.test(keys.commit)) errors.push(`${file}: commit must be a git sha`);
+  for (const k of ['critical', 'warning']) if (keys.findings && !new RegExp(`${k}=\\d+`).test(keys.findings)) errors.push(`${file}: findings must carry ${k}=<n>`);
+  return { errors, warnings };
+}
+
+export function checkOrigResidue(projectRoot) {
+  const errors = [], warnings = [];
+  const featDir = join(projectRoot, 'beat', 'features');
+  const origs = [];
+  const walkSync = d => { for (const e of readdirSync(d)) { const f = join(d, e); if (statSync(f).isDirectory()) walkSync(f); else if (e.endsWith('.feature.orig')) origs.push(f); } };
+  if (existsSync(featDir)) walkSync(featDir);
+  if (!origs.length) return { errors, warnings };
+  const claimed = new Map();
+  const changesDir = join(projectRoot, 'beat', 'changes');
+  for (const c of existsSync(changesDir) ? readdirSync(changesDir) : []) {
+    if (c === 'archive') continue;
+    const st = join(changesDir, c, 'status.yaml');
+    if (!existsSync(st)) continue;
+    try { for (const m of (parseYaml(readFileSyncUtf8(st)).pipeline?.gherkin?.modified ?? [])) claimed.set(m, [...(claimed.get(m) ?? []), c]); } catch {}
+  }
+  for (const o of origs) {
+    const rel = relative(projectRoot, o).replace(/\.orig$/, '');
+    const owners = claimed.get(rel) ?? [];
+    if (owners.length === 0) errors.push(`${rel}.orig: orphan backup — no active change lists it in gherkin.modified (archive should have removed it)`);
+    if (owners.length > 1) errors.push(`${rel}.orig: modified by more than one active change (${owners.join(', ')})`);
+  }
+  return { errors, warnings };
+}
+
+export function stalePaths(projectRoot, change) {
+  const pattern = `beat/changes/${change}(/|[^A-Za-z0-9_-]|$)`;
+  const out = git(projectRoot, ['grep', '-lE', '--untracked', pattern, '--', '.', `:!beat/changes/archive/*-${change}/status.yaml`]);
+  if (out === null) return { errors: [], warnings: ['not a git checkout — cannot grep for stale paths'] };
+  const files = out.split('\n').filter(Boolean);
+  return { errors: files.map(f => `${f}: still references beat/changes/${change}`), warnings: [] };
+}
+
+export function preArchive(projectRoot, change) {
+  const errors = [], warnings = [];
+  const st = join(projectRoot, 'beat', 'changes', change, 'status.yaml');
+  if (!existsSync(st)) return { errors: [`beat/changes/${change}/status.yaml not found`], warnings };
+  const doc = parseYaml(readFileSyncUtf8(st));
+  const v = doc.verification;
+  if (!v) errors.push(`${change}: never verified`);
+  else {
+    if (v.status !== 'passed') errors.push(`${change}: last verify found ${v.critical} critical issue(s)`);
+    if (v.mode === 'incremental') errors.push(`${change}: last verify was incremental — run a full verify first`);
+    if (v.sha) { const a = isAncestor(projectRoot, String(v.sha)); if (a === false) errors.push(`${change}: verification.sha ${v.sha} is not an ancestor of HEAD`); if (a === null) warnings.push('not a git checkout — sha ancestry not checked'); }
+  }
+  const tasks = join(projectRoot, 'beat', 'changes', change, 'tasks.md');
+  if (existsSync(tasks)) { const open = (readFileSyncUtf8(tasks).match(/^\s*- \[ \]/gm) || []).length; if (open) errors.push(`${change}: tasks.md has ${open} unchecked task(s)`); }
   return { errors, warnings };
 }
 
@@ -323,36 +479,58 @@ async function validateFile(path, projectRoot) {
   return validateVerify(doc, ctx);
 }
 
-async function walk(dir, out) {
+async function walk(dir, out, includeArchive) {
   let entries;
   try { entries = await readdir(dir, { withFileTypes: true }); } catch { return out; }
   for (const e of entries) {
     const full = join(dir, e.name);
-    if (e.isDirectory()) await walk(full, out);
+    if (e.isDirectory()) { if (e.name === 'archive' && !includeArchive) continue; await walk(full, out, includeArchive); }
     else if (e.name === 'status.yaml' || e.name === 'verify.md') out.push(full);
   }
   return out;
 }
 
-async function main() {
-  const args = process.argv.slice(2);
-  const fileIdx = args.indexOf('--file');
-  let files = [], projectRoot;
-  if (fileIdx >= 0) {
-    files = [args[fileIdx + 1]];
-    projectRoot = process.cwd();
-  } else {
-    projectRoot = args[0] ?? process.cwd();
-    const beatDir = join(projectRoot, 'beat');
-    try { await stat(beatDir); } catch { console.error(`no beat/ directory under ${projectRoot}`); process.exit(1); }
-    files = [...await walk(join(beatDir, 'changes'), []), ...await walk(join(beatDir, 'routes'), [])];
-  }
+function report(results) {
   let errors = 0, warnings = 0;
-  for (const f of files) {
-    const r = await validateFile(f, projectRoot);
+  for (const r of results) {
     for (const e of r.errors) { console.error(`error: ${e}`); errors++; }
     for (const w of r.warnings) { console.warn(`warning: ${w}`); warnings++; }
   }
+  return { errors, warnings };
+}
+
+async function main() {
+  const args = process.argv.slice(2);
+  const takeOpt = name => { const i = args.indexOf(name); if (i < 0) return null; const v = args[i + 1]; args.splice(i, 2); return v; };
+  const all = (() => { const i = args.indexOf('--all'); if (i >= 0) { args.splice(i, 1); return true; } return false; })();
+  const file = takeOpt('--file'), pre = takeOpt('--pre-archive'), stale = takeOpt('--stale-paths'), handoff = takeOpt('--handoff');
+  const projectRoot = args[0] ?? process.cwd();
+
+  if (handoff) {
+    const text = handoff === '-' ? readFileSync(0, 'utf8') : readFileSync(handoff, 'utf8');
+    const { errors } = report([validateHandoff(text, { file: handoff })]);
+    console.log(errors ? `handoff block: ${errors} error(s)` : 'handoff block ok');
+    process.exit(errors ? 1 : 0);
+  }
+  if (pre) { const { errors } = report([preArchive(projectRoot, pre)]); console.log(errors ? `${pre}: not ready to archive` : `${pre}: ready to archive`); process.exit(errors ? 1 : 0); }
+  if (stale) { const { errors } = report([stalePaths(projectRoot, stale)]); console.log(errors ? `${errors} file(s) still reference beat/changes/${stale}` : `no stale references to beat/changes/${stale}`); process.exit(errors ? 1 : 0); }
+
+  let files = [];
+  const results = [];
+  if (file) files = [file];
+  else {
+    const beatDir = join(projectRoot, 'beat');
+    try { await stat(beatDir); } catch { console.error(`no beat/ directory under ${projectRoot}`); process.exit(1); }
+    files = [...await walk(join(beatDir, 'changes'), [], all), ...await walk(join(beatDir, 'routes'), [], all)];
+    const cfg = join(beatDir, 'config.yaml');
+    if (existsSync(cfg)) {
+      try { results.push(validateConfig(parseYaml(readFileSyncUtf8(cfg)), { file: 'beat/config.yaml' })); }
+      catch (e) { results.push({ errors: [`beat/config.yaml: ${e.message}`], warnings: [] }); }
+    }
+    results.push(checkOrigResidue(projectRoot));
+  }
+  for (const f of files) results.push(await validateFile(f, projectRoot));
+  const { errors, warnings } = report(results);
   console.log(`${files.length} file(s) checked, ${errors} error(s), ${warnings} warning(s)`);
   process.exit(errors ? 1 : 0);
 }
