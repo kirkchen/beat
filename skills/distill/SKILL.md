@@ -274,6 +274,8 @@ digraph distill {
    - Future changes to this area use the normal flow: `/beat:design` → `/beat:plan` → `/beat:apply`
    ```
 
+   Then end with the handoff block from `references/handoff-report.md` (`next: /beat:verify <name>`).
+
 **Distill vs Normal Flow**
 
 ```

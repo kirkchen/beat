@@ -174,7 +174,8 @@ digraph archive {
 
    - **Absent:** warn "This change was never verified (`/beat:verify` has not run)." Use **AskUserQuestion tool** to confirm archiving anyway.
    - **`status: issues-found`:** warn "Verification found N critical issue(s) on <date>." Use **AskUserQuestion tool** to confirm.
-   - **`status: passed`:** proceed silently.
+   - **`mode: incremental`:** warn "The last verify run was incremental (from <sha>); untouched artifacts were not re-read. Run `/beat:verify <name> full` first?" Use **AskUserQuestion tool**: run full verify now (recommended) / archive anyway.
+   - **`status: passed`, `mode: full` (or no `mode`):** proceed silently.
 
    Inform and confirm — never block.
 
@@ -309,12 +310,17 @@ digraph archive {
 
    Record the number of files rewritten for the summary.
 
+5b2. **Route check** (only when `status.yaml` has `route: <route>/<node>`)
+
+   Read `beat/routes/<route>/status.yaml` (schema: `references/route-schema.md`). The node's status is derived from this change's `phase`, so nothing is written to the node. Derive every node's status; if all are `done`, use **AskUserQuestion tool**: "Every node of route `<route>` is done. Archive the route to `beat/routes/archive/YYYY-MM-DD-<route>/`?" On Yes, `mkdir -p beat/routes/archive && mv beat/routes/<route> beat/routes/archive/YYYY-MM-DD-<route>` and include it in step 5c. Otherwise list the new frontier in the summary so the next `/beat:explore <route>` knows where to start.
+
 5c. **Commit the archive**
 
    Everything this run produced is one unit of work and must be committed on the current branch — do not create or switch branches — before step 7 hands off to merge/PR:
 
    ```bash
    git add beat/changes/            # the moved directory (deletions + new archive path)
+   git add beat/routes/             # only if step 5b2 archived the route
    git add beat/features/           # synced features, capability README/proposal/design.md
    git add beat/CONTEXT.md          # glossary terms added in step 4
    git add docs/adr/                # ADRs from the last-mile sweep, plus any ADR index
@@ -340,11 +346,16 @@ digraph archive {
    **Commit:** <sha> archive(<name>): sync features and archive change
    **Artifacts:** N done, M skipped
    **Tasks:** X/Y complete (or "No tasks file")
+   **Route:** <route> — N/M nodes done, frontier: [...] (or "route archived" / "standalone")
    ```
+
+   Then the handoff block from `references/handoff-report.md` (`next`: the finishing-a-development-branch step below, or `/beat:explore <route>` when a route still has frontier nodes).
+
+   One line after the block, not a step: "If this change taught you something about the environment (a lint rule, a config.yaml rule, a CLAUDE.md note), `/retro` from mattpocock-skills turns it into one — pass it `beat/changes/archive/YYYY-MM-DD-<name>/verify.md` and `status.yaml`." Only mention it when that skill is installed.
 
 7. **Finish the development branch**
 
-   After showing the summary, invoke `superpowers:finishing-a-development-branch` (if available) to guide the user through merge, PR creation, or cleanup. The archive commit from step 5c is already on the branch, so whichever option the user picks carries it. If not available, skip this step.
+   After showing the summary, invoke `superpowers:finishing-a-development-branch` (if available) to guide the user through merge, PR creation, or cleanup. The archive commit from step 5c is already on the branch, so whichever option the user picks carries it — this is the first point in the pipeline where pushing is expected. If not available, skip this step.
 
 **Guardrails**
 - Always prompt for change selection if not provided
@@ -355,3 +366,4 @@ digraph archive {
 - Never overwrite an existing capability `design.md` — merge and rewrite as current state
 - After the move, no tracked file may still reference `beat/changes/<name>`
 - Archive runs before the PR/merge and commits its result; it is never deferred until after the PR lands
+- Never write node status into a route — it is derived from the changes
