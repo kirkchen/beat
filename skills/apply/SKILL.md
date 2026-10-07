@@ -3,10 +3,11 @@ name: apply
 description: Use when implementing a Beat change — requires gherkin or proposal artifact to be done first
 ---
 
-Implement code based on the change artifacts. Supports two modes:
+Implement code based on the change artifacts. Supports three modes:
 
 - **Gherkin-driven** (default): feature files drive implementation and testing
 - **Proposal-driven**: when gherkin is skipped (technical changes), proposal drives testing
+- **Fix-from-verify**: the open findings in `verify.md` are the task list (see step 4)
 
 <decision_boundary>
 
@@ -14,6 +15,7 @@ Implement code based on the change artifacts. Supports two modes:
 - Implementing code for a Beat change that has spec artifacts (gherkin or proposal) done
 - TDD implementation driven by feature files or proposal risk points
 - Resuming implementation of a partially completed change
+- Fixing the open findings of the last `/beat:verify` run ("fix the verify findings", `fix-from-verify`)
 
 **NOT for:**
 - Creating spec artifacts like proposal, gherkin, or design.md (use `/beat:design`)
@@ -36,6 +38,14 @@ If a prerequisite skill is unavailable (not installed), continue without it — 
 because you judged it unnecessary. If the user explicitly asks to skip TDD, say that scenarios
 without tests will fail `/beat:verify`, confirm once, and if they insist run this change in
 no-test mode and say so in the completion status — never drop tests silently.
+
+Apply NEVER pushes. Commits stay on the local branch until `/beat:archive` has run; pushing and
+opening the PR belong to finishing-a-development-branch after archive. If the user asks to push
+now, say that archive must be the last commit on the branch, confirm once, and if they insist
+push — never push on your own initiative.
+
+Code on a `prototype/<node-id>` branch is NEVER merged, cherry-picked or copied into the change.
+It existed to let a human judge a variant. Rewrite the behaviour from the gherkin under TDD.
 </HARD-GATE>
 
 **Prerequisites** (invoke before proceeding)
@@ -62,6 +72,9 @@ Invoke in order: worktrees first (verify isolation), then TDD (discipline). Debu
 | "These tasks are small, I'll combine them for efficiency" | Each task is bounded for a reason. Merging recreates the oversized-output problem that decomposition solved. One task = one subagent dispatch. |
 | "The existing test is roughly correct, no need to update it" | If scenario steps changed, the test must reflect those changes. An old test passing does not mean the new behavior is correct. |
 | "I'll create a new test file, it's faster" | If @covered-by already points to an existing test, creating a new file breaks traceability. Update the existing test. |
+| "The prototype already works, I'll start from that code" | The prototype proved a variant to a human; it was never tested or designed. Starting from it skips the red step and inherits every shortcut. Write the test, then the code. |
+| "I'll push now so the user can see progress" | A pushed branch without the archive commit invites a PR that bypasses verify and archive. Progress is visible in the handoff block; push comes after archive. |
+| "This minimal change grew a bit, but re-verifying at standard strength is overkill" | The thresholds exist because `minimal` skipped the multi-role review. Crossing them means that review never happened for code that now spans modules. Upgrade and move on. |
 
 ## Red Flags — STOP if you catch yourself:
 
@@ -76,6 +89,9 @@ Invoke in order: worktrees first (verify isolation), then TDD (discipline). Debu
 - Dispatching a single subagent for multiple tasks to "save time"
 - Creating a new test file for a scenario that already has `@covered-by` pointing to an existing test
 - Modifying scenario steps without updating the corresponding e2e test
+- Running `git push` before `/beat:archive` has committed
+- Reading a `prototype/` branch for anything other than the stories and the approved-variant note
+- Finishing a `minimal`/`technical` change without checking the diff against `preset_upgrade` thresholds
 
 ## Mid-Implementation Triggers (mandatory)
 
@@ -124,7 +140,7 @@ digraph apply {
 }
 ```
 
-**Input**: Optionally specify a change name. If omitted, infer from context or prompt.
+**Input**: Optionally specify a change name. If omitted, infer from context or prompt. If the input contains `fix-from-verify`, or the user asks to fix the findings of the last verify run, enter **fix-from-verify mode** (step 4).
 
 **Steps**
 
@@ -134,6 +150,8 @@ digraph apply {
    - Look for `beat/changes/` directories (excluding `archive/`)
    - If only one exists, use it (announce: "Using change: <name>")
    - If multiple exist, use **AskUserQuestion tool** to let user select
+
+   Read `preset` from `status.yaml` (schema: `references/status-schema.md`) and keep it at hand — step 6 checks `minimal`/`technical` changes against the upgrade thresholds.
 
 2. **Read status.yaml and verify readiness** (schema: `references/status-schema.md`)
 
@@ -176,6 +194,8 @@ digraph apply {
    **If no tasks.md and Gherkin-driven:** Extract each Scenario from feature files as a unit of work (planner mode).
 
    **If no tasks.md and Proposal-driven:** Extract success criteria and risk points from proposal.md as units of work (planner mode).
+
+   **Fix-from-verify mode** (overrides the above): read `beat/changes/<name>/verify.md` (format: `references/verify-findings.md`). If it is missing or has no front matter, stop: "No verify findings to fix — run `/beat:verify <name>` first." Take every finding with `status: open`, in severity order (CRITICAL, WARNING, SUGGESTION), as the unit-of-work list. Each finding's `scenario`, `file` and `fix` are the task description; the TDD rules below still apply (a CRITICAL in dimension 1B means a missing test — write it first). Do not re-plan the whole change; do not touch findings marked `wontfix`. After each fix, rewrite that finding's line to `status: fixed` — never delete lines.
 
 5. **Show implementation overview**
 
@@ -236,7 +256,9 @@ digraph apply {
       - Keep changes minimal and focused on the scenario
       - In no-test mode: still write implementation, just without preceding test
 
-   d. **If using tasks.md**: Mark task complete `- [ ]` -> `- [x]`
+   d. **If using tasks.md**: Mark task complete `- [ ]` -> `- [x]`. In fix-from-verify mode: mark the finding `status: fixed` in `verify.md`.
+
+   d2. **Preset upgrade check** (only when `preset` is `minimal` or `technical`): run `git diff --stat <base>..HEAD` and count, tests excluded, the source files touched, the net lines added, and the top-level modules touched (directories under `src/`, `packages/`, `apps/`, or the repo root). Compare against `preset_upgrade` in `beat/config.yaml` (defaults 3 files / 200 lines / 1 module — see `references/config-schema.md`). If any threshold is exceeded: set `preset: standard` and write `preset_upgrade: { from: <old>, by: /beat:apply, date: <today>, reason: "<which threshold, with numbers>" }` in `status.yaml`, announce it in one line, and continue — the next `/beat:verify` runs at standard strength. Do this check once per task, not once at the end.
 
    e. **Continue to next**
 
@@ -280,11 +302,16 @@ digraph apply {
 
    **Change:** <name>
    **Scenarios:** N/N implemented with tests
+   **Preset:** <preset> (or "upgraded minimal → standard: <reason>")
 
    Suggested next steps:
    - `/beat:verify` -- validate implementation against artifacts
    - `/beat:archive` -- sync features and archive the change (run before opening the PR; archive is the last commit on the branch)
    ```
+
+   In fix-from-verify mode, report `fixed`/`open` counts instead of scenarios and suggest `/beat:verify <name>` (verify decides between incremental and full).
+
+   Then end with the handoff block from `references/handoff-report.md` (`next: /beat:verify <name>`, or the blocker that paused the run). Do not push.
 
 **Testing Rule: Conditional TDD**
 
@@ -314,3 +341,5 @@ digraph apply {
 - Update task checkbox immediately after completing each task
 - Pause on errors, blockers, or unclear requirements -- don't guess
 - If implementation reveals issues with features/design, suggest updating artifacts
+- Never push; archive is the last commit on the branch
+- On `minimal`/`technical` changes, check `preset_upgrade` thresholds after every task
