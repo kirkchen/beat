@@ -21,6 +21,11 @@ The dispatcher provides:
 - **Source**: normal | distill
 - **Modified files**: list of paths from `gherkin.modified` (if any), with `.orig` backup paths
 - **Tags summary**: @e2e count, @behavior count
+- **Run mode**: full | incremental. For incremental the dispatcher also provides `base` (a git sha), `git diff --stat base..HEAD`, the scenarios / proposal goals / design decisions that the changed files relate to, and the previous run's findings still marked `open`.
+
+## Incremental runs
+
+When run mode is incremental, scope every dimension to the diff: verify the scenarios, goals and decisions the dispatcher listed, and any file in the diff. For each previous open finding, re-check it at its `file` and report it as **still open** (same id) or **resolved** (same id). Do not re-verify untouched scenarios — say in the report which ones you did not read. If the diff touches a shared file (a schema, a base class, a fixture) that many scenarios depend on, say so and recommend a full run.
 
 ## Dimension 1: Gherkin Coverage & Quality
 
@@ -222,7 +227,14 @@ yet, and Beat shouldn't pretend it has.
 - "X critical issue(s) found. Fix before archiving."
 - "No critical issues. Y warning(s) to consider. Ready for archive."
 - "All checks passed. Ready for archive."
+
+### Findings (machine-readable)
+One line per finding, in the format of `references/verify-findings.md`, ids continuing from the previous run's when incremental:
+- { id: F1, severity: CRITICAL, dimension: 1B, scenario: "<name>", file: "<path:line>", fix: "<one sentence>", status: open }
+- { id: F3, severity: WARNING, dimension: 2, scenario: "", file: "<path>", fix: "<one sentence>", status: resolved }
 ```
+
+The dispatcher copies the `Findings` block into `verify.md` front matter; it must contain every finding listed above it, nothing more.
 
 ## Rules
 

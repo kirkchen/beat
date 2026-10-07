@@ -17,6 +17,15 @@ testing:                             # optional, map
   behavior: vitest                   # optional, string — framework for @behavior scenarios
   e2e: playwright                    # optional, string — framework for @e2e scenarios
 
+prototype:                           # optional, map
+  surface: storybook                 # optional, string — where prototypes are built (storybook, cli, html, ...)
+  command: pnpm storybook            # optional, string — how to run the surface for a human to look at
+
+preset_upgrade:                      # optional, map — thresholds that turn a minimal/technical change into standard
+  files: 3                           # optional, integer (default 3) — source files touched, tests excluded
+  lines: 200                         # optional, integer (default 200) — net lines added, tests excluded
+  modules: 1                         # optional, integer (default 1) — top-level modules touched
+
 rules:                               # optional, map
   proposal:                          # optional, array of strings
     - [Rule applied when creating proposals]
@@ -60,6 +69,14 @@ Skills that consume `testing`:
 - `/beat:setup` — asks users about testing preferences and writes this field
 
 **Backward compatibility:** If the legacy `testing.framework` field is present (instead of `testing.behavior`), treat it as `testing.behavior` (the old field was used for unit/behavior tests).
+
+### `prototype`
+
+Tells `/beat:explore` where a prototype node is built when exploration ends in `blocked` with `kind: prototype` (see `references/route-schema.md`). `surface` names the medium — `storybook` for UI states, `cli` for command-line behaviour, `html` for a single throwaway page. `command` is what a human runs to look at it. When absent, explore falls back to `mattpocock-skills:prototype` if installed, otherwise asks the user where the prototype should live.
+
+### `preset_upgrade`
+
+Thresholds `/beat:apply` checks after each task on a `minimal` or `technical` change. When the accumulated diff (tests excluded) exceeds any threshold, apply upgrades `preset` to `standard`, records `preset_upgrade` in status.yaml (see `references/status-schema.md`), and continues — the next `/beat:verify` runs at standard strength. Defaults when absent: `files: 3`, `lines: 200`, `modules: 1`. A module is a top-level directory under `src/`, `packages/`, `apps/`, or the repo root for single-module projects.
 
 ### `rules`
 
