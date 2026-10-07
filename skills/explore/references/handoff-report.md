@@ -33,7 +33,3 @@ rhythm-stage-result[<nonce>]: phase=verify sha=3f9c1a2 critical=0 warning=2 next
 ```
 
 Without a nonce, emit nothing extra. Never invent a nonce.
-
-## Why
-
-Across 170 Beat tasks in Rhythm, each task needed a median of 12 human messages, and a large share of them were a supervisor relaying facts the skill already had: "apply passed spot-check, 12/12 tasks, proceed to verify". A fixed block makes that relay unnecessary when a supervisor is present, and gives Codex sessions (no supervisor, no hook) the same ending.

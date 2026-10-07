@@ -113,12 +113,17 @@ digraph apply {
     "Gherkin done?" [shape=diamond];
     "Gherkin-driven" [shape=box];
     "Proposal-driven" [shape=box];
+    "fix-from-verify?" [shape=diamond];
+    "Open findings in verify.md\nare the task list" [shape=box];
     "tasks.md exists?" [shape=diamond];
     "Has Task N headings?" [shape=diamond];
     "Executor mode\nfollow tasks exactly" [shape=box];
     "Planner mode\nextract scenarios/criteria" [shape=box];
     "Implementation loop" [shape=box];
-    "All tasks complete" [shape=doublecircle];
+    "Preset minimal/technical?" [shape=diamond];
+    "Diff over preset_upgrade\nthresholds?" [shape=diamond];
+    "Upgrade preset to standard" [shape=box, style=bold];
+    "All tasks complete\n(no push)" [shape=doublecircle];
 
     "Select change, read artifacts" -> "Invoke using-git-worktrees";
     "Invoke using-git-worktrees" -> "testing.required false?";
@@ -128,15 +133,23 @@ digraph apply {
     "Invoke test-driven-development" -> "Gherkin done?";
     "Gherkin done?" -> "Gherkin-driven" [label="yes"];
     "Gherkin done?" -> "Proposal-driven" [label="gherkin skipped"];
-    "Gherkin-driven" -> "tasks.md exists?";
-    "Proposal-driven" -> "tasks.md exists?";
+    "Gherkin-driven" -> "fix-from-verify?";
+    "Proposal-driven" -> "fix-from-verify?";
+    "fix-from-verify?" -> "Open findings in verify.md\nare the task list" [label="yes"];
+    "fix-from-verify?" -> "tasks.md exists?" [label="no"];
+    "Open findings in verify.md\nare the task list" -> "Implementation loop";
     "tasks.md exists?" -> "Has Task N headings?" [label="yes"];
     "tasks.md exists?" -> "Planner mode\nextract scenarios/criteria" [label="no"];
     "Has Task N headings?" -> "Executor mode\nfollow tasks exactly" [label="yes"];
     "Has Task N headings?" -> "Planner mode\nextract scenarios/criteria" [label="no"];
     "Executor mode\nfollow tasks exactly" -> "Implementation loop";
     "Planner mode\nextract scenarios/criteria" -> "Implementation loop";
-    "Implementation loop" -> "All tasks complete";
+    "Implementation loop" -> "Preset minimal/technical?" [label="after each task"];
+    "Preset minimal/technical?" -> "Diff over preset_upgrade\nthresholds?" [label="yes"];
+    "Preset minimal/technical?" -> "All tasks complete\n(no push)" [label="no"];
+    "Diff over preset_upgrade\nthresholds?" -> "Upgrade preset to standard" [label="yes"];
+    "Diff over preset_upgrade\nthresholds?" -> "All tasks complete\n(no push)" [label="no"];
+    "Upgrade preset to standard" -> "All tasks complete\n(no push)";
 }
 ```
 
@@ -258,7 +271,7 @@ digraph apply {
 
    d. **If using tasks.md**: Mark task complete `- [ ]` -> `- [x]`. In fix-from-verify mode: mark the finding `status: fixed` in `verify.md`.
 
-   d2. **Preset upgrade check** (only when `preset` is `minimal` or `technical`): run `git diff --stat <base>..HEAD` and count, tests excluded, the source files touched, the net lines added, and the top-level modules touched (directories under `src/`, `packages/`, `apps/`, or the repo root). Compare against `preset_upgrade` in `beat/config.yaml` (defaults 3 files / 200 lines / 1 module — see `references/config-schema.md`). If any threshold is exceeded: set `preset: standard` and write `preset_upgrade: { from: <old>, by: /beat:apply, date: <today>, reason: "<which threshold, with numbers>" }` in `status.yaml`, announce it in one line, and continue — the next `/beat:verify` runs at standard strength. Do this check once per task, not once at the end.
+   d2. **Preset upgrade check** (only when `preset` is `minimal` or `technical`): run `git diff --stat <base>..HEAD` and count, tests excluded, the source files touched, the net lines added, and the top-level modules touched (directories under `src/`, `packages/`, `apps/`, or the repo root). Compare against `preset_upgrade` in `beat/config.yaml` (thresholds and defaults: `references/config-schema.md`). If any threshold is exceeded: set `preset: standard` and write `preset_upgrade: { from: <old>, by: /beat:apply, date: <today>, reason: "<which threshold, with numbers>" }` in `status.yaml`, announce it in one line, and continue — the next `/beat:verify` runs at standard strength. Do this check once per task, not once at the end.
 
    e. **Continue to next**
 

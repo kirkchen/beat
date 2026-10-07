@@ -72,6 +72,8 @@ user declines or it isn't installed, proceed with the four-challenge check inlin
 | "Spec self-review is overkill, the artifact is short" | Self-review catches placeholders, contradictions, and ambiguities that compound through plan and apply. The four checks take 30 seconds. |
 | "This decision is just for this change, no ADR needed" | Run the three-condition gate. If it's hard-to-reverse, surprising, and a real trade-off, future changes will trip over it — that's the ADR's job. Decisions that *are* change-specific don't pass the gate; let the gate decide, not your gut. |
 | "We'll lift this into an ADR later" | "Later" rarely arrives. The decision is fresh now; the ADR is 1-3 sentences. Write it inline. |
+| "Explore said minimal, but I'd rather ask the preset question anyway" | Explore already listed the facts. Asking again is the double question the exit was meant to remove. Use it and say so. |
+| "I'll pick minimal to keep this quick" | Minimal is for changes whose files sit in one module with nothing left to decide. If you can't list that, it's standard. Apply will upgrade a wrong guess, at the cost of a second verify. |
 
 ## Red Flags — STOP if you catch yourself:
 
@@ -85,6 +87,7 @@ user declines or it isn't installed, proceed with the four-challenge check inlin
 - Skipping the spec self-review because the artifact "looks fine"
 - Writing a Key Decision in `design.md` that meets all three ADR conditions without offering an ADR
 - Thinking "this prerequisite isn't needed for this particular change"
+- Leaving `preset` out of status.yaml, or choosing one without the facts that justify it
 
 ## Process Flow
 
@@ -92,7 +95,9 @@ user declines or it isn't installed, proceed with the four-challenge check inlin
 digraph design {
     "Select or create change" [shape=box];
     "Invoke using-git-worktrees" [shape=box, style=bold];
+    "Preset already set?" [shape=diamond];
     "Ask artifact preset" [shape=box];
+    "Write preset to status.yaml" [shape=box];
     "Includes proposal?" [shape=diamond];
     "Invoke brainstorming" [shape=box, style=bold];
     "Create proposal" [shape=box];
@@ -111,8 +116,11 @@ digraph design {
     "Show summary" [shape=doublecircle];
 
     "Select or create change" -> "Invoke using-git-worktrees";
-    "Invoke using-git-worktrees" -> "Ask artifact preset";
-    "Ask artifact preset" -> "Includes proposal?";
+    "Invoke using-git-worktrees" -> "Preset already set?";
+    "Preset already set?" -> "Ask artifact preset" [label="no"];
+    "Preset already set?" -> "Write preset to status.yaml" [label="yes (explore / user)"];
+    "Ask artifact preset" -> "Write preset to status.yaml";
+    "Write preset to status.yaml" -> "Includes proposal?";
     "Includes proposal?" -> "Invoke brainstorming" [label="yes"];
     "Includes proposal?" -> "Includes gherkin?" [label="no"];
     "Invoke brainstorming" -> "Create proposal";

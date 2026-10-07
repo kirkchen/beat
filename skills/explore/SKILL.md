@@ -1,6 +1,6 @@
 ---
 name: explore
-description: Use when thinking through ideas, investigating problems, or clarifying requirements — before or during a Beat change, or to pick the next node of a route
+description: Use when thinking through ideas, problems, or requirements before a Beat change, or picking the next route node
 ---
 
 Enter explore mode. Think deeply. Visualize freely. Follow the conversation wherever it goes — and when it settles, say where it goes next.
@@ -59,8 +59,17 @@ If a MUST skill is unavailable (not installed), proceed directly into the thinki
 | "This topic is too simple for brainstorming" | Simple topics finish brainstorming quickly. The overhead is negligible, but the missed insight is not. |
 | "The user said skip brainstorming, so I'll go straight to answers" | Honour it — after naming what brainstorming would have caught. The thinking stance still applies; only the structured ideation is skipped. |
 | "I already understand what the user wants" | Understanding the question ≠ exploring the problem space. Brainstorming prevents premature convergence. |
-| "The user knows what's next, I don't need to declare an exit" | The next session won't. Fifty-eight of 170 Beat tasks in Rhythm ended at explore with no exit and had to be re-explored. Declare it; it's two lines. |
+| "The user knows what's next, I don't need to declare an exit" | The next session won't. An exploration that ends without an exit gets re-explored from scratch. Declare it; it's two lines. |
 | "This is clearly one change, I'll call it standard and move on" | Look at what you can list. One module, no open decisions, no new terms → `small`. Two modules or dependent decisions → `too-big`. The size comes from the list, not the gut. |
+
+## Red Flags — STOP if you catch yourself:
+
+- Answering before invoking brainstorming
+- Writing application code "just to check"
+- Ending (or saying "we can pick this up later") without a declared exit
+- Declaring an exit without listing the files, modules or decisions that justify it
+- Declaring `too-big` or `blocked` without creating the route or node that records it
+- Estimating scenario counts instead of naming what you can see
 
 ---
 

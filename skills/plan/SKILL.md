@@ -81,6 +81,8 @@ digraph plan {
     "Read spec artifacts" [shape=box];
     "Check readiness" [shape=diamond];
     "STOP: need spec first" [shape=box, style=dashed];
+    "Preset minimal/technical?" [shape=diamond];
+    "Test-coverage role only" [shape=box];
     "Assess complexity" [shape=box];
     "Suggest review roles" [shape=box];
     "User confirms roles" [shape=box];
@@ -97,7 +99,10 @@ digraph plan {
     "Invoke using-git-worktrees" -> "Read spec artifacts";
     "Read spec artifacts" -> "Check readiness";
     "Check readiness" -> "STOP: need spec first" [label="no spec done"];
-    "Check readiness" -> "Assess complexity" [label="spec ready"];
+    "Check readiness" -> "Preset minimal/technical?" [label="spec ready"];
+    "Preset minimal/technical?" -> "Test-coverage role only" [label="yes"];
+    "Preset minimal/technical?" -> "Assess complexity" [label="no"];
+    "Test-coverage role only" -> "Invoke writing-plans";
     "Assess complexity" -> "Suggest review roles";
     "Suggest review roles" -> "User confirms roles";
     "User confirms roles" -> "Invoke writing-plans";

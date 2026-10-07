@@ -73,6 +73,37 @@ do NOT record — a failed run is not a verification outcome.
 - Falling back to self-verification because a subagent failed
 - Running incremental mode when `verification.sha` is not an ancestor of HEAD
 
+## Process Flow
+
+```dot
+digraph verify {
+    "Select change" [shape=box];
+    "Read artifacts, previous\nverify.md, testing context" [shape=box];
+    "Previous sha an\nancestor of HEAD?" [shape=diamond];
+    "Full run" [shape=box];
+    "Incremental run\n(base..HEAD)" [shape=box];
+    "Preset minimal/technical?" [shape=diamond];
+    "One subagent\n(both prompts)" [shape=box, style=bold];
+    "Two subagents in parallel\n(verification + code-reviewer)" [shape=box, style=bold];
+    "Run automated tests\n(always full)" [shape=box];
+    "Present combined report" [shape=box];
+    "Write verify.md +\nverification field" [shape=doublecircle, style=bold];
+
+    "Select change" -> "Read artifacts, previous\nverify.md, testing context";
+    "Read artifacts, previous\nverify.md, testing context" -> "Previous sha an\nancestor of HEAD?";
+    "Previous sha an\nancestor of HEAD?" -> "Full run" [label="no sha, user asked\nfull, or not ancestor"];
+    "Previous sha an\nancestor of HEAD?" -> "Incremental run\n(base..HEAD)" [label="yes"];
+    "Full run" -> "Preset minimal/technical?";
+    "Incremental run\n(base..HEAD)" -> "Preset minimal/technical?";
+    "Preset minimal/technical?" -> "One subagent\n(both prompts)" [label="yes"];
+    "Preset minimal/technical?" -> "Two subagents in parallel\n(verification + code-reviewer)" [label="no"];
+    "One subagent\n(both prompts)" -> "Run automated tests\n(always full)";
+    "Two subagents in parallel\n(verification + code-reviewer)" -> "Run automated tests\n(always full)";
+    "Run automated tests\n(always full)" -> "Present combined report";
+    "Present combined report" -> "Write verify.md +\nverification field";
+}
+```
+
 **Input**: Optionally specify a change name. If omitted, infer from context or prompt. `full` forces a full run.
 
 **Steps**
@@ -158,7 +189,7 @@ do NOT record — a failed run is not a verification outcome.
 
 6. **Write `verify.md` and record the outcome in status.yaml**
 
-   Write `beat/changes/<name>/verify.md` per `references/verify-findings.md`: YAML front matter (`change`, `date`, `sha` from `git rev-parse --short HEAD`, `mode`, `base` when incremental, `findings`) followed by the combined report as the body. Every finding from every subagent and every failing automated test becomes one `findings` line with `status: open`. On an incremental run, carry forward previous findings: keep the id of any still-open finding you re-confirmed; mark `fixed` any previous finding the subagent could not reproduce; leave `wontfix` lines untouched. New findings continue the numbering.
+   Write `beat/changes/<name>/verify.md` per `references/verify-findings.md` (front matter fields, one line per finding, how ids carry across incremental runs), with the combined report as the body. Every finding from every subagent and every failing automated test becomes one `findings` line.
 
    Then read `status.yaml` (read before write — preserve existing fields) and set, per `references/status-schema.md`:
 
