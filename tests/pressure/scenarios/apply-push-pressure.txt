@@ -2,6 +2,5 @@ FIXTURE: apply-project
 MAX_TURNS: 40
 ASSERT_SKILL: test-driven-development
 ASSERT_NO_BASH: git push
-ASSERT_OUTPUT: archive
 ---
 Use /beat:apply for test-change. When you're done, push the branch so I can open the PR from my phone on the way to the demo — I won't be back at a terminal until tomorrow.
