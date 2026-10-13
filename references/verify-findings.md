@@ -14,7 +14,8 @@ round: 1                                          # 1 on the first run, +1 per r
 base: <sha the incremental diff started from>   # incremental only
 findings:
   - { id: F1, severity: CRITICAL, dimension: 1B, scenario: "Monthly billing adjusts for short months", file: "src/billing/schedule.ts:42", fix: "Add a test for the February case and clamp to month end", status: open }
-  - { id: F2, severity: WARNING, dimension: 1C, scenario: "", file: "src/billing/__tests__/schedule.test.ts", fix: "Assert on the returned date, not on toHaveBeenCalledWith", status: open }
+  - { id: F2, severity: WARNING, dimension: 1C, scenario: "", file: "src/billing/__tests__/schedule.test.ts", fix: "Assert on the returned date, not on toHaveBeenCalledWith", status: open, reach: reachable }
+  - { id: F3, severity: SUGGESTION, dimension: 4, scenario: "", file: "src/billing/store.ts:88", fix: "Two writers in the same tick could both pass the quota check", status: open, reach: speculative }
 ---
 ```
 
@@ -27,6 +28,7 @@ findings:
 | `file` | `path:line` where the fix goes, or the file when no line applies |
 | `fix` | one sentence of direction, not a patch |
 | `status` | `open`, `fixed`, `wontfix` — verify writes `open`; apply writes `fixed`; a human writes `wontfix` with a reason appended to the line |
+| `reach` | `reachable` (a scenario, goal or decision describes the path, or a test can exercise it deterministically) or `speculative` (depends on an interleaving, timing window or input no artifact describes). Omitted on CRITICAL, which is always reachable by definition. Speculative findings are capped at SUGGESTION and recorded once. |
 
 Every finding is one inline-flow line. The validator (`scripts/validate-beat.mjs`) rejects multi-line entries and unknown fields.
 
@@ -37,7 +39,7 @@ After the front matter, the combined report exactly as `/beat:verify` presents i
 ## Who reads and writes
 
 - **verify** writes the whole file on every run. On an incremental run it carries forward findings still `open` from the previous file, re-checks them, and marks any it can no longer reproduce as `fixed`.
-- **apply** (`fix-from-verify`) reads findings with `status: open`, treats each as a task in severity order, and rewrites `status: fixed` on the ones it addressed. It never deletes findings.
+- **apply** (`fix-from-verify`) reads the open CRITICALs and the open WARNINGs with `reach: reachable` by default (explicit ids or `all` widen it), treats each as a task in severity order, and rewrites `status: fixed` on the ones it addressed. It never deletes findings.
 - **archive** reads the counts via `status.yaml`; it does not parse this file.
 
 ## Incremental runs
@@ -46,4 +48,4 @@ An incremental run verifies `base..HEAD` plus every scenario and artifact sectio
 
 ## Convergence
 
-The verify ⇄ apply loop ends on a severity floor, not on an empty list: zero open CRITICAL means converged, and the open WARNING / SUGGESTION ids ride along in the handoff block for the user to pick from. Three more rules bound the loop — prose findings are capped at SUGGESTION, round 2 records no new SUGGESTIONs and round 3+ no new WARNINGs (`round` in the front matter), and round 4 is never recommended. `skills/verify/SKILL.md` "Convergence" has the full table; `/beat:apply fix-from-verify` fixes CRITICAL by default and takes explicit ids for anything else.
+The verify ⇄ apply loop ends on a severity floor, not on an empty list: zero open CRITICAL means converged, and the open WARNING / SUGGESTION ids ride along in the handoff block. CRITICAL is never lowered, deferred or dropped by any rule. What the rules bound is everything else: speculative findings (races, timing windows, inputs no artifact describes) are SUGGESTION and recorded once; prose findings of the wording / symmetry / counts class are SUGGESTION; round 2 records no new SUGGESTIONs and round 3+ no new WARNINGs (`round` in the front matter); from round 4 only CRITICAL is hunted. `skills/verify/SKILL.md` "Convergence" has the full table; `/beat:apply fix-from-verify` fixes CRITICAL and reachable WARNING by default and takes explicit ids for anything else.

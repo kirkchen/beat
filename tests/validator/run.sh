@@ -22,6 +22,7 @@ for expect in \
   'status passed but critical is 2' \
   'route "nope" has no' \
   'incremental runs need base' \
+  'speculative findings are capped at SUGGESTION' \
   'severity must be one of' \
   'dimension must be one of' \
   'duplicate id F1' \

@@ -448,7 +448,9 @@ export function validateVerify(doc, { file }) {
   doc.findings.forEach((f, i) => {
     const w = `${where} findings[${i}]`;
     if (typeof f !== 'object' || f === null) { errors.push(`${w}: must be an inline flow map`); return; }
-    checkKeys(f, ['id', 'severity', 'dimension', 'scenario', 'file', 'fix', 'status'], w, errors);
+    checkKeys(f, ['id', 'severity', 'dimension', 'scenario', 'file', 'fix', 'status', 'reach'], w, errors);
+    if (f.reach !== undefined && !['reachable', 'speculative'].includes(f.reach)) errors.push(`${w}: reach must be reachable or speculative`);
+    if (f.reach === 'speculative' && f.severity !== 'SUGGESTION') errors.push(`${w}: speculative findings are capped at SUGGESTION`);
     if (!/^F\d+$/.test(String(f.id))) errors.push(`${w}: id must look like F1`);
     if (seen.has(f.id)) errors.push(`${w}: duplicate id ${f.id}`);
     seen.add(f.id);

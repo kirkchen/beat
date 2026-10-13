@@ -21,10 +21,13 @@ All notable changes to Beat are documented in this file. The format follows
   front matter with one line per finding, then the report. `/beat:apply
   fix-from-verify` works through the open findings and marks them fixed.
   Re-runs are incremental from `verification.sha` and bounded by convergence
-  rules adapted from cadence: zero open CRITICAL is converged, prose findings
-  cap at SUGGESTION, round 2 records no new SUGGESTIONs and round 3+ no new
-  WARNINGs, round 4 is never recommended. `fix-from-verify` fixes CRITICALs
-  by default and takes explicit ids for the rest. Archive never requires a
+  rules adapted from cadence: zero open CRITICAL is converged and CRITICAL is
+  never lowered or deferred; non-CRITICAL findings carry `reach` (reachable /
+  speculative) and speculative ones — most race conditions — cap at
+  SUGGESTION, recorded once; prose findings of the wording class cap at
+  SUGGESTION; round 2 records no new SUGGESTIONs, round 3+ no new WARNINGs,
+  round 4+ hunts only CRITICAL. `fix-from-verify` fixes CRITICAL and
+  reachable WARNING by default and takes explicit ids for the rest. Archive never requires a
   full re-run.
 - Every skill ends with a `## Beat Handoff` block
   (`references/handoff-report.md`) of command-derived facts and the next

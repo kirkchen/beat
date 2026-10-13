@@ -61,6 +61,8 @@ do NOT record — a failed run is not a verification outcome.
 | "The report is delivered, the status.yaml write is just bookkeeping" | `verify.md` is what `/beat:apply fix-from-verify` reads; the `verification` field is how archive knows verify ran. Skip either and the loop breaks. |
 | "Only two files changed since last time, I'll just eyeball the diff" | That is what incremental mode is for — a subagent reads the diff, not you. |
 | "There are still WARNINGs open, we should go another round" | Zero open CRITICAL is converged. WARNINGs and SUGGESTIONs are surfaced for the user to pick from, not a reason to loop. Every extra round finds new edge cases in the code the last fix touched; that is the loop, not progress. |
+| "It's a race, it could happen, so it's a WARNING" | If no scenario, goal or decision describes that interleaving and no test can exercise it deterministically, it is speculative: record it once as a SUGGESTION with `reach: speculative` and move on. Chasing hypothetical interleavings is how the loop never ends. |
+| "Round 4 — the cap says stop, so this CRITICAL can wait" | The cap never touches CRITICAL. A CRITICAL is fixed on whatever round it appears; what stops at round 4 is the hunt for new WARNINGs and SUGGESTIONs. |
 | "This touched a shared file, I'd better run full again" | A full run after round 1 is the user's call, not the skill's. Say which files were shared and let them decide. |
 
 ## Red Flags — STOP if you catch yourself:
@@ -75,6 +77,8 @@ do NOT record — a failed run is not a verification outcome.
 - Running incremental mode when `verification.sha` is not an ancestor of HEAD
 - Recording a new SUGGESTION on round 2 or later, or a new WARNING on round 3 or later (see Convergence)
 - Recommending another fix round when zero CRITICAL findings are open
+- Lowering, deferring or dropping a CRITICAL for any convergence rule
+- Recording a speculative race or interleaving above SUGGESTION, or re-raising one under a new id
 
 ## Process Flow
 
@@ -221,13 +225,16 @@ digraph verify {
 
 Verification is a loop with `/beat:apply fix-from-verify`, and loops that re-open every severity on every round do not end: each fix touches code the next round reads fresh, and a careful reviewer always finds another edge case. These rules (adapted from cadence `self-review` / `pr-review`) decide when the loop is done. They are applied by the dispatcher after merging the subagent reports, never by the subagents.
 
+The one thing no rule below changes: **CRITICAL is never lowered, deferred or dropped.** CRITICAL is defined by the classification list (missing scenario test, inaccurate scenario in accuracy mode, unimplemented goal, design violation, security vulnerability, failing automated test) and a CRITICAL is fixed on whatever round it appears. The rules shape what else gets recorded and whether another round is worth running.
+
 | Rule | What it does |
 |------|--------------|
-| **Severity floor** | The change is **converged** when zero CRITICAL findings are open. Open WARNINGs and SUGGESTIONs are surfaced in the report and the handoff block; they are the user's to pick from, not a reason for another round. `next` is archive. |
-| **Prose ceiling** | A finding whose `file` is prose (`.feature`, `.md`, docs) is capped at SUGGESTION whatever the subagent said, unless it is a missing test for a scenario (that stays CRITICAL) or a scenario that contradicts the code in accuracy mode. Wording, symmetry with a sibling scenario, drifted line numbers, counts, annotation placement — all SUGGESTION. |
-| **Iteration ramp** | Round 1 records everything. Round 2 records new CRITICAL and new WARNING; new SUGGESTIONs are counted on one line (`+N suggestions not recorded`) and not written to verify.md. Round 3 and later record only new CRITICAL; everything else is counted. Re-checks of previously open findings are always recorded (still open / fixed). |
-| **Round cap** | After round 3, do not recommend another fix round even for a CRITICAL. Report it, mark the change `issues-found`, and say that a change still producing CRITICALs on round 4 is too large — split it or fix by hand with the user. |
-| **Divergence** | If this round's open count is larger than the previous round's, or at least three new findings sit in files the last fix-from-verify commit touched and none of the previous findings recur, say so in the report: the fixes are opening surfaces, not closing them. Recommend stopping and reviewing the last fix commit by hand rather than another round. |
+| **Severity floor** | The change is **converged** when zero CRITICAL findings are open. Open WARNINGs and SUGGESTIONs are surfaced in the report and the handoff block; the reachable WARNINGs are worth doing and are what `fix-from-verify` picks up by default, the rest is the user's to choose. `next` is archive. |
+| **Reach** | Every non-CRITICAL finding gets `reach: reachable` or `reach: speculative`. Reachable: a scenario, proposal goal or design decision describes the path, or a test can exercise it deterministically. Speculative: it depends on an interleaving, timing window or input that no artifact describes — most race-condition findings. Speculative findings are capped at SUGGESTION, recorded once, and never re-raised under a new id in a later round. |
+| **Prose ceiling** | A finding whose `file` is prose (`.feature`, `.md`, docs) and whose class is wording, symmetry with a sibling scenario, drifted line numbers, counts or annotation placement is a SUGGESTION. This never applies to a CRITICAL class (a missing test for a scenario, a scenario that contradicts the code in accuracy mode). |
+| **Iteration ramp** | Round 1 records everything. Round 2 records new CRITICAL and new reachable WARNING; new SUGGESTIONs are counted on one line (`+N suggestions not recorded`) and not written to verify.md. Round 3 and later record only new CRITICAL; everything else is counted. Re-checks of previously open findings are always recorded (still open / fixed). |
+| **Round cap** | From round 4, stop hunting: record only CRITICAL and re-checks, and recommend archive when none is open. A CRITICAL on round 4 is still fixed; say that a change still producing CRITICALs this late is too large and should be split after this one. |
+| **Divergence** | If this round's open count is larger than the previous round's, or at least three new findings sit in files the last fix-from-verify commit touched and none of the previous findings recur, say so in the report: the fixes are opening surfaces, not closing them. Recommend reviewing the last fix commit by hand before any further round. |
 | **Shared files** | A full re-run after round 1 is the user's decision. When the diff touched files many scenarios share, name them in the report and offer `/beat:verify <name> full`; do not require it, and archive does not require it. |
 
 `verify.md` front matter records `round`; `status.yaml` `verification.round` carries it so the next run knows where it is.
