@@ -207,6 +207,14 @@ design 選的 preset（`full`、`standard`、`minimal`、`technical`）決定後
 
 ---
 
+## 夠收斂就好
+
+`/beat:verify` 與 `/beat:apply fix-from-verify` 是一個迴圈，而每一輪都把全部嚴重度重新打開的迴圈不會結束：每次修正都碰到下一輪會重新讀的程式碼，認真的 reviewer 總是找得到再一個 edge case。所以迴圈停在嚴重度的底線，不是停在清單清空。0 個 open 的 CRITICAL 就算收斂；WARNING 與 SUGGESTION 跟著進 archive，由使用者決定修哪些。後面的輪次能新增的 finding 越來越少（第 2 輪不收新 SUGGESTION，第 3 輪起只收 CRITICAL），prose 上的 finding 封頂在 SUGGESTION，第 4 輪永遠不建議。這些規則來自 cadence 的 `self-review` 與 `pr-review`，在那裡是用真實 review 流量量出來的。
+
+**我們捨棄了什麼：** archive 前強制一次 full 重驗。它把 verify 變成 gate、gate 變成迴圈：第一次 dogfooding 時每一次「最後的」full 都在上一輪剛改過的程式碼裡找到新的 WARNING。通過的那次就是收斂；full 重跑是使用者自己要的時候才跑。
+
+**取捨：** 真正的缺陷可能躲在沒人撿的 WARNING 後面。我們接受：verification 紀錄列著它、handoff 區塊點名它、PR 上的 `pr-review` 會用新的眼睛再讀同一份 diff。我們不接受的是一個 change 因為 reviewer 太認真而沒辦法 archive。
+
 ## Script 優先於 Prose
 
 讀檔就能判定的規則是 script，不是一段文字。`validate-beat.mjs` 與 `lint-features.mjs` 負責 schema 形狀、標註目標、layer tag、舊路徑殘留、`.orig` 殘留；skill 只說「跑它，修它列出的」，把 prose 留給 script 判斷不了的事：scenario 是不是行為層級、有沒有照 design 做、決策過不過 ADR gate。

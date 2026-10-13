@@ -56,7 +56,7 @@ assert_contains "$output" "one\|1\|single" "verify knows minimal preset dispatch
 output=$(run_claude "As beat:verify, besides the verification field in status.yaml, what file do you write and what does /beat:apply do with it?" 30)
 assert_contains "$output" "verify\.md\|findings\|fix-from-verify" "verify knows it writes verify.md findings for apply"
 
-output=$(run_claude "As beat:verify, when do you run in incremental mode, and can an incremental run be the last one before archive?" 60 5)
-assert_contains "$output" "sha\|ancestor\|full\|archive" "verify knows incremental rules and the final full run"
+output=$(run_claude "As beat:verify, when is the verify/apply loop converged, and what may a round-2 run record as new findings?" 60 5)
+assert_contains "$output" "CRITICAL\|converged\|ramp\|round" "verify knows the severity floor and iteration ramp"
 
 print_summary

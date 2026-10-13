@@ -190,6 +190,14 @@ The artifact preset chosen in design (`full`, `standard`, `minimal`, `technical`
 
 ---
 
+## Converged Enough
+
+`/beat:verify` and `/beat:apply fix-from-verify` form a loop, and a loop that re-opens every severity on every round never ends: each fix touches code the next round reads fresh, and a careful reviewer always finds one more edge case. The loop therefore stops on a severity floor, not on an empty list. Zero open CRITICAL is converged; WARNINGs and SUGGESTIONs ride into archive with the user deciding which to fix. Later rounds admit fewer new findings (no new SUGGESTIONs on round 2, only CRITICALs from round 3), prose findings are capped at SUGGESTION, and a fourth round is never recommended. These rules come from cadence `self-review` and `pr-review`, where they were measured against real review traffic.
+
+**What we rejected:** Requiring a full re-verify before archive. It turned verify into a gate and the gate into a loop — in the first dogfooding run every "final" full pass found a new WARNING in the code the previous fix had just touched. A passing run is converged; a full re-run is something the user asks for.
+
+**Trade-off:** A real defect can hide behind a WARNING that nobody picks up. We accept this: the verification record lists it, the handoff block names it, and `pr-review` on the PR reads the same diff with fresh eyes. What we do not accept is a change that cannot be archived because its reviewer is thorough.
+
 ## Scripts Over Prose
 
 A rule that can be decided by reading files is a script, not a paragraph. `validate-beat.mjs` and `lint-features.mjs` settle schema shape, annotation targets, layer tags, stale paths and `.orig` residue; the skills say "run it, fix what it lists" and spend their prose on what a script cannot judge — behavior-level wording, design adherence, whether a decision meets the ADR gate.

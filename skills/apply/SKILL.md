@@ -207,7 +207,7 @@ digraph apply {
 
    **If no tasks.md and Proposal-driven:** Extract success criteria and risk points from proposal.md as units of work (planner mode).
 
-   **Fix-from-verify mode** (overrides the above): read `beat/changes/<name>/verify.md` (format: `references/verify-findings.md`). If it is missing or has no front matter, stop: "No verify findings to fix — run `/beat:verify <name>` first." Take every finding with `status: open`, in severity order (CRITICAL, WARNING, SUGGESTION), as the unit-of-work list. Each finding's `scenario`, `file` and `fix` are the task description; the TDD rules below still apply (a CRITICAL in dimension 1B means a missing test — write it first). Do not re-plan the whole change; do not touch findings marked `wontfix`. After each fix, rewrite that finding's line to `status: fixed` — never delete lines.
+   **Fix-from-verify mode** (overrides the above): read `beat/changes/<name>/verify.md` (format: `references/verify-findings.md`). If it is missing or has no front matter, stop: "No verify findings to fix — run `/beat:verify <name>` first." The unit-of-work list is the open findings **the user asked for**: by default only `status: open` CRITICALs; `fix-from-verify F3 F7` takes explicit ids of any severity; `fix-from-verify all` takes every open finding — say how many WARNING / SUGGESTION that includes before starting, because fixing all of them is what turns verify into a loop. Never widen the list on your own. Each finding's `scenario`, `file` and `fix` are the task description; the TDD rules below still apply (a CRITICAL in dimension 1B means a missing test — write it first). Do not re-plan the whole change; do not touch findings marked `wontfix`. After each fix, rewrite that finding's line to `status: fixed` — never delete lines.
 
 5. **Show implementation overview**
 
@@ -314,7 +314,7 @@ digraph apply {
    - `/beat:archive` -- sync features and archive the change (run before opening the PR; archive is the last commit on the branch)
    ```
 
-   In fix-from-verify mode, report `fixed`/`open` counts instead of scenarios and suggest `/beat:verify <name>` (verify decides between incremental and full).
+   In fix-from-verify mode, report `fixed`/`open` counts instead of scenarios and suggest `/beat:verify <name>` (verify decides between incremental and full, and the round it is on).
 
    Then end with the handoff block from `references/handoff-report.md` (`next: /beat:verify <name>`, or the blocker that paused the run). Do not push.
 

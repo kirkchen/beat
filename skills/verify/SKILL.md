@@ -60,7 +60,8 @@ do NOT record — a failed run is not a verification outcome.
 | "I'll dispatch them sequentially to save context" | They're independent — parallel dispatch is faster and prevents one report from biasing the other. |
 | "The report is delivered, the status.yaml write is just bookkeeping" | `verify.md` is what `/beat:apply fix-from-verify` reads; the `verification` field is how archive knows verify ran. Skip either and the loop breaks. |
 | "Only two files changed since last time, I'll just eyeball the diff" | That is what incremental mode is for — a subagent reads the diff, not you. |
-| "The last run was incremental and clean, that's enough for archive" | Incremental runs never re-read untouched artifacts. Archive requires one final `full` run. |
+| "There are still WARNINGs open, we should go another round" | Zero open CRITICAL is converged. WARNINGs and SUGGESTIONs are surfaced for the user to pick from, not a reason to loop. Every extra round finds new edge cases in the code the last fix touched; that is the loop, not progress. |
+| "This touched a shared file, I'd better run full again" | A full run after round 1 is the user's call, not the skill's. Say which files were shared and let them decide. |
 
 ## Red Flags — STOP if you catch yourself:
 
@@ -72,6 +73,8 @@ do NOT record — a failed run is not a verification outcome.
 - Presenting the report without writing `verify.md` and the `verification` field
 - Falling back to self-verification because a subagent failed
 - Running incremental mode when `verification.sha` is not an ancestor of HEAD
+- Recording a new SUGGESTION on round 2 or later, or a new WARNING on round 3 or later (see Convergence)
+- Recommending another fix round when zero CRITICAL findings are open
 
 ## Process Flow
 
@@ -131,9 +134,10 @@ digraph verify {
    - If `gherkin` status is `done` → **Gherkin-driven verification**
    - If `gherkin` status is `skipped` → **Proposal-driven verification**
 
-   **Determine run mode:**
+   **Determine run mode and round:**
    - **full** when: no previous `verification`, the user asked for `full`, the previous run has no `sha`, or `git merge-base --is-ancestor <sha> HEAD` fails (rebased or amended since).
    - **incremental** otherwise: `base` = previous `sha`; collect `git diff --stat <base>..HEAD` and the list of scenarios, proposal goals and design decisions those files relate to. Say which mode is running and why.
+   - **round** = previous `verification.round` + 1 (1 when there is no previous run). The round governs what new findings may be recorded — see Convergence below.
 
    **Determine testing context** (three-layer priority: tag > source > config):
    - **Config layer**: Is `testing.required` set to `false`? If yes, skip test existence checks globally.
@@ -192,6 +196,8 @@ digraph verify {
 
    On an incremental run, prefix the report with what was and was not re-read.
 
+   **Apply the convergence rules before writing anything** (see "Convergence" below): cap prose findings, drop new findings the round does not admit, detect divergence, and decide the verdict line.
+
 6. **Write `verify.md` and record the outcome in status.yaml**
 
    Write `beat/changes/<name>/verify.md` per `references/verify-findings.md` (front matter fields, one line per finding, how ids carry across incremental runs), with the combined report as the body. Every finding from every subagent and every failing automated test becomes one `findings` line.
@@ -209,7 +215,22 @@ digraph verify {
 
    Run `node <skill-dir>/scripts/validate-beat.mjs --file beat/changes/<name>/verify.md` and the same for `status.yaml` (see `references/lint-tools.md`); fix any schema error before presenting.
 
-   Then end with the handoff block from `references/handoff-report.md`: `findings` from the counts above; `next` is `/beat:apply <name> fix-from-verify` when anything is open, `/beat:archive <name>` when clean and this run was `full`, or `/beat:verify <name> full` when clean but incremental.
+   Then end with the handoff block from `references/handoff-report.md`: `findings` from the counts above; `next` is `/beat:apply <name> fix-from-verify` when a CRITICAL is open, otherwise `/beat:archive <name>` — with the open WARNING / SUGGESTION ids listed in `blocked-on: none (open: F3, F7)` so the user can pick which to fix first.
+
+## Convergence
+
+Verification is a loop with `/beat:apply fix-from-verify`, and loops that re-open every severity on every round do not end: each fix touches code the next round reads fresh, and a careful reviewer always finds another edge case. These rules (adapted from cadence `self-review` / `pr-review`) decide when the loop is done. They are applied by the dispatcher after merging the subagent reports, never by the subagents.
+
+| Rule | What it does |
+|------|--------------|
+| **Severity floor** | The change is **converged** when zero CRITICAL findings are open. Open WARNINGs and SUGGESTIONs are surfaced in the report and the handoff block; they are the user's to pick from, not a reason for another round. `next` is archive. |
+| **Prose ceiling** | A finding whose `file` is prose (`.feature`, `.md`, docs) is capped at SUGGESTION whatever the subagent said, unless it is a missing test for a scenario (that stays CRITICAL) or a scenario that contradicts the code in accuracy mode. Wording, symmetry with a sibling scenario, drifted line numbers, counts, annotation placement — all SUGGESTION. |
+| **Iteration ramp** | Round 1 records everything. Round 2 records new CRITICAL and new WARNING; new SUGGESTIONs are counted on one line (`+N suggestions not recorded`) and not written to verify.md. Round 3 and later record only new CRITICAL; everything else is counted. Re-checks of previously open findings are always recorded (still open / fixed). |
+| **Round cap** | After round 3, do not recommend another fix round even for a CRITICAL. Report it, mark the change `issues-found`, and say that a change still producing CRITICALs on round 4 is too large — split it or fix by hand with the user. |
+| **Divergence** | If this round's open count is larger than the previous round's, or at least three new findings sit in files the last fix-from-verify commit touched and none of the previous findings recur, say so in the report: the fixes are opening surfaces, not closing them. Recommend stopping and reviewing the last fix commit by hand rather than another round. |
+| **Shared files** | A full re-run after round 1 is the user's decision. When the diff touched files many scenarios share, name them in the report and offer `/beat:verify <name> full`; do not require it, and archive does not require it. |
+
+`verify.md` front matter records `round`; `status.yaml` `verification.round` carries it so the next run knows where it is.
 
 **Issue Classification**
 - CRITICAL: Must fix (missing scenario test [in coverage mode], inaccurate scenario [in accuracy mode], unimplemented goal, design violation, security vulnerability, failing automated test from step 4)

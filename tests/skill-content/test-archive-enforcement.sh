@@ -68,7 +68,7 @@ assert_contains "$output" "5c\|Commit the archive\|archive(<name>)\|archive(" "a
 output=$(run_claude "As beat:archive, after moving the change directory, how do you find files that still reference the old path?" 30)
 assert_contains "$output" "stale-paths\|validate-beat\|grep" "archive knows to run validate-beat --stale-paths"
 
-output=$(run_claude "As beat:archive, if the last verify run was incremental, what do you do?" 30)
-assert_contains "$output" "full\|warn\|confirm\|incremental" "archive knows to ask for a final full verify"
+output=$(run_claude "As beat:archive, if the last verify run was incremental and passed, do you require a full re-run before archiving?" 30)
+assert_contains "$output" "no\|not require\|optional\|user\|proceed" "archive knows a passing incremental verify is enough"
 
 print_summary

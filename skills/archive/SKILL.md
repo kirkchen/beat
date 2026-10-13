@@ -69,7 +69,6 @@ If unavailable (skill not installed), skip and show archive summary only.
 | "I'll just tell the user to create a PR manually" | finishing-a-development-branch offers structured options (merge, PR, cleanup) tailored to the current state. Manual advice misses context. |
 | "Skipping sync is fine, the user can run it later" | There is no separate sync skill. Archive is the only place features get synced. Skipping means features are lost from living documentation. |
 | "The .orig backups can be cleaned up later" | Orphaned `.orig` files hide scenarios from BDD runners permanently, and validate-beat flags them as errors from now on. Cleanup is part of archive. |
-| "The last verify was incremental and clean, that's good enough" | Incremental runs never re-read the artifacts the diff didn't touch. One full run before archive is what makes the verification record mean something. Offer it. |
 | "Glossary terms can be added later, it's just docs" | Once the features sync into `beat/features/`, the undefined terms become user-facing living documentation. Future readers can't tell which terms are canonical vs. ad hoc. The scan-and-prompt is two minutes — do it before sync. |
 | "We didn't write any ADRs but the design.md captures everything" | design.md gets archived with the change. Cross-change decisions need to live in `docs/adr/`. The last-mile sweep is one prompt; if nothing qualifies, it costs nothing. |
 | "Verify probably ran at some point, no need to check" | status.yaml records it. If the `verification` field is absent, verify never ran — archiving unverified work silently is exactly the gap the check exists to close. One confirmation prompt, never a block. |
@@ -80,7 +79,6 @@ If unavailable (skill not installed), skip and show archive summary only.
 
 ## Red Flags — STOP if you catch yourself:
 
-- Archiving on an incremental verify without offering a full run first
 - Completing archive without invoking finishing-a-development-branch
 - Skipping the sync step without checking if gherkin is done
 - Moving to archive without asking user about capability mapping (when features exist)
@@ -103,8 +101,6 @@ digraph archive {
     "Warn incomplete tasks" [shape=box];
     "Verification recorded?" [shape=diamond];
     "Warn unverified" [shape=box];
-    "Last run incremental?" [shape=diamond];
-    "Offer full verify" [shape=box];
     "Gherkin done?" [shape=diamond];
     "Ask capability mapping" [shape=box];
     "Scan features for\nundefined terms" [shape=box, style=bold];
@@ -127,11 +123,8 @@ digraph archive {
     "Check task completion" -> "Verification recorded?" [label="all complete\nor no tasks"];
     "Warn incomplete tasks" -> "Verification recorded?" [label="user confirms"];
     "Verification recorded?" -> "Warn unverified" [label="absent or\nissues-found"];
-    "Verification recorded?" -> "Last run incremental?" [label="passed"];
+    "Verification recorded?" -> "Gherkin done?" [label="passed"];
     "Warn unverified" -> "Gherkin done?" [label="user confirms"];
-    "Last run incremental?" -> "Offer full verify" [label="yes"];
-    "Last run incremental?" -> "Gherkin done?" [label="no"];
-    "Offer full verify" -> "Gherkin done?" [label="user confirms\nor full run passes"];
     "Gherkin done?" -> "Ask capability mapping" [label="done"];
     "Gherkin done?" -> "Skip sync" [label="skipped"];
     "Ask capability mapping" -> "Scan features for\nundefined terms";
@@ -186,8 +179,7 @@ digraph archive {
 
    - **Absent:** warn "This change was never verified (`/beat:verify` has not run)." Use **AskUserQuestion tool** to confirm archiving anyway.
    - **`status: issues-found`:** warn "Verification found N critical issue(s) on <date>." Use **AskUserQuestion tool** to confirm.
-   - **`mode: incremental`:** warn "The last verify run was incremental (from <sha>); untouched artifacts were not re-read. Run `/beat:verify <name> full` first?" Use **AskUserQuestion tool**: run full verify now (recommended) / archive anyway.
-   - **`status: passed`, `mode: full` (or no `mode`):** proceed silently.
+   - **`status: passed`:** proceed. State the open WARNING / SUGGESTION count and, when `mode` is `incremental`, that the last run re-read only the diff — one line, no question. A passing verify is converged (zero open CRITICAL); a full re-run is the user's choice, never a condition.
 
    Inform and confirm — never block.
 

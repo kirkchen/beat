@@ -20,8 +20,12 @@ All notable changes to Beat are documented in this file. The format follows
 - `/beat:verify` writes `verify.md` (`references/verify-findings.md`): YAML
   front matter with one line per finding, then the report. `/beat:apply
   fix-from-verify` works through the open findings and marks them fixed.
-  Re-runs are incremental from `verification.sha`; archive asks for a final
-  full run.
+  Re-runs are incremental from `verification.sha` and bounded by convergence
+  rules adapted from cadence: zero open CRITICAL is converged, prose findings
+  cap at SUGGESTION, round 2 records no new SUGGESTIONs and round 3+ no new
+  WARNINGs, round 4 is never recommended. `fix-from-verify` fixes CRITICALs
+  by default and takes explicit ids for the rest. Archive never requires a
+  full re-run.
 - Every skill ends with a `## Beat Handoff` block
   (`references/handoff-report.md`) of command-derived facts and the next
   command; an optional `rhythm-stage-result[nonce]` line when a nonce is

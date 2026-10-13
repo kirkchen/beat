@@ -15,7 +15,7 @@
 //                                                         plus config and .orig residue — what a skill runs mid-pipeline
 //   node validate-beat.mjs --file <path>                  validate one status.yaml / route status.yaml / verify.md
 //   node validate-beat.mjs --pre-archive <change>         the change may be archived: verification passed,
-//                                                         mode full, sha is an ancestor of HEAD, tasks all checked
+//                                                         sha is an ancestor of HEAD, tasks all checked (incremental is a warning)
 //   node validate-beat.mjs --stale-paths <change>         list files still referencing beat/changes/<change>
 //                                                         (run after the archive move; exit 1 when any remain)
 //   node validate-beat.mjs --handoff <file|->              check a "## Beat Handoff" block (file or stdin)
@@ -212,7 +212,8 @@ export function validateStatus(doc, { file, projectRoot }) {
     const v = doc.verification;
     if (typeof v !== 'object' || v === null) errors.push(`${where}: verification must be an inline flow map`);
     else {
-      checkKeys(v, ['status', 'critical', 'warning', 'date', 'sha', 'mode'], `${where} verification`, errors);
+      checkKeys(v, ['status', 'critical', 'warning', 'date', 'sha', 'mode', 'round'], `${where} verification`, errors);
+      if (v.round !== undefined && (typeof v.round !== 'number' || v.round < 1)) errors.push(`${where}: verification.round must be a positive number`);
       if (!['passed', 'issues-found'].includes(v.status)) errors.push(`${where}: verification.status must be passed or issues-found`);
       if (typeof v.critical !== 'number') errors.push(`${where}: verification.critical must be a number`);
       if (!DATE.test(String(v.date))) errors.push(`${where}: verification.date must be YYYY-MM-DD`);
@@ -366,7 +367,8 @@ export function preArchive(projectRoot, change) {
   if (!v) errors.push(`${change}: never verified`);
   else {
     if (v.status !== 'passed') errors.push(`${change}: last verify found ${v.critical} critical issue(s)`);
-    if (v.mode === 'incremental') errors.push(`${change}: last verify was incremental — run a full verify first`);
+    if (v.mode === 'incremental') warnings.push(`${change}: last verify was incremental (round ${v.round ?? '?'}) — untouched artifacts were not re-read; a full re-run is optional`);
+    if (v.warning) warnings.push(`${change}: ${v.warning} open WARNING finding(s) ride along into archive`);
     if (v.sha) { const a = isAncestor(projectRoot, String(v.sha)); if (a === false) errors.push(`${change}: verification.sha ${v.sha} is not an ancestor of HEAD`); if (a === null) warnings.push('not a git checkout — sha ancestry not checked'); }
   }
   const tasks = join(projectRoot, 'beat', 'changes', change, 'tasks.md');
@@ -434,7 +436,8 @@ export function validateRoute(doc, { file, projectRoot }) {
 export function validateVerify(doc, { file }) {
   const errors = [], warnings = [];
   const where = file;
-  checkKeys(doc, ['change', 'date', 'sha', 'mode', 'base', 'findings'], where, errors);
+  checkKeys(doc, ['change', 'date', 'sha', 'mode', 'round', 'base', 'findings'], where, errors);
+  if (doc.round !== undefined && (typeof doc.round !== 'number' || doc.round < 1)) errors.push(`${where}: round must be a positive number`);
   if (!doc.change) errors.push(`${where}: change is required`);
   if (!DATE.test(String(doc.date))) errors.push(`${where}: date must be YYYY-MM-DD`);
   if (!doc.sha) errors.push(`${where}: sha is required`);

@@ -10,6 +10,7 @@ change: <name>
 date: YYYY-MM-DD
 sha: <git rev-parse --short HEAD at verify time>
 mode: full | incremental
+round: 1                                          # 1 on the first run, +1 per re-run; governs the iteration ramp
 base: <sha the incremental diff started from>   # incremental only
 findings:
   - { id: F1, severity: CRITICAL, dimension: 1B, scenario: "Monthly billing adjusts for short months", file: "src/billing/schedule.ts:42", fix: "Add a test for the February case and clamp to month end", status: open }
@@ -41,4 +42,8 @@ After the front matter, the combined report exactly as `/beat:verify` presents i
 
 ## Incremental runs
 
-An incremental run verifies `base..HEAD` plus every scenario and artifact section the diff touches, then runs the full automated checks (tests, lint, scenario-to-test map). It does not re-read untouched artifacts. Two hard rules keep it honest: if `base` is not an ancestor of `HEAD` (rebased, amended), verify falls back to `full`; and `/beat:archive` only accepts a change whose most recent run is `full`.
+An incremental run verifies `base..HEAD` plus every scenario and artifact section the diff touches, then runs the full automated checks (tests, lint, scenario-to-test map). It does not re-read untouched artifacts. If `base` is not an ancestor of `HEAD` (rebased, amended), verify falls back to `full`. A full re-run after fixes is the user's choice; archive does not require one.
+
+## Convergence
+
+The verify ⇄ apply loop ends on a severity floor, not on an empty list: zero open CRITICAL means converged, and the open WARNING / SUGGESTION ids ride along in the handoff block for the user to pick from. Three more rules bound the loop — prose findings are capped at SUGGESTION, round 2 records no new SUGGESTIONs and round 3+ no new WARNINGs (`round` in the front matter), and round 4 is never recommended. `skills/verify/SKILL.md` "Convergence" has the full table; `/beat:apply fix-from-verify` fixes CRITICAL by default and takes explicit ids for anything else.

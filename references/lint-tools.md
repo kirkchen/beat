@@ -23,7 +23,7 @@ Checks `status.yaml` (schema, phase vs. artifacts, route link, verify.md cross-c
 | `validate-beat.mjs --file beat/changes/<name>/verify.md` | After verify writes verify.md |
 | `validate-beat.mjs --change <name>` | Before verify dispatches subagents, and whenever a skill wants the whole picture of one change (status.yaml, verify.md, its route, config, `.orig` residue) without being blocked by other changes' drift |
 | `validate-beat.mjs` (whole project, active changes only; `--all` includes archive) | In CI, or when cleaning up a project |
-| `validate-beat.mjs --pre-archive <name>` | Archive step 3b — verification passed, mode full, sha is an ancestor of HEAD, tasks all checked |
+| `validate-beat.mjs --pre-archive <name>` | Archive step 3b — verification passed, sha is an ancestor of HEAD, tasks all checked; incremental mode and open WARNINGs are reported as warnings |
 | `validate-beat.mjs --stale-paths <name>` | Archive step 5b, after the move — lists files still pointing at `beat/changes/<name>`; rerun until it prints none |
 | `validate-beat.mjs --handoff <file\|->` | Optional self-check of a handoff block (tests use it) |
 
