@@ -61,6 +61,15 @@ codex plugin marketplace add https://github.com/kirkchen/beat
 
 Then in the Codex UI plugins panel, install `Beat`. See [docs/INSTALL-CODEX.md](docs/INSTALL-CODEX.md) for the full flow and the AGENTS.md snippet that replaces the SessionStart hook (Codex doesn't support hooks).
 
+**With `npx skills add`** (any agent that reads `SKILL.md` folders):
+
+```bash
+npx skills add kirkchen/beat --skill design   # one skill
+npx skills add kirkchen/beat                  # all of them
+```
+
+Each skill folder is self-contained: the schemas it reads (`references/`) and the lint scripts it runs (`scripts/`) are copied along with it. The scripts need Node 18+.
+
 Then, in your project:
 
 ```bash
@@ -104,7 +113,7 @@ Now you have living documentation of what your system actually does. Next time y
 ## Full Pipeline
 
 ```
-explore → design → plan → apply → verify → archive
+explore → design → plan → apply ⇄ verify → archive
 ```
 
 | Command | What it does | When to use |
@@ -120,11 +129,12 @@ explore → design → plan → apply → verify → archive
 
 | Change size | Commands | Example |
 |------------|----------|---------|
-| Bug fix | `design → apply → archive` | Fix off-by-one in date calc |
-| Feature | `design → apply → verify → archive` | Add password reset flow |
-| Large feature | `design → plan → apply → verify → archive` | Payment processing system |
+| Bug fix | `design (minimal) → apply → verify → archive` — one review role, one verify subagent | Fix off-by-one in date calc |
+| Feature | `design → plan → apply → verify → archive` | Add password reset flow |
+| Too big for one change | `explore` declares `too-big` → `beat/routes/<name>/` map → each node is its own change | Payment processing system |
+| Needs a look first | `explore` declares `blocked` → research (agent) / prototype (storybook, human picks) / decision node → explore again | "Thread or inline replies?" |
 
-Every change lives in `beat/changes/<name>/` with a `status.yaml` tracking where you are.
+Every change lives in `beat/changes/<name>/` with a `status.yaml` tracking where you are. `/beat:explore` ends by naming one of those paths; `/beat:verify` writes its findings to `verify.md` and `/beat:apply fix-from-verify` works through them; every skill ends with a `## Beat Handoff` block saying what to run next.
 
 ## What Beat Generates
 
@@ -181,6 +191,22 @@ Three test layers, each using your project's own frameworks:
 | **Behavior** | `@behavior` | Business logic with `@covered-by` tracing |
 | **Unit** | — | Technical edge cases, no feature binding |
 
+## Lint Tools
+
+The checks that can be decided by reading files are scripts, not prompts. Every skill carries them under `skills/<name>/scripts/` (Node 18+, no packages):
+
+- `validate-beat.mjs` — `status.yaml`, route `status.yaml`, `verify.md`, `beat/config.yaml`, `.feature.orig` residue; `--change <name>` for one change, `--pre-archive`, `--stale-paths`, `--handoff`.
+- `lint-features.mjs` — `@covered-by` targets and annotations, one layer tag per scenario, user story, known tags, placeholders, README index.
+
+Skills run them at fixed steps (design and distill before committing, apply after each scenario, verify before dispatching subagents, archive before and after the move) and fix what they list. To run them in your own CI, point at the installed plugin or copy the two files:
+
+```bash
+node skills/verify/scripts/validate-beat.mjs .          # active changes, routes, config
+node skills/verify/scripts/lint-features.mjs             # all feature files
+```
+
+Project-specific tags go in `beat/config.yaml` under `lint:`. See `references/lint-tools.md`.
+
 ## Configuration
 
 `/beat:setup` auto-detects your stack. All config is optional:
@@ -200,17 +226,31 @@ rules:
     - "Add a row to docs/adr/README.md"
 ```
 
-## With Superpowers (Recommended)
+## Companion Skills
 
-Beat works standalone, but pairs well with [superpowers](https://github.com/obra/superpowers) for structured brainstorming, git worktree isolation, and TDD discipline:
+Beat owns the state (`status.yaml`, routes, `verify.md`) and the order of phases. Two other skill sets plug into it at fixed points. Neither is required; each falls back to a simpler inline step when missing.
 
-| Capability | With superpowers | Without |
-|-----------|-----------------|---------|
-| Brainstorming | Structured ideation before specs | Direct conversation |
-| Worktree isolation | Changes in isolated git worktree | Work on current branch |
-| TDD discipline | Enforced red-green-refactor | Standard implementation |
-| Task generation | Detailed plan with review | Simple checklist |
-| Post-archive | Guided PR/merge workflow | Manual |
+**[superpowers](https://github.com/obra/superpowers)** brings discipline *inside* a phase:
+
+| Beat phase | Invokes | Without it |
+|-----------|---------|-----------|
+| explore | `brainstorming` — classifies the work (Spike / Bounded / Architectural), which explore maps onto its exit | Direct conversation |
+| design, plan, apply, distill | `using-git-worktrees` — isolates the change | Work on the current branch |
+| design | `brainstorming` before proposal / design.md | Write from the description |
+| plan | `writing-plans` — produces tasks.md | Simple checklist |
+| apply | `test-driven-development`; `systematic-debugging` when stuck; `subagent-driven-development` for independent tasks | Tests still required, less ceremony |
+| archive | `finishing-a-development-branch` — merge / PR after the archive commit | Manual push and PR |
+
+**[mattpocock-skills](https://github.com/mattpocock/skills)** brings tools at the *edges* of the pipeline — where Beat needs an answer before it can continue:
+
+| Beat moment | Invokes | Without it |
+|-------------|---------|-----------|
+| design, when a domain term is genuinely ambiguous | `grill-with-docs` — one-question-at-a-time grilling that writes the glossary and ADRs | The inline four-challenge check |
+| explore exits `blocked` with `kind: research` | `research` — unattended investigation written to a markdown file | Run the research yourself and record the result path |
+| explore exits `blocked` with `kind: prototype` and `config.yaml` has no `prototype.surface` | `prototype` — a throwaway build to settle a design question | Build it where the project keeps prototypes (Storybook, a CLI, a page) |
+| after archive | `retro` — turns what the change taught you into lint rules, hooks, or steering files | Edit `config.yaml` rules and CLAUDE.md by hand |
+
+Rule of thumb: when a phase needs *more rigor* (think harder, test first, finish the branch properly), it is a superpowers skill. When a phase needs *something it cannot produce itself* (an answer, a prototype, a glossary, a lesson), it is a mattpocock skill. Beat never hands the state to either; it invokes them and takes the result back.
 
 ## Design Principles
 

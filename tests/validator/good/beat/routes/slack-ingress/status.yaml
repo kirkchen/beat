@@ -1,0 +1,25 @@
+name: slack-ingress
+created: 2026-06-01
+nodes:
+  storage-options:
+    type: research
+    title: "How do agent workbenches store large attachments?"
+    question: "Which storage model fits attachments up to 50MB?"
+    result: docs/research/2026-06-02-attachment-storage.md
+  thread-ux:
+    type: prototype
+    title: "Thread vs. inline reply presentation"
+    question: "Should bot replies open a thread or reply inline?"
+    result: docs/prototypes/2026-06-03-thread-ux.md
+  dedupe:
+    type: change
+    title: "Deduplicate repeated HITL button submissions"
+    change: slack-thread-dedupe
+  attachments:
+    type: change
+    title: "Accept image attachments"
+    blocked_by: [storage-options, thread-ux]
+  dated:
+    type: change
+    title: "A change whose name already carries a date, archived without a second prefix"
+    change: 2026-06-01-dated-name

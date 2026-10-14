@@ -4,6 +4,66 @@ All notable changes to Beat are documented in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and Beat adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- `/beat:explore` ends by declaring an exit — `small`, `standard`, `too-big`
+  or `blocked` — with the observable facts behind it. `too-big` creates a
+  route (`beat/routes/<name>/`, `references/route-schema.md`): a map plus
+  research / prototype / decision / change nodes with `blocked_by` edges.
+  Node status is derived from the changes, never written.
+- `preset` in status.yaml drives later-phase strength: `minimal` and
+  `technical` get a test-coverage-only plan review and one verify subagent;
+  `/beat:apply` upgrades them to `standard` when the diff crosses
+  `config.yaml` `preset_upgrade` thresholds (`preset_upgrade` is recorded).
+- `/beat:verify` writes `verify.md` (`references/verify-findings.md`): YAML
+  front matter with one line per finding, then the report. `/beat:apply
+  fix-from-verify` works through the open findings and marks them fixed.
+  Re-runs are incremental from `verification.sha` and bounded by convergence
+  rules adapted from cadence: zero open CRITICAL is converged and CRITICAL is
+  never lowered or deferred; non-CRITICAL findings carry `reach` (reachable /
+  speculative) and speculative ones — most race conditions — cap at
+  SUGGESTION, recorded once; prose findings of the wording class cap at
+  SUGGESTION; round 2 records no new SUGGESTIONs, round 3+ no new WARNINGs,
+  round 4+ hunts only CRITICAL. `fix-from-verify` fixes CRITICAL and
+  reachable WARNING by default and takes explicit ids for the rest. Archive never requires a
+  full re-run.
+- Every skill ends with a `## Beat Handoff` block
+  (`references/handoff-report.md`) of command-derived facts and the next
+  command; an optional `rhythm-stage-result[nonce]` line when a nonce is
+  injected.
+- `config.yaml` `prototype.surface` / `prototype.command` tell explore where
+  a prototype node is built (for example Storybook). Stories may be merged;
+  prototype implementation code never is.
+- `scripts/validate-beat.mjs` checks status.yaml (schema, phase vs. artifacts,
+  preset, route link, verify.md cross-check, sha ancestry), route status.yaml,
+  verify.md, `beat/config.yaml` and `.feature.orig` residue, with `--pre-archive`,
+  `--stale-paths` and `--handoff` modes. `scripts/lint-features.mjs` lints
+  feature files (annotations, layer tags, user story, tags, placeholders, README
+  index). Skills run both at fixed steps (`references/lint-tools.md`); the
+  prose those checks replaced is gone. `tests/validator/` runs the fixtures;
+  `.github/workflows/ci.yml` runs them on every PR.
+- Scripts are synced into each skill folder (`skills/<name>/scripts/`) and
+  symlinked into the Codex overlay, so they are available under the Claude
+  Code plugin, the Codex plugin and `npx skills add`.
+- `config.yaml` `lint` section: `tags`, `layer_tags`, `pending_tag`.
+- Optional `mattpocock-skills` hooks: `research` and `prototype` from explore,
+  `retro` mentioned at the end of archive.
+
+### Changed
+
+- `/beat:apply` never pushes; pushing belongs to
+  `finishing-a-development-branch` after `/beat:archive`.
+- `status.yaml` forbids fields outside the schema; `verification` gains
+  `warning`, `sha`, `mode`.
+- SessionStart hook and the Codex `AGENTS.md` snippet describe the exits,
+  verify loop and handoff block.
+- README "Companion Skills" says which superpowers / mattpocock skill each
+  phase invokes and when; `docs/DESIGN_PRINCIPLES.md` gains "Why Explore
+  Declares an Exit", "Why Routes Hold No State", "Size Before Ceremony",
+  "Scripts Over Prose" and "Companions, Not Owners" (zh-TW mirrored).
+
 ## [0.4.0] - 2026-09-28
 
 ### Added

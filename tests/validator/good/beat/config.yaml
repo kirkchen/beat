@@ -1,0 +1,13 @@
+language: en
+
+context: |
+  Example project.
+  # not a comment: part of the context
+  Two lines.
+
+prototype:
+  surface: storybook
+  command: pnpm storybook
+
+lint:
+  tags: [@k8s]

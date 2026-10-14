@@ -24,7 +24,12 @@ After brainstorming or exploration is complete, transition to Beat instead of `w
 - Beat's plan skill invokes `writing-plans` internally when creating tasks.
 - Do NOT invoke `writing-plans` directly — Beat orchestrates the full pipeline.
 
-Beat pipeline: `/beat:design` → `/beat:plan` → `/beat:apply` → `/beat:verify` → `/beat:archive`.
+Beat pipeline: `/beat:explore` → `/beat:design` → `/beat:plan` → `/beat:apply` → `/beat:verify` → `/beat:archive`.
+
+- `/beat:explore` ends by declaring an exit: `small` / `standard` (one change), `too-big` (creates a route under `beat/routes/`), or `blocked` (a research / prototype / decision node).
+- `/beat:verify` writes findings to `verify.md`; `/beat:apply fix-from-verify` fixes the open CRITICALs (explicit ids for anything else). Zero open CRITICAL is converged; re-runs are incremental and bounded by the iteration ramp.
+- `/beat:apply` never pushes. Pushing happens after `/beat:archive`, via `finishing-a-development-branch`.
+- Every skill ends with a `## Beat Handoff` block (`references/handoff-report.md`). There is no supervisor or hook on Codex, so that block is how the next session knows where things stand.
 
 Beat maintains three project-level living-doc surfaces (all lazy — created on first use):
 - `beat/CONTEXT.md` — domain glossary maintained inline by design/archive

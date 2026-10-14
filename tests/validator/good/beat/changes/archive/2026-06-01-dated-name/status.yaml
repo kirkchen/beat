@@ -1,0 +1,11 @@
+name: 2026-06-01-dated-name
+created: 2026-06-01
+phase: archive
+preset: minimal
+route: slack-ingress/dated
+verification: { status: passed, critical: 0, date: 2026-06-02, sha: 1a2b3c4, mode: full, round: 1 }
+pipeline:
+  proposal: { status: skipped }
+  gherkin: { status: skipped }
+  design: { status: skipped }
+  tasks: { status: skipped }

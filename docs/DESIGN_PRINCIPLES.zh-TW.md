@@ -52,6 +52,8 @@ Phase 只能向前推進：`new → proposal → gherkin → design → tasks �
 
 **取捨：** 如果在實作過程中發現規格有問題，你直接修改 artifact 然後繼續向前，而不是「回去」。一開始會覺得不自然。我們接受這個代價，因為只進不退消除了一整類狀態混亂，而且不管你在哪個 phase，修改 artifact 的動作都一樣。
 
+只進不退說的是單一 change 的 `phase`。它外面有兩個迴圈，但都不會倒退：`verify` 把 findings 寫進 `verify.md`，`apply fix-from-verify` 逐條處理（phase 停在 `verify`）；`explore` 可以用 route 或 blocked 節點結束，餵的是「下一個」change，不是重開這一個。
+
 ## 可選就是真的可選
 
 Proposal、design、tasks 是真正可選的 — 不是「可選但你應該每次都做」。
@@ -180,6 +182,56 @@ Gherkin scenario 描述**行為**。它不描述**詞彙**（這個專案的「R
 - *從 code derive 意圖。* 結構可以 derive（Aider repo-map、DeepWiki）— 意圖不行。Beat 手寫意圖；結構快照交給使用者自己選工具產生。
 
 **Trade-off：** 三層 surface 在 design / apply / archive 多了摩擦。我們接受這個成本，因為光靠 Gherkin 會讓詞彙、決策、結構全部隱形，而事後 re-litigate 這些東西的代價遠高於一個 prompt。
+
+### 為什麼 Explore 要宣告出口
+
+最貴的探索是就這樣停掉的那種：下一個 session 得重探一次。所以 `/beat:explore` 結束時要宣告四個出口之一（`small`、`standard`、`too-big`、`blocked`），附上依據（哪些檔案、哪些 module、哪些決策還沒定）。使用者可以覆寫出口，skill 不能省略。
+
+**我們捨棄了什麼：** 問使用者「這個多大」。brainstorming 已經把工作分成 Spike / Bounded / Architectural，explore 把它對應到出口，工作只被量一次。再問一次就是出口本來要消掉的那個重複提問。
+
+### 為什麼 Route 不存狀態
+
+一個 change 裝不下的工作有一個 route：`beat/routes/<name>/route.md`（目的地、已定決策、還是霧的部分）加上一份只有節點與 `blocked_by` 邊的 `status.yaml`。節點狀態從不寫入：`change` 節點在它的 change 歸檔時算完成，`research` 或 `prototype` 節點在結果檔存在時算完成。frontier 是推導出來的。
+
+**我們捨棄了什麼：** route 層自己的狀態機。change 的 `status.yaml` 由 agent 手寫就已經會漂，第二份還得跟第一份一致的只會漂得更快。只存邊，就沒有東西可以不一致。
+
+**取捨：** 沒有 dispatcher 能不先算狀態就讀 route 平行派工。我們接受：人看一眼 frontier 很便宜，而用 tracker 撐起來的 DAG（wayfinder 用 issue 做的那種）是另一個產品。
+
+### 先量大小，再談儀式
+
+design 選的 preset（`full`、`standard`、`minimal`、`technical`）決定後面每個階段的強度：`minimal` 與 `technical` 的 plan 只跑 test-coverage 一個角色、verify 派一個 subagent 而不是兩個。判斷只在 design 做一次，依據可觀察的事實。
+
+**我們捨棄了什麼：** 另開一個「quick」skill。它會重複三個 skill 的 worktree、config、commit 步驟，使用者還得猜一個 change 在哪條 pipeline 上。`status.yaml` 的一個欄位比第二條 pipeline 便宜。
+
+**取捨：** agent 可能什麼都選 `minimal`。防線是機械的，不是 prose：`/beat:apply` 每個 task 後量 diff，超過設定門檻就把 preset 升成 `standard`，被跳過的審查會在 verify 補回來。
+
+---
+
+## 夠收斂就好
+
+`/beat:verify` 與 `/beat:apply fix-from-verify` 是一個迴圈，而每一輪都把全部嚴重度重新打開的迴圈不會結束：每次修正都碰到下一輪會重新讀的程式碼，認真的 reviewer 總是找得到再一個 edge case。所以迴圈停在嚴重度的底線，不是停在清單清空。0 個 open 的 CRITICAL 就算收斂，而 CRITICAL 是唯一沒有任何規則會降級或延後的東西。底線之下問的是值不值得做：scenario 或測試走得到的 WARNING 預設就修；靠某種交錯、時序或沒有任何 artifact 描述的輸入才會發生的（多數 race condition）是 SUGGESTION，記一次就好；prose 上措辭與對稱類的 finding 是 SUGGESTION；後面的輪次能新增的 finding 越來越少（第 2 輪不收新 SUGGESTION，第 3 輪起只收 CRITICAL），第 4 輪起只找 CRITICAL。這些規則來自 cadence 的 `self-review` 與 `pr-review`，在那裡是用真實 review 流量量出來的。
+
+**我們捨棄了什麼：** archive 前強制一次 full 重驗。它把 verify 變成 gate、gate 變成迴圈：第一次 dogfooding 時每一次「最後的」full 都在上一輪剛改過的程式碼裡找到新的 WARNING。通過的那次就是收斂；full 重跑是使用者自己要的時候才跑。
+
+**取捨：** 真正的缺陷可能躲在沒人撿的 WARNING 後面。我們接受：verification 紀錄列著它、handoff 區塊點名它、PR 上的 `pr-review` 會用新的眼睛再讀同一份 diff。我們不接受的是一個 change 因為 reviewer 太認真而沒辦法 archive。
+
+## Script 優先於 Prose
+
+讀檔就能判定的規則是 script，不是一段文字。`validate-beat.mjs` 與 `lint-features.mjs` 負責 schema 形狀、標註目標、layer tag、舊路徑殘留、`.orig` 殘留；skill 只說「跑它，修它列出的」，把 prose 留給 script 判斷不了的事：scenario 是不是行為層級、有沒有照 design 做、決策過不過 ADR gate。
+
+**我們捨棄了什麼：** 把這些規則留在 Hard Gate 與 rationalization 表裡。prose 的強制在 agent 有壓力時會失效；非零的 exit code 每次都有效，而且在 Claude Code、Codex 與 `npx skills add` 之後都一樣，因為每個 skill 自己帶著 script 的副本。
+
+**取捨：** linter 會有誤報（step 裡的小數、專案自創的 tag）。那些是 warning，可以在 `config.yaml` 的 `lint` 設定，由 agent 判斷。error 只留給在任何專案都算錯的事。
+
+## 搭檔，不是擁有者
+
+Beat 在固定的點呼叫其他 skill 組、把結果拿回來，從不把狀態交出去。superpowers 提供階段內部的嚴謹（brainstorming、worktree、writing-plans、TDD、收尾 branch）。mattpocock-skills 提供階段自己產不出來的東西（一場追問、一份研究筆記、一個原型、一次 retro）。兩者都是選配，有內建的退路。
+
+**我們捨棄了什麼：** 讓搭檔 skill 決定下一步。brainstorming 想接 writing-plans，subagent-driven-development 想直接收尾 branch，writing-plans 想問要怎麼執行。這些問題 Beat 的階段已經回答了，所以只借它們做事，交接的部分被壓掉。
+
+**取捨：** 有些重複：brainstorming 與 design 各做一次 spec 自我審查，writing-plans 與 plan 各做一次 plan 審查。我們接受，因為另一個選項是同一份狀態有兩個擁有者。
+
+---
 
 ## Hard Prompt, Soft Action
 

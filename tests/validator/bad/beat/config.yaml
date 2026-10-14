@@ -1,0 +1,6 @@
+language: en
+preset_upgrade: { files: "three" }
+lint:
+  tags: [@k8s]
+  colour: red
+unknown_top: 1

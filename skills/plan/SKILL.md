@@ -59,7 +59,7 @@ If a superpower is unavailable (skill not installed), skip and continue.
 | "I already understand the scope from the proposal/gherkin" | Understanding scope ≠ properly decomposed tasks. writing-plans catches scope gaps you haven't noticed. |
 | "The user wants speed, invoking superpowers will slow us down" | Skipping prerequisites produces lower-quality tasks that cause rework during apply. |
 | "The spec artifacts are clear enough, review is overkill" | Review catches blind spots that the spec author can't see. The more obvious the spec seems, the more likely assumptions are hiding. |
-| "I'll skip review for this small change" | Small changes still benefit from a test coverage check. Review scales with complexity — it's fast for simple changes. |
+| "I'll skip review for this small change" | Small changes still get the test coverage check — the preset decides how many roles, never whether to review. `minimal`/`technical` means one role, not zero. |
 | "The review rejected option X — let's just note it in tasks.md" | If the rejection reason is load-bearing for future reviewers, it'll be re-litigated. Run the ADR gate; if all three conditions hold, write the ADR. |
 
 ## Red Flags — STOP if you catch yourself:
@@ -81,6 +81,8 @@ digraph plan {
     "Read spec artifacts" [shape=box];
     "Check readiness" [shape=diamond];
     "STOP: need spec first" [shape=box, style=dashed];
+    "Preset minimal/technical?" [shape=diamond];
+    "Test-coverage role only" [shape=box];
     "Assess complexity" [shape=box];
     "Suggest review roles" [shape=box];
     "User confirms roles" [shape=box];
@@ -97,7 +99,10 @@ digraph plan {
     "Invoke using-git-worktrees" -> "Read spec artifacts";
     "Read spec artifacts" -> "Check readiness";
     "Check readiness" -> "STOP: need spec first" [label="no spec done"];
-    "Check readiness" -> "Assess complexity" [label="spec ready"];
+    "Check readiness" -> "Preset minimal/technical?" [label="spec ready"];
+    "Preset minimal/technical?" -> "Test-coverage role only" [label="yes"];
+    "Preset minimal/technical?" -> "Assess complexity" [label="no"];
+    "Test-coverage role only" -> "Invoke writing-plans";
     "Assess complexity" -> "Suggest review roles";
     "Suggest review roles" -> "User confirms roles";
     "User confirms roles" -> "Invoke writing-plans";
@@ -152,7 +157,9 @@ digraph plan {
 
 4. **Assess change complexity and suggest review roles**
 
-   Evaluate complexity based on:
+   **Preset `minimal` or `technical`** (from `status.yaml`): the review is the **Test coverage** role alone. Say so in one line, skip the AskUserQuestion below, and go to step 5. The user can still ask for more roles; `/beat:apply` upgrades the preset if the change turns out bigger.
+
+   Otherwise, evaluate complexity based on:
    - Number of feature files and scenarios
    - Number of components/services mentioned in design.md
    - Whether `@e2e` scenarios exist (implies integration surface)
@@ -280,7 +287,7 @@ digraph plan {
 
    Use a descriptive message, e.g. "plan(<name>): add task breakdown".
 
-   Update phase to `implement` in `status.yaml` (advancing from `tasks` → `implement`).
+   Update phase to `implement` in `status.yaml` (advancing from `tasks` → `implement`), then run `node <skill-dir>/scripts/validate-beat.mjs --file beat/changes/<name>/status.yaml` (see `references/lint-tools.md`) and fix anything it reports.
 
    ```
    ## Plan Complete: <change-name>
@@ -291,6 +298,8 @@ digraph plan {
 
    Ready for implementation! Run `/beat:apply` to start.
    ```
+
+   Then end with the handoff block from `references/handoff-report.md` (`next: /beat:apply <name>`).
 
 **Guardrails**
 - NEVER proceed without at least one spec artifact (gherkin or proposal) being done

@@ -12,6 +12,15 @@ echo ""
 PASS=0
 FAIL=0
 
+# Layer 0: Schema validator (seconds, no LLM)
+echo "=== Layer 0: Validator Fixtures ==="
+if bash "$SCRIPT_DIR/validator/run.sh"; then
+    PASS=$((PASS + 1))
+else
+    FAIL=$((FAIL + 1))
+fi
+echo ""
+
 # Layer 1: Skill Triggering (~5 min)
 echo "=== Layer 1: Skill Triggering Tests ==="
 if bash "$SCRIPT_DIR/skill-triggering/run-all.sh"; then

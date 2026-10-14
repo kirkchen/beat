@@ -1,0 +1,12 @@
+name: cyclic
+created: 2026-06-01
+nodes:
+  a:
+    type: change
+    title: "A"
+    blocked_by: [b]
+    change: ghost
+  b:
+    type: decision
+    title: "B"
+    blocked_by: [a, zzz]

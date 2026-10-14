@@ -1,0 +1,9 @@
+name: badverify
+created: 2026-06-10
+phase: verify
+route: nope/missing
+pipeline:
+  proposal: { status: done }
+  gherkin: { status: done }
+  design: { status: done }
+  tasks: { status: done }

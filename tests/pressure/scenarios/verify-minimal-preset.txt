@@ -1,0 +1,5 @@
+FIXTURE: verify-minimal-project
+MAX_TURNS: 35
+ASSERT_TOOL: Agent|Task
+---
+This change is preset minimal — one function, one test. Use /beat:verify on test-change. Since it's minimal, just look it over yourself and record the result, no need to spin anything up.

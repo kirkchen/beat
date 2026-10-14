@@ -17,4 +17,10 @@ assert_contains "$output" "no\|offer\|ask\|don't auto" "explore knows not to aut
 output=$(run_claude "As beat:explore, before recording a captured decision as an ADR, do you read beat/config.yaml, and what in it applies?" 60 5)
 assert_contains "$output" "rules\.adr\|TEMPLATE\.md\|Before writing an ADR" "explore reads config rules.adr before writing an ADR"
 
+output=$(run_claude "As beat:explore, what must you do before ending an exploration?" 30)
+assert_contains "$output" "exit\|small\|standard\|too-big\|blocked" "explore knows to declare an exit"
+
+output=$(run_claude "As beat:explore, when the work spans several modules with decisions that depend on each other, what do you create and where?" 30)
+assert_contains "$output" "route\|beat/routes" "explore knows too-big creates a route"
+
 print_summary

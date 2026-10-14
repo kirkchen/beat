@@ -156,6 +156,10 @@ Initialize Beat configuration in the current project.
 
    If `docs/adr/TEMPLATE.md` already exists, mention that skills will use it as the ADR skeleton automatically — `rules.adr` is for constraints beyond the template (e.g. an index to update).
 
+6b. **Prototype surface** (only when detectable)
+
+   If the project has a Storybook (`.storybook/` directory or a `storybook` script in `package.json`) or another obvious prototype surface, set `prototype.surface` and `prototype.command` in the config without asking — `/beat:explore` uses them when exploration ends in a prototype node. Otherwise leave the field out; it can be added later.
+
 7. **Write config**
 
    Create `beat/config.yaml` following the schema in `references/config-schema.md`.
@@ -201,6 +205,8 @@ Initialize Beat configuration in the current project.
 
    Ready to start? Run `/beat:design` or `/beat:explore`
    ```
+
+   Then end with the handoff block from `references/handoff-report.md` (`next: /beat:explore`).
 
 **Guardrails**
 - Never overwrite existing config without asking
