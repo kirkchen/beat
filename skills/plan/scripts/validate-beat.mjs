@@ -32,7 +32,25 @@ import { readFile, readdir, stat } from 'node:fs/promises';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 const readFileSyncUtf8 = p => readFileSync(p, 'utf8');
-import { join, relative, basename, dirname } from 'node:path';
+
+// Locate a change by name: beat/changes/<name>/, or an archived directory whose
+// status.yaml records that name. Archive directories are YYYY-MM-DD-<name>, but
+// a name that already starts with a date may be archived without a second
+// prefix, so match on the recorded name rather than the directory suffix.
+export function findChange(projectRoot, name) {
+  const active = join(projectRoot, 'beat', 'changes', name);
+  if (existsSync(join(active, 'status.yaml'))) return { dir: active, archived: false };
+  const archiveDir = join(projectRoot, 'beat', 'changes', 'archive');
+  if (!existsSync(archiveDir)) return null;
+  for (const d of readdirSync(archiveDir)) {
+    const st = join(archiveDir, d, 'status.yaml');
+    if (!existsSync(st)) continue;
+    if (d === name || d.endsWith(`-${name}`)) return { dir: join(archiveDir, d), archived: true };
+    try { if (parseYaml(readFileSyncUtf8(st)).name === name) return { dir: join(archiveDir, d), archived: true }; } catch {}
+  }
+  return null;
+}
+import { join, relative, basename, dirname, resolve } from 'node:path';
 
 // ---------- minimal YAML ----------
 
@@ -352,7 +370,9 @@ export function checkOrigResidue(projectRoot) {
 
 export function stalePaths(projectRoot, change) {
   const pattern = `beat/changes/${change}(/|[^A-Za-z0-9_-]|$)`;
-  const out = git(projectRoot, ['grep', '-lE', '--untracked', pattern, '--', '.', `:!beat/changes/archive/*-${change}/status.yaml`]);
+  const found = findChange(projectRoot, change);
+  const exclude = found?.archived ? relative(projectRoot, join(found.dir, 'status.yaml')) : `beat/changes/archive/*${change}/status.yaml`;
+  const out = git(projectRoot, ['grep', '-lE', '--untracked', pattern, '--', '.', `:!${exclude}`]);
   if (out === null) return { errors: [], warnings: ['not a git checkout — cannot grep for stale paths'] };
   const files = out.split('\n').filter(Boolean);
   return { errors: files.map(f => `${f}: still references beat/changes/${change}`), warnings: [] };
@@ -402,15 +422,12 @@ export function validateRoute(doc, { file, projectRoot }) {
     if (n.type === 'change') {
       if (n.result !== undefined || n.question !== undefined) errors.push(`${w}: change nodes have no result/question`);
       if (n.change !== undefined && projectRoot) {
-        const active = join(projectRoot, 'beat', 'changes', n.change, 'status.yaml');
-        const archiveDir = join(projectRoot, 'beat', 'changes', 'archive');
-        const archived = existsSync(archiveDir)
-          && readdirSync(archiveDir).some(d => d.endsWith(`-${n.change}`) && existsSync(join(archiveDir, d, 'status.yaml')));
-        if (!existsSync(active) && !archived) errors.push(`${w}: change "${n.change}" not found under beat/changes/`);
-        else if (existsSync(active)) {
+        const found = findChange(projectRoot, String(n.change));
+        if (!found) errors.push(`${w}: change "${n.change}" not found under beat/changes/ or beat/changes/archive/`);
+        else {
           try {
-            const s = parseYaml(readFileSyncUtf8(active));
-            if (s.route !== `${doc.name}/${id}`) errors.push(`${w}: beat/changes/${n.change}/status.yaml route is "${s.route ?? ''}", expected "${doc.name}/${id}"`);
+            const s = parseYaml(readFileSyncUtf8(join(found.dir, 'status.yaml')));
+            if (s.route !== `${doc.name}/${id}`) errors.push(`${w}: ${relative(projectRoot, join(found.dir, 'status.yaml'))} route is "${s.route ?? ''}", expected "${doc.name}/${id}"`);
           } catch (e) { warnings.push(`${w}: could not read change status.yaml (${e.message})`); }
         }
       }
@@ -519,7 +536,7 @@ async function main() {
   const takeOpt = name => { const i = args.indexOf(name); if (i < 0) return null; const v = args[i + 1]; args.splice(i, 2); return v; };
   const all = (() => { const i = args.indexOf('--all'); if (i >= 0) { args.splice(i, 1); return true; } return false; })();
   const file = takeOpt('--file'), pre = takeOpt('--pre-archive'), stale = takeOpt('--stale-paths'), handoff = takeOpt('--handoff'), change = takeOpt('--change');
-  const projectRoot = args[0] ?? process.cwd();
+  const projectRoot = resolve(args[0] ?? process.cwd());
 
   if (handoff) {
     const text = handoff === '-' ? readFileSync(0, 'utf8') : readFileSync(handoff, 'utf8');

@@ -19,3 +19,7 @@ nodes:
     type: change
     title: "Accept image attachments"
     blocked_by: [storage-options, thread-ux]
+  dated:
+    type: change
+    title: "A change whose name already carries a date, archived without a second prefix"
+    change: 2026-06-01-dated-name

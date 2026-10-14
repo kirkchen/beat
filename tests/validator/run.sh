@@ -39,6 +39,9 @@ for expect in \
   if echo "$out" | grep -qF -- "$expect"; then echo "PASS expects: $expect"; else echo "FAIL missing: $expect"; fail=1; fi
 done
 
+echo "== relative project root and date-prefixed archived change"
+out=$(cd good && node "../$VALIDATOR" . 2>&1); rc=$?
+if [ $rc -eq 0 ] && ! echo "$out" | grep -q "not found under"; then echo "PASS relative root, archived dated change found"; else echo "FAIL relative root / archived dated change"; echo "$out"; fail=1; fi
 echo "== --change scope"
 if node "$VALIDATOR" good --change slack-thread-dedupe >/dev/null 2>&1; then echo "PASS --change good"; else echo "FAIL --change good"; fail=1; fi
 if node "$VALIDATOR" bad --change badverify >/dev/null 2>&1; then echo "FAIL --change bad should fail"; fail=1; else echo "PASS --change bad fails"; fi
