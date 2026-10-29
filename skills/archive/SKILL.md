@@ -1,6 +1,6 @@
 ---
 name: archive
-description: Use when a Beat change is complete (implemented, or distilled and verified) and ready to archive — not for verifying implementation
+description: Use when a Beat change is implemented or distilled and ready to archive — not for verifying implementation
 ---
 
 Archive a completed change. Checks completion, syncs features to living documentation, then moves to archive.
@@ -68,7 +68,7 @@ If unavailable (skill not installed), skip and show archive summary only.
 | "The change is already archived, finishing-a-development-branch is optional cleanup" | Archive without branch guidance leaves orphan branches and uncommitted work. The skill ensures nothing is forgotten. |
 | "I'll just tell the user to create a PR manually" | finishing-a-development-branch offers structured options (merge, PR, cleanup) tailored to the current state. Manual advice misses context. |
 | "Skipping sync is fine, the user can run it later" | There is no separate sync skill. Archive is the only place features get synced. Skipping means features are lost from living documentation. |
-| "The .orig backups can be cleaned up later" | Orphaned `.orig` files hide scenarios from BDD runners permanently. Cleanup is part of archive, not a separate step. |
+| "The .orig backups can be cleaned up later" | Orphaned `.orig` files hide scenarios from BDD runners permanently, and validate-beat flags them as errors from now on. Cleanup is part of archive. |
 | "Glossary terms can be added later, it's just docs" | Once the features sync into `beat/features/`, the undefined terms become user-facing living documentation. Future readers can't tell which terms are canonical vs. ad hoc. The scan-and-prompt is two minutes — do it before sync. |
 | "We didn't write any ADRs but the design.md captures everything" | design.md gets archived with the change. Cross-change decisions need to live in `docs/adr/`. The last-mile sweep is one prompt; if nothing qualifies, it costs nothing. |
 | "Verify probably ran at some point, no need to check" | status.yaml records it. If the `verification` field is absent, verify never ran — archiving unverified work silently is exactly the gap the check exists to close. One confirmation prompt, never a block. |
@@ -109,6 +109,8 @@ digraph archive {
     "Last-mile ADR sweep" [shape=box, style=bold];
     "Move to archive" [shape=box];
     "Rewrite references\nto old change path" [shape=box, style=bold];
+    "Route node?" [shape=diamond];
+    "Derive route status,\noffer route archive" [shape=box];
     "Commit archive" [shape=box, style=bold];
     "Show summary" [shape=box];
     "Invoke finishing-a-development-branch" [shape=doublecircle, style=bold];
@@ -131,7 +133,10 @@ digraph archive {
     "Skip sync" -> "Last-mile ADR sweep";
     "Last-mile ADR sweep" -> "Move to archive";
     "Move to archive" -> "Rewrite references\nto old change path";
-    "Rewrite references\nto old change path" -> "Commit archive";
+    "Rewrite references\nto old change path" -> "Route node?";
+    "Route node?" -> "Derive route status,\noffer route archive" [label="yes"];
+    "Route node?" -> "Commit archive" [label="no"];
+    "Derive route status,\noffer route archive" -> "Commit archive";
     "Commit archive" -> "Show summary";
     "Show summary" -> "Invoke finishing-a-development-branch";
 }
@@ -170,11 +175,11 @@ digraph archive {
 
 3b. **Check verification ran** (schema: `references/status-schema.md`)
 
-   Read the top-level `verification` field from `status.yaml`:
+   Run `node <skill-dir>/scripts/validate-beat.mjs --pre-archive <name>` (see `references/lint-tools.md`). It reports each of the conditions below plus unchecked tasks; use its output to decide which warning to raise. Then read the top-level `verification` field from `status.yaml`:
 
    - **Absent:** warn "This change was never verified (`/beat:verify` has not run)." Use **AskUserQuestion tool** to confirm archiving anyway.
    - **`status: issues-found`:** warn "Verification found N critical issue(s) on <date>." Use **AskUserQuestion tool** to confirm.
-   - **`status: passed`:** proceed silently.
+   - **`status: passed`:** proceed. State the open WARNING / SUGGESTION count and, when `mode` is `incremental`, that the last run re-read only the diff — one line, no question. A passing verify is converged (zero open CRITICAL); a full re-run is the user's choice, never a condition.
 
    Inform and confirm — never block.
 
@@ -249,7 +254,7 @@ digraph archive {
    2. Delete the `.feature.orig` backup from `beat/features/`
    3. If the project uses pytest-bdd: update `@scenario` decorator paths in test files (from `beat/changes/.../x.feature` → `beat/features/<capability>/x.feature`)
 
-   Verify no `.feature.orig` files remain in `beat/features/` before proceeding.
+   Run `node <skill-dir>/scripts/validate-beat.mjs --change <name>` — it reports any `.feature.orig` left in `beat/features/` that no active change claims. Then run `node <skill-dir>/scripts/lint-features.mjs` so the synced features and the README index are clean.
 
    Create `beat/features/<capability>/README.md` if it doesn't exist (placeholder description).
    Create or update `beat/features/README.md` with global navigation.
@@ -297,17 +302,13 @@ digraph archive {
 
    Moving the directory breaks every link that pointed at it: ADR `source` fields and links, `See beat/changes/<name>/...` cross-references in synced features and design docs, glossary or README mentions, and self-references inside the moved directory (e.g. `tasks.md` pointing at its own `design.md`).
 
-   Find them across the repository. Step 5 used plain `mv` and step 4b may have just written an ADR, so the files that matter most are **untracked** at this point — `git grep` skips them unless told otherwise. `--untracked` includes them while still honouring `.gitignore`, so `node_modules`, build output and `.git` are never touched. The trailing group stops `beat/changes/<name>` from matching a different change whose name merely starts the same way (`beat/changes/<name>-v2`):
-
-   ```bash
-   git grep -lE --untracked 'beat/changes/<name>(/|[^A-Za-z0-9_-]|$)' -- . ':!beat/changes/archive/YYYY-MM-DD-<name>/status.yaml'
-   ```
-
-   In every file listed, replace `beat/changes/<name>` with `beat/changes/archive/YYYY-MM-DD-<name>` — only where the old path is followed by `/`, whitespace, punctuation, or end of line, never where it continues into a longer change name. Use the **Edit tool** per occurrence (`replace_all` is safe only when no `beat/changes/<name>-…` sibling exists in that file), or `sed -E` with the same boundary group when the file count is large. Then re-run the grep: it must return nothing.
-
-   Do not rewrite `status.yaml` inside the archived directory (it records the change by name, not path) and do not touch files under `.git/`.
+   Run `node <skill-dir>/scripts/validate-beat.mjs --stale-paths <name>` (see `references/lint-tools.md`). It lists every tracked or untracked file that still references `beat/changes/<name>` (excluding the archived status.yaml, which records the change by name). In each listed file replace `beat/changes/<name>` with `beat/changes/archive/YYYY-MM-DD-<name>` — only where the old path is followed by `/`, whitespace, punctuation or end of line, never where it continues into a longer change name. Rerun until it prints no files.
 
    Record the number of files rewritten for the summary.
+
+5b2. **Route check** (only when `status.yaml` has `route: <route>/<node>`)
+
+   Read `beat/routes/<route>/status.yaml` (schema: `references/route-schema.md`). The node's status is derived from this change's `phase`, so nothing is written to the node. Derive every node's status; if all are `done`, use **AskUserQuestion tool**: "Every node of route `<route>` is done. Archive the route to `beat/routes/archive/YYYY-MM-DD-<route>/`?" On Yes, `mkdir -p beat/routes/archive && mv beat/routes/<route> beat/routes/archive/YYYY-MM-DD-<route>` and include it in step 5c. Otherwise list the new frontier in the summary so the next `/beat:explore <route>` knows where to start.
 
 5c. **Commit the archive**
 
@@ -315,6 +316,7 @@ digraph archive {
 
    ```bash
    git add beat/changes/            # the moved directory (deletions + new archive path)
+   git add beat/routes/             # only if step 5b2 archived the route
    git add beat/features/           # synced features, capability README/proposal/design.md
    git add beat/CONTEXT.md          # glossary terms added in step 4
    git add docs/adr/                # ADRs from the last-mile sweep, plus any ADR index
@@ -340,11 +342,16 @@ digraph archive {
    **Commit:** <sha> archive(<name>): sync features and archive change
    **Artifacts:** N done, M skipped
    **Tasks:** X/Y complete (or "No tasks file")
+   **Route:** <route> — N/M nodes done, frontier: [...] (or "route archived" / "standalone")
    ```
+
+   Then the handoff block from `references/handoff-report.md` (`next`: the finishing-a-development-branch step below, or `/beat:explore <route>` when a route still has frontier nodes).
+
+   One line after the block, not a step: "If this change taught you something about the environment (a lint rule, a config.yaml rule, a CLAUDE.md note), `/retro` from mattpocock-skills turns it into one — pass it `beat/changes/archive/YYYY-MM-DD-<name>/verify.md` and `status.yaml`." Only mention it when that skill is installed.
 
 7. **Finish the development branch**
 
-   After showing the summary, invoke `superpowers:finishing-a-development-branch` (if available) to guide the user through merge, PR creation, or cleanup. The archive commit from step 5c is already on the branch, so whichever option the user picks carries it. If not available, skip this step.
+   After showing the summary, invoke `superpowers:finishing-a-development-branch` (if available) to guide the user through merge, PR creation, or cleanup. The archive commit from step 5c is already on the branch, so whichever option the user picks carries it — this is the first point in the pipeline where pushing is expected. If not available, skip this step.
 
 **Guardrails**
 - Always prompt for change selection if not provided
@@ -355,3 +362,4 @@ digraph archive {
 - Never overwrite an existing capability `design.md` — merge and rewrite as current state
 - After the move, no tracked file may still reference `beat/changes/<name>`
 - Archive runs before the PR/merge and commits its result; it is never deferred until after the PR lands
+- Never write node status into a route — it is derived from the changes

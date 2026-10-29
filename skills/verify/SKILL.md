@@ -3,7 +3,7 @@ name: verify
 description: Use when validating implementation against spec artifacts before archive — not for design, planning, or implementation
 ---
 
-Verify implementation against change artifacts across five dimensions. Uses independent subagents to eliminate context bias.
+Verify implementation against change artifacts across five dimensions. Uses independent subagents to eliminate context bias. Writes findings to `verify.md` so `/beat:apply fix-from-verify` can act on them without a human relaying them.
 
 <decision_boundary>
 
@@ -11,16 +11,17 @@ Verify implementation against change artifacts across five dimensions. Uses inde
 - Validating implementation completeness against spec artifacts before archive
 - Verifying distilled specs match current code behavior (accuracy mode, `source: distill`)
 - Independent verification via subagents to catch context bias
+- Re-verifying after fixes (incremental: only what changed since the last run)
 - Surfacing living-doc drift (Layer 1/2/3) as advisory findings
 
 **NOT for:**
 - Creating or modifying spec artifacts (use `/beat:design`)
 - Writing tasks (use `/beat:plan`)
-- Running implementation (use `/beat:apply`)
+- Running implementation or fixing findings (use `/beat:apply`)
 - Archiving the change (use `/beat:archive`)
 
 **Trigger examples:**
-- "Verify the change" / "Check implementation against spec" / "Run verification"
+- "Verify the change" / "Check implementation against spec" / "Run verification" / "Re-verify after the fixes"
 - Should NOT trigger: "design a feature" / "implement the change" / "archive it"
 
 </decision_boundary>
@@ -29,70 +30,88 @@ Verify implementation against change artifacts across five dimensions. Uses inde
 You MUST dispatch independent subagents for verification — NEVER verify implementation yourself
 in the main session. The main session has context bias from the conversation history.
 
-Dispatch the verification subagent AND code-reviewer in parallel — they are independent checks.
+How many subagents is decided by the change's `preset` in status.yaml, not by you:
+- `full`, `standard`, `custom`, or absent: dispatch the verification subagent AND the code-reviewer
+  in parallel — they are independent checks.
+- `minimal` or `technical`: dispatch ONE subagent carrying both prompts, in a fresh context.
+  One is the floor; it is never zero, and it is never the main session.
 
-If a subagent fails, proceed with findings from the other. If BOTH fail, report the failure —
-do NOT fall back to self-verification.
+If a subagent fails, proceed with findings from the other. If BOTH fail (or the single one
+fails), report the failure — do NOT fall back to self-verification.
 
 If the user explicitly asks you to skip the subagents, say that a main-session check carries
 context bias and is not a verification, confirm once, and if they insist do the quick check they
-asked for — but write nothing to the `verification` field. Only a subagent run is an outcome.
+asked for — but write nothing to `verification` or `verify.md`. Only a subagent run is an outcome.
 
-After presenting the combined report: you MUST record the outcome in the top-level
-`verification` field of status.yaml (see step 6). If verification could not run at all
-(both subagents failed), do NOT record — a failed run is not a verification outcome.
+After presenting the combined report: you MUST write `verify.md` and record the outcome in the
+top-level `verification` field of status.yaml (see step 6). If verification could not run at all,
+do NOT record — a failed run is not a verification outcome.
 </HARD-GATE>
 
 ## Rationalization Prevention
 
 | Thought | Reality |
 |---------|---------|
-| "The change is small, I can verify it myself" | Self-verification creates confirmation bias. You saw the implementation — you can't objectively verify it. |
+| "The change is small, I can verify it myself" | Self-verification creates confirmation bias. You saw the implementation — you can't objectively verify it. Small changes get one subagent, not none. |
 | "I already reviewed the code during apply" | That's exactly why you need an independent verifier. Familiarity breeds blind spots. |
-| "Running two subagents is overkill for this" | Code quality and spec alignment are independent dimensions. A single agent conflates them. |
+| "Running two subagents is overkill for this" | The preset already made that call. `minimal` runs one; everything else runs two. Don't re-decide it per run. |
 | "I'll just run the tests, that's verification enough" | Tests verify behavior but not spec alignment, design adherence, or code quality. |
 | "The user told me not to dispatch agents, so a quick look counts as verify" | It counts as a quick look. Say so, confirm once, do it — and leave `verification` unset, so archive still warns that this change was never verified. |
 | "I'll dispatch them sequentially to save context" | They're independent — parallel dispatch is faster and prevents one report from biasing the other. |
-| "The report is delivered, the status.yaml write is just bookkeeping" | The `verification` field is how archive knows verify ran. Skip it and archive warns "never verified" on a verified change. Ten seconds — write it. |
+| "The report is delivered, the status.yaml write is just bookkeeping" | `verify.md` is what `/beat:apply fix-from-verify` reads; the `verification` field is how archive knows verify ran. Skip either and the loop breaks. |
+| "Only two files changed since last time, I'll just eyeball the diff" | That is what incremental mode is for — a subagent reads the diff, not you. |
+| "There are still WARNINGs open, we should go another round" | Zero open CRITICAL is converged. WARNINGs and SUGGESTIONs are surfaced for the user to pick from, not a reason to loop. Every extra round finds new edge cases in the code the last fix touched; that is the loop, not progress. |
+| "It's a race, it could happen, so it's a WARNING" | If no scenario, goal or decision describes that interleaving and no test can exercise it deterministically, it is speculative: record it once as a SUGGESTION with `reach: speculative` and move on. Chasing hypothetical interleavings is how the loop never ends. |
+| "Round 4 — the cap says stop, so this CRITICAL can wait" | The cap never touches CRITICAL. A CRITICAL is fixed on whatever round it appears; what stops at round 4 is the hunt for new WARNINGs and SUGGESTIONs. |
+| "This touched a shared file, I'd better run full again" | A full run after round 1 is the user's call, not the skill's. Say which files were shared and let them decide. |
 
 ## Red Flags — STOP if you catch yourself:
 
 - Verifying any dimension yourself instead of dispatching a subagent
-- Dispatching subagents sequentially instead of in parallel
-- Skipping code-reviewer because "the code is simple"
+- Dispatching subagents sequentially instead of in parallel (standard strength)
+- Dropping the code-quality prompt on a `minimal` change instead of folding it into the single subagent
 - Claiming verification passed without reading the subagent reports
-- Editing code or artifacts during verification (the ONLY write is the `verification` record in status.yaml)
-- Presenting the report without recording the outcome in status.yaml
+- Editing code or artifacts during verification (the ONLY writes are `verify.md` and the `verification` field in status.yaml)
+- Presenting the report without writing `verify.md` and the `verification` field
 - Falling back to self-verification because a subagent failed
+- Running incremental mode when `verification.sha` is not an ancestor of HEAD
+- Recording a new SUGGESTION on round 2 or later, or a new WARNING on round 3 or later (see Convergence)
+- Recommending another fix round when zero CRITICAL findings are open
+- Lowering, deferring or dropping a CRITICAL for any convergence rule
+- Recording a speculative race or interleaving above SUGGESTION, or re-raising one under a new id
 
 ## Process Flow
 
 ```dot
 digraph verify {
     "Select change" [shape=box];
-    "Read artifacts +\ntesting context" [shape=box];
-    "Parallel dispatch" [shape=box, style=bold];
-    "Verification\nsubagent" [shape=box];
-    "Code-reviewer\nsubagent" [shape=box];
-    "tests available?" [shape=diamond];
-    "Run automated tests" [shape=box];
+    "Read artifacts, previous\nverify.md, testing context" [shape=box];
+    "Previous sha an\nancestor of HEAD?" [shape=diamond];
+    "Full run" [shape=box];
+    "Incremental run\n(base..HEAD)" [shape=box];
+    "Preset minimal/technical?" [shape=diamond];
+    "One subagent\n(both prompts)" [shape=box, style=bold];
+    "Two subagents in parallel\n(verification + code-reviewer)" [shape=box, style=bold];
+    "Run automated tests\n(always full)" [shape=box];
     "Present combined report" [shape=box];
-    "Record verification\nin status.yaml" [shape=doublecircle];
+    "Write verify.md +\nverification field" [shape=doublecircle, style=bold];
 
-    "Select change" -> "Read artifacts +\ntesting context";
-    "Read artifacts +\ntesting context" -> "Parallel dispatch";
-    "Parallel dispatch" -> "Verification\nsubagent";
-    "Parallel dispatch" -> "Code-reviewer\nsubagent";
-    "Verification\nsubagent" -> "tests available?";
-    "Code-reviewer\nsubagent" -> "tests available?";
-    "tests available?" -> "Run automated tests" [label="yes"];
-    "tests available?" -> "Present combined report" [label="no"];
-    "Run automated tests" -> "Present combined report";
-    "Present combined report" -> "Record verification\nin status.yaml";
+    "Select change" -> "Read artifacts, previous\nverify.md, testing context";
+    "Read artifacts, previous\nverify.md, testing context" -> "Previous sha an\nancestor of HEAD?";
+    "Previous sha an\nancestor of HEAD?" -> "Full run" [label="no sha, user asked\nfull, or not ancestor"];
+    "Previous sha an\nancestor of HEAD?" -> "Incremental run\n(base..HEAD)" [label="yes"];
+    "Full run" -> "Preset minimal/technical?";
+    "Incremental run\n(base..HEAD)" -> "Preset minimal/technical?";
+    "Preset minimal/technical?" -> "One subagent\n(both prompts)" [label="yes"];
+    "Preset minimal/technical?" -> "Two subagents in parallel\n(verification + code-reviewer)" [label="no"];
+    "One subagent\n(both prompts)" -> "Run automated tests\n(always full)";
+    "Two subagents in parallel\n(verification + code-reviewer)" -> "Run automated tests\n(always full)";
+    "Run automated tests\n(always full)" -> "Present combined report";
+    "Present combined report" -> "Write verify.md +\nverification field";
 }
 ```
 
-**Input**: Optionally specify a change name. If omitted, infer from context or prompt.
+**Input**: Optionally specify a change name. If omitted, infer from context or prompt. `full` forces a full run.
 
 **Steps**
 
@@ -106,11 +125,12 @@ digraph verify {
 2. **Read all artifacts and determine testing context**
 
    Read from `beat/changes/<name>/`:
-   - `status.yaml` (schema: `references/status-schema.md`)
+   - `status.yaml` (schema: `references/status-schema.md`) — note `preset` and any existing `verification`
    - `features/*.feature` (all Gherkin files, if gherkin status is `done`)
    - `proposal.md` (if exists)
    - `design.md` (if exists)
    - `tasks.md` (if exists)
+   - `verify.md` (if exists, format: `references/verify-findings.md`) — the previous run's findings
 
    Read `beat/config.yaml` (if exists, schema: `references/config-schema.md`).
 
@@ -118,15 +138,22 @@ digraph verify {
    - If `gherkin` status is `done` → **Gherkin-driven verification**
    - If `gherkin` status is `skipped` → **Proposal-driven verification**
 
+   **Determine run mode and round:**
+   - **full** when: no previous `verification`, the user asked for `full`, the previous run has no `sha`, or `git merge-base --is-ancestor <sha> HEAD` fails (rebased or amended since).
+   - **incremental** otherwise: `base` = previous `sha`; collect `git diff --stat <base>..HEAD` and the list of scenarios, proposal goals and design decisions those files relate to. Say which mode is running and why.
+   - **round** = previous `verification.round` + 1 (1 when there is no previous run). The round governs what new findings may be recorded — see Convergence below.
+
    **Determine testing context** (three-layer priority: tag > source > config):
    - **Config layer**: Is `testing.required` set to `false`? If yes, skip test existence checks globally.
    - **Source layer**: Does `status.yaml` contain `source: distill`? If yes, Dimension 1 switches to **accuracy mode** (see below).
    - **Tag layer**: Every scenario in a .feature file is expected to have a corresponding test (in TDD mode).
    - **Modified files**: Does `status.yaml` have `gherkin.modified`? If yes, collect the listed paths and their `.feature.orig` backup paths — the verification subagent needs them for semantic verification (Dimension 1B+).
 
-3. **Dispatch verification subagent AND code-reviewer in parallel**
+2b. **Run the lint tools first**
 
-   Launch BOTH agents simultaneously using a single message with two Agent tool calls:
+   Run `node <skill-dir>/scripts/validate-beat.mjs --change <name>` and `node <skill-dir>/scripts/lint-features.mjs --require-covered-by beat/changes/<name>/features/*.feature` (see `references/lint-tools.md`); add a whole-project `lint-features.mjs` run when the change modified existing features. Keep both outputs; they go to the subagents as pre-computed findings so the subagents do not re-derive what a script already settled (annotation targets, layer tags, user story, schema). A lint error is a finding at WARNING, or CRITICAL when it is a missing test file.
+
+3. **Dispatch the subagent(s)**
 
    **Agent A — Verification subagent** (subagent_type: `Explore`):
    Read `verification-subagent-prompt.md` for the complete subagent prompt.
@@ -135,6 +162,8 @@ digraph verify {
    - All artifact contents (features, proposal, design, tasks)
    - Testing context (drive mode, testing config, source flag, tag counts)
    - Modified files list from `gherkin.modified` with their `.feature.orig` backup paths (if any)
+   - Run mode; for incremental: `base`, the diff stat, the related scenarios/goals/decisions, and the previous findings still `open`
+   - The lint output from step 2b
    - Do NOT pass conversation history or session context.
 
    **Agent B — Code quality review** (subagent_type: `general-purpose`):
@@ -142,43 +171,73 @@ digraph verify {
 
    Provide:
    - The change name and description (from proposal or status.yaml)
-   - List of files created/modified during apply
+   - List of files created/modified during apply (incremental: since `base`)
    - The planning document (tasks.md or proposal.md) as the "original plan"
-   - The git range (base..head SHAs) if available, so the reviewer can read the diff
+   - The git range (base..head SHAs) so the reviewer can read the diff
 
    This reviews: code quality, architecture, naming, error handling, test quality, security, and plan alignment. Its output is Dimension 4, classified in Beat's CRITICAL/WARNING/SUGGESTION vocabulary.
 
-   **Fallback**: If one agent fails, proceed with the other's findings. If BOTH fail, report failure — do NOT self-verify.
+   **Standard strength** (`preset` full/standard/custom/absent): launch A and B simultaneously in a single message with two Agent tool calls.
+
+   **Minimal strength** (`preset` minimal/technical): launch ONE agent (subagent_type: `general-purpose`) whose prompt is both files concatenated, with the inputs of both. It reports dimensions 1-5 in one report. Still a fresh context, still no conversation history.
+
+   **Fallback**: If one agent fails, proceed with the other's findings. If all fail, report failure — do NOT self-verify.
 
 4. **Run automated tests if available**
 
-   Detect and run the project's test suite:
+   Always full, even on incremental runs — this is the cheap whole-change check that catches "fixed A, broke B":
    - **Behavior tests**: run using `testing.behavior` framework (or auto-detect)
    - **E2E tests**: run using `testing.e2e` framework (or auto-detect). If `beat/changes/<name>/features/` contains feature files, combine BDD feature paths: `beat/features/` + `beat/changes/<name>/features/`
    - Report behavior and e2e results separately
 
 5. **Present combined verification report**
 
-   Combine both subagent reports:
+   Combine the subagent reports:
    - Dimensions 1-3 from verification subagent (spec alignment)
    - Dimension 4 from code-reviewer (code quality)
    - Dimension 5 from verification subagent (living docs sync — Layer 1/2/3, advisory only)
    - Step 4 test results (if available)
 
-6. **Record the outcome in status.yaml**
+   On an incremental run, prefix the report with what was and was not re-read.
 
-   Read `beat/changes/<name>/status.yaml` (read before write — preserve existing fields), then set the top-level `verification` field per `references/status-schema.md`:
+   **Apply the convergence rules before writing anything** (see "Convergence" below): cap prose findings, drop new findings the round does not admit, detect divergence, and decide the verdict line.
+
+6. **Write `verify.md` and record the outcome in status.yaml**
+
+   Write `beat/changes/<name>/verify.md` per `references/verify-findings.md` (front matter fields, one line per finding, how ids carry across incremental runs), with the combined report as the body. Every finding from every subagent and every failing automated test becomes one `findings` line.
+
+   Then read `status.yaml` (read before write — preserve existing fields) and set, per `references/status-schema.md`:
 
    ```yaml
-   verification: { status: passed, critical: 0, date: YYYY-MM-DD }
+   verification: { status: passed, critical: 0, warning: 2, date: YYYY-MM-DD, sha: <short sha>, mode: full }
    ```
 
-   - `status: passed` when zero CRITICAL findings; `issues-found` otherwise
-   - `critical`: the CRITICAL count from the combined report, including failing automated tests from step 4
+   - `status: passed` when zero CRITICAL findings with `status: open`; `issues-found` otherwise
+   - `critical` / `warning`: counts of open findings at those severities, including failing automated tests from step 4
    - Do NOT advance `phase` — verification outcome lives only in this field
-   - Skip recording entirely if verification could not run (both subagents failed) — report the failure instead
+   - Skip both writes entirely if verification could not run — report the failure instead
 
-   This is the only file verify writes. `/beat:archive` uses it to warn when archiving an unverified change. Re-running verify after fixes overwrites the field.
+   Run `node <skill-dir>/scripts/validate-beat.mjs --file beat/changes/<name>/verify.md` and the same for `status.yaml` (see `references/lint-tools.md`); fix any schema error before presenting.
+
+   Then end with the handoff block from `references/handoff-report.md`: `findings` from the counts above; `next` is `/beat:apply <name> fix-from-verify` when a CRITICAL is open, otherwise `/beat:archive <name>` — with the open WARNING / SUGGESTION ids listed in `blocked-on: none (open: F3, F7)` so the user can pick which to fix first.
+
+## Convergence
+
+Verification is a loop with `/beat:apply fix-from-verify`, and loops that re-open every severity on every round do not end: each fix touches code the next round reads fresh, and a careful reviewer always finds another edge case. These rules (adapted from cadence `self-review` / `pr-review`) decide when the loop is done. They are applied by the dispatcher after merging the subagent reports, never by the subagents.
+
+The one thing no rule below changes: **CRITICAL is never lowered, deferred or dropped.** CRITICAL is defined by the classification list (missing scenario test, inaccurate scenario in accuracy mode, unimplemented goal, design violation, security vulnerability, failing automated test) and a CRITICAL is fixed on whatever round it appears. The rules shape what else gets recorded and whether another round is worth running.
+
+| Rule | What it does |
+|------|--------------|
+| **Severity floor** | The change is **converged** when zero CRITICAL findings are open. Open WARNINGs and SUGGESTIONs are surfaced in the report and the handoff block; the reachable WARNINGs are worth doing and are what `fix-from-verify` picks up by default, the rest is the user's to choose. `next` is archive. |
+| **Reach** | Every non-CRITICAL finding gets `reach: reachable` or `reach: speculative`. Reachable: a scenario, proposal goal or design decision describes the path, or a test can exercise it deterministically. Speculative: it depends on an interleaving, timing window or input that no artifact describes — most race-condition findings. Speculative findings are capped at SUGGESTION, recorded once, and never re-raised under a new id in a later round. |
+| **Prose ceiling** | A finding whose `file` is prose (`.feature`, `.md`, docs) and whose class is wording, symmetry with a sibling scenario, drifted line numbers, counts or annotation placement is a SUGGESTION. This never applies to a CRITICAL class (a missing test for a scenario, a scenario that contradicts the code in accuracy mode). |
+| **Iteration ramp** | Round 1 records everything. Round 2 records new CRITICAL and new reachable WARNING; new SUGGESTIONs are counted on one line (`+N suggestions not recorded`) and not written to verify.md. Round 3 and later record only new CRITICAL; everything else is counted. Re-checks of previously open findings are always recorded (still open / fixed). |
+| **Round cap** | From round 4, stop hunting: record only CRITICAL and re-checks, and recommend archive when none is open. A CRITICAL on round 4 is still fixed; say that a change still producing CRITICALs this late is too large and should be split after this one. |
+| **Divergence** | If this round's open count is larger than the previous round's, or at least three new findings sit in files the last fix-from-verify commit touched and none of the previous findings recur, say so in the report: the fixes are opening surfaces, not closing them. Recommend reviewing the last fix commit by hand before any further round. |
+| **Shared files** | A full re-run after round 1 is the user's decision. When the diff touched files many scenarios share, name them in the report and offer `/beat:verify <name> full`; do not require it, and archive does not require it. |
+
+`verify.md` front matter records `round`; `status.yaml` `verification.round` carries it so the next run knows where it is.
 
 **Issue Classification**
 - CRITICAL: Must fix (missing scenario test [in coverage mode], inaccurate scenario [in accuracy mode], unimplemented goal, design violation, security vulnerability, failing automated test from step 4)

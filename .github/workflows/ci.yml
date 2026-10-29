@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: References and scripts in sync
+        run: node scripts/sync-references.mjs --check
+      - name: Validator and lint fixtures
+        run: bash tests/validator/run.sh
+      - name: Hook emits valid JSON
+        run: |
+          mkdir -p /tmp/hook-test/beat/changes
+          cd /tmp/hook-test && bash "$GITHUB_WORKSPACE/hooks/session-start" | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>JSON.parse(d))"

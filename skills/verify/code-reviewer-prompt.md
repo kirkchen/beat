@@ -87,7 +87,13 @@ When uncertain, prefer SUGGESTION over WARNING, WARNING over CRITICAL.
 ### Assessment
 **Ready for archive?** Yes | No | With fixes
 **Reasoning:** 1-2 sentence technical assessment
+
+### Findings (machine-readable)
+One line per finding above, `dimension: 4`, format from `references/verify-findings.md`:
+- { id: F?, severity: WARNING, dimension: 4, scenario: "", file: "<path:line>", fix: "<one sentence>", status: open }
 ```
+
+Use `F?` for the id — the dispatcher assigns numbers so they don't collide with the verification subagent's.
 
 ## Rules
 

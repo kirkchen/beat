@@ -72,6 +72,8 @@ user declines or it isn't installed, proceed with the four-challenge check inlin
 | "Spec self-review is overkill, the artifact is short" | Self-review catches placeholders, contradictions, and ambiguities that compound through plan and apply. The four checks take 30 seconds. |
 | "This decision is just for this change, no ADR needed" | Run the three-condition gate. If it's hard-to-reverse, surprising, and a real trade-off, future changes will trip over it — that's the ADR's job. Decisions that *are* change-specific don't pass the gate; let the gate decide, not your gut. |
 | "We'll lift this into an ADR later" | "Later" rarely arrives. The decision is fresh now; the ADR is 1-3 sentences. Write it inline. |
+| "Explore said minimal, but I'd rather ask the preset question anyway" | Explore already listed the facts. Asking again is the double question the exit was meant to remove. Use it and say so. |
+| "I'll pick minimal to keep this quick" | Minimal is for changes whose files sit in one module with nothing left to decide. If you can't list that, it's standard. Apply will upgrade a wrong guess, at the cost of a second verify. |
 
 ## Red Flags — STOP if you catch yourself:
 
@@ -85,6 +87,7 @@ user declines or it isn't installed, proceed with the four-challenge check inlin
 - Skipping the spec self-review because the artifact "looks fine"
 - Writing a Key Decision in `design.md` that meets all three ADR conditions without offering an ADR
 - Thinking "this prerequisite isn't needed for this particular change"
+- Leaving `preset` out of status.yaml, or choosing one without the facts that justify it
 
 ## Process Flow
 
@@ -92,7 +95,9 @@ user declines or it isn't installed, proceed with the four-challenge check inlin
 digraph design {
     "Select or create change" [shape=box];
     "Invoke using-git-worktrees" [shape=box, style=bold];
+    "Preset already set?" [shape=diamond];
     "Ask artifact preset" [shape=box];
+    "Write preset to status.yaml" [shape=box];
     "Includes proposal?" [shape=diamond];
     "Invoke brainstorming" [shape=box, style=bold];
     "Create proposal" [shape=box];
@@ -111,8 +116,11 @@ digraph design {
     "Show summary" [shape=doublecircle];
 
     "Select or create change" -> "Invoke using-git-worktrees";
-    "Invoke using-git-worktrees" -> "Ask artifact preset";
-    "Ask artifact preset" -> "Includes proposal?";
+    "Invoke using-git-worktrees" -> "Preset already set?";
+    "Preset already set?" -> "Ask artifact preset" [label="no"];
+    "Preset already set?" -> "Write preset to status.yaml" [label="yes (explore / user)"];
+    "Ask artifact preset" -> "Write preset to status.yaml";
+    "Write preset to status.yaml" -> "Includes proposal?";
     "Includes proposal?" -> "Invoke brainstorming" [label="yes"];
     "Includes proposal?" -> "Includes gherkin?" [label="no"];
     "Invoke brainstorming" -> "Create proposal";
@@ -152,9 +160,13 @@ digraph design {
    - If `beat/changes/<name>/` doesn't exist: create it (directory + status.yaml + features/.gitkeep)
    - If it exists: use it, read `status.yaml` (schema: `references/status-schema.md`) to find remaining artifacts
 
-3. **Ask which spec artifacts to include**
+   **From a route node:** when the input names a route node (`<route>/<node-id>`, or `/beat:explore` just handed one off), read `beat/routes/<route>/route.md` and `status.yaml` (schema: `references/route-schema.md`). Write `route: <route>/<node-id>` into the new change's status.yaml, and add `change: <name>` to that node in the route's status.yaml. The route's "Decisions so far" and the `result` files of the node's blockers are context for every artifact below.
 
-   Read `status.yaml`. For artifacts still `pending`, ask user once upfront:
+3. **Settle the preset**
+
+   Read `status.yaml`. If `preset` is already set (explore declared `small` and named `minimal` or `technical`, or the user passed one), use it and skip the question — say which preset is in effect and why.
+
+   Otherwise, for artifacts still `pending`, ask user once upfront:
 
    Use **AskUserQuestion tool**:
    > "Which spec artifacts do you want? (Tasks are handled separately by `/beat:plan`)"
@@ -163,6 +175,8 @@ digraph design {
    > 3. Minimal: Gherkin only (recommended for small bug fixes)
    > 4. Technical: Proposal only, no Gherkin (for tooling/infra/refactor changes with no behavior change)
    > 5. Custom: Let me choose each one
+
+   Write `preset: <full|standard|minimal|technical|custom>` to `status.yaml`. The preset does more than pick artifacts: `minimal` and `technical` run `/beat:plan` with a test-coverage review only and `/beat:verify` with one independent subagent, and `/beat:apply` upgrades them to `standard` if the diff outgrows `config.yaml` `preset_upgrade` thresholds. Say this in one line when a small preset is chosen.
 
    Mark skipped artifacts as `skipped` in `status.yaml`.
    Tasks are always set to `pending` — task breakdown happens in `/beat:plan`.
@@ -213,6 +227,7 @@ digraph design {
    - **Gherkin**:
      - Read `references/feature-writing.md` for conventions on description blocks, scenario organization, and review checklist
      - Before writing, scan `beat/features/**/*.feature` and `beat/changes/*/features/*.feature` (excluding current change) — read `Feature:` and `Scenario:` lines to map existing coverage, deep-read only overlapping features, avoid duplication and align style
+     - **From an approved prototype:** if the change's route node is blocked by a `prototype` node whose `result` names an approved variant, read that result and the stories it lists. Every story state becomes a scenario or is written under an explicit `Out of scope` note in the feature description — none is silently dropped. `@e2e` scenarios may point `@covered-by` at the story's play function.
      - SpecFlow style, tags `@happy-path`/`@error-handling`/`@edge-case`
      - Feature description carries PRD essence (must include: As a / I want / So that)
      - Every scenario MUST have a testing layer tag: `@e2e` (user journeys needing a running app) or `@behavior` (business logic testable without a full app; default `@behavior`)
@@ -244,7 +259,9 @@ digraph design {
        Create `docs/adr/` lazily — only on first ADR. Track every ADR (and any project ADR index) written here — step 5 commits them with the change.
      - **Architecture hub suggestion** (Layer 3, advisory) — if `design.md` describes a module-level architecture change (new module, module split/merge, changed module boundaries or responsibilities), suggest updating `beat/ARCHITECTURE.md` — the hub diagram, modules table, or constraints (see `references/architecture-format.md`). Create the hub lazily, only if the project is multi-module and the user accepts. Never block.
 
-5. **Commit artifacts and show final status**
+5. **Lint, commit artifacts and show final status**
+
+   Run `node <skill-dir>/scripts/lint-features.mjs beat/changes/<name>/features/*.feature` (only when gherkin was written) and `node <skill-dir>/scripts/validate-beat.mjs --file beat/changes/<name>/status.yaml` (see `references/lint-tools.md`). Fix every error before committing; warnings are advisory here because tests do not exist yet.
 
    Commit the change directory **and every living-documentation file this run wrote or modified** — they are one unit of work:
 
@@ -271,10 +288,13 @@ digraph design {
    - features/*.feature (or skipped if Technical option)
    - design.md (or skipped)
 
+   Preset: <preset>  Route: <route>/<node> (or "standalone")
    Tasks: pending (run `/beat:plan` to create execution plan)
 
    Spec artifacts ready! Review them, then run `/beat:plan` for task breakdown.
    ```
+
+   Then end with the handoff block from `references/handoff-report.md` (`next: /beat:plan <name>`).
 
 **Guardrails**
 - Gherkin is mandatory by default -- only skip for purely technical changes (option 4: Technical)
@@ -283,3 +303,5 @@ digraph design {
 - If context is critically unclear, ask -- but prefer reasonable defaults to keep momentum
 - Verify each artifact file exists after writing before proceeding
 - Tasks are NOT created in this skill — they are handled by `/beat:plan`
+- Always write `preset` to status.yaml — later phases read it to decide their strength
+- Never copy implementation code from a `prototype/<node-id>` branch into the change; only stories and the approved-variant note carry over

@@ -185,6 +185,24 @@ assert_tool_used() {
 # skill created under it (using-git-worktrees puts them in .claude/worktrees/).
 # Result-based assertions look in every tree, because apply/design do their
 # work on a worktree branch, not in the fixture's main checkout.
+# Assert no Bash tool_use whose command matches the regex (e.g. a forbidden `git push`).
+assert_no_bash_command() {
+    local log_file="$1"
+    local cmd_regex="$2"
+    local test_name="${3:-No Bash command matching $cmd_regex}"
+
+    if grep -E '"type":"tool_use","id":"[^"]*","name":"Bash"' "$log_file" | grep -qE "\"command\":\"[^\"]*(${cmd_regex})"; then
+        echo -e "${RED}[FAIL]${NC} $test_name"
+        echo "  A Bash tool_use matched: $cmd_regex"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+        return 1
+    else
+        echo -e "${GREEN}[PASS]${NC} $test_name"
+        PASS_COUNT=$((PASS_COUNT + 1))
+        return 0
+    fi
+}
+
 _project_trees() {
     local project_dir="$1"
     echo "$project_dir"

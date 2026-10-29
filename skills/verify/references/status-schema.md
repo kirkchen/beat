@@ -10,8 +10,12 @@ Single source of truth for the `beat/changes/<name>/status.yaml` format.
 name: <kebab-case-name>          # required, string
 created: YYYY-MM-DD              # required, ISO date
 phase: <phase>                   # required, one of the phase values below
+preset: <preset>                 # optional, artifact preset chosen in /beat:design; drives phase strength
+preset_upgrade: { from: <preset>, by: <skill>, date: YYYY-MM-DD, reason: "<text>" }
+                                 # optional, written when a skill upgrades preset mechanically
+route: <route-name>/<node-id>    # optional, the route node this change implements
 source: distill                  # optional, only present when created by /beat:distill
-verification: { status: <verification-status>, critical: N, date: YYYY-MM-DD }
+verification: { status: <verification-status>, critical: N, warning: N, date: YYYY-MM-DD, sha: <git-sha>, mode: <full|incremental>, round: N }
                                  # optional, written by /beat:verify after presenting the report
 pipeline:
   proposal: { status: <status> } # required
@@ -56,25 +60,58 @@ pipeline:
 
 **`gherkin` is mandatory by default** but can be `skipped` for purely technical changes (e.g., setting up tooling, upgrading dependencies, refactoring without behavior change). When skipped, `proposal` becomes the primary driver for plan, apply, and verify.
 
+### `preset` (optional, top-level)
+
+The artifact preset chosen in `/beat:design` (or declared by `/beat:explore` when it hands off). One of `full`, `standard`, `minimal`, `technical`, `custom`. Besides recording which spec artifacts were created, it sets the **strength** of later phases:
+
+| Preset | `/beat:plan` review | `/beat:verify` dispatch |
+|--------|--------------------|-------------------------|
+| `minimal`, `technical` | Test-coverage role only, no role confirmation | One independent subagent (spec + code in one fresh context) |
+| `full`, `standard`, `custom`, absent | Multi-role review as suggested | Two parallel subagents (verification + code-reviewer) |
+
+Absent means `standard` strength. Written by `/beat:design`; read by `/beat:plan`, `/beat:apply`, `/beat:verify`.
+
+### `preset_upgrade` (optional, top-level)
+
+Written by `/beat:apply` when a `minimal` or `technical` change turns out bigger than its preset — the diff crosses the thresholds in `config.yaml` `preset_upgrade` (see `references/config-schema.md`). Apply rewrites `preset` to `standard` and records where it came from. Always inline flow style:
+
+```yaml
+preset: standard
+preset_upgrade: { from: minimal, by: /beat:apply, date: 2026-06-12, reason: "diff touches 2 modules (packages/web, packages/domain)" }
+```
+
+Once upgraded, `/beat:verify` runs at standard strength. A preset is never downgraded mechanically.
+
+### `route` (optional, top-level)
+
+`<route-name>/<node-id>` — the node in `beat/routes/<route-name>/status.yaml` this change implements. Written by `/beat:design` when the change is created from a route node (see `references/route-schema.md`). A change without `route` is standalone. Route node status is derived from this change's `phase`; nothing is written back to the route.
+
 ### `verification` (optional, top-level)
 
 Written by `/beat:verify` after presenting the combined report. Absent until verify has run at least once. Always inline YAML flow style.
 
 ```yaml
-verification: { status: passed, critical: 0, date: 2026-06-12 }
+verification: { status: passed, critical: 0, warning: 2, date: 2026-06-12, sha: 3f9c1a2, mode: full, round: 1 }
 ```
 
 | Field | Meaning |
 |-------|---------|
 | `status` | `passed` (zero CRITICAL findings) or `issues-found` (one or more CRITICAL findings) |
 | `critical` | CRITICAL finding count at the most recent run |
+| `warning` | WARNING finding count at the most recent run |
 | `date` | Date of the most recent run; re-running verify overwrites the whole field |
+| `sha` | `git rev-parse --short HEAD` at the time of the run; the next incremental verify diffs from here |
+| `mode` | `full` (all artifacts re-verified) or `incremental` (only `sha..HEAD` and the scenarios it touches) |
+| `round` | How many times verify has run on this change; drives the iteration ramp (see `references/verify-findings.md`) |
+
+Finding details live in `beat/changes/<name>/verify.md` (format: `references/verify-findings.md`), never in status.yaml — only the counts are here. `status: passed` (zero open CRITICAL) is what archive looks at; `mode` is informational.
 
 `status` has only these two values. A failed run records nothing: if verification could not run at all (both subagents failed), `/beat:verify` reports the failure but writes no `verification` field — a failed run is not a verification outcome, so there is no `failed` status value. The field's absence therefore covers two cases: verify never ran, and verify ran but could not complete. Archive treats both the same.
 
 Used by:
-- **verify**: writes the field after presenting the report (the only file verify writes)
-- **archive**: warns and asks for confirmation when the field is absent (change never verified, or verify ran but could not complete) or `status` is `issues-found`
+- **verify**: writes the field after presenting the report, alongside `verify.md`
+- **apply**: `fix-from-verify` reads `verify.md` for open findings; after fixing, suggests re-running verify (which overwrites the field)
+- **archive**: warns and asks for confirmation when the field is absent (change never verified, or verify ran but could not complete) or `status` is `issues-found`; mentions open WARNING / SUGGESTION counts and `mode: incremental` as information only
 
 ### `modified` (optional, gherkin only)
 
@@ -157,6 +194,22 @@ pipeline:
   tasks: { status: done }
 ```
 
+### Small change created from a route node, upgraded during apply
+```yaml
+name: slack-thread-dedupe
+created: 2026-06-10
+phase: verify
+preset: standard
+preset_upgrade: { from: minimal, by: /beat:apply, date: 2026-06-11, reason: "diff touches packages/slack-bot and packages/domain" }
+route: slack-ingress/dedupe
+verification: { status: issues-found, critical: 1, warning: 0, date: 2026-06-11, sha: 3f9c1a2, mode: full, round: 1 }
+pipeline:
+  proposal: { status: skipped }
+  gherkin: { status: done }
+  design: { status: skipped }
+  tasks: { status: done }
+```
+
 ### Distilled from existing code (after artifacts generated and verified)
 ```yaml
 name: distill-auth-module
@@ -173,8 +226,9 @@ pipeline:
 
 ## Rules
 
-1. **Always use inline YAML flow style** for pipeline entries and `verification`: `{ status: done }`, not multi-line. Exception: when `modified` is present, use `{ status: done, modified: [...] }`
+1. **Always use inline YAML flow style** for pipeline entries, `verification`, and `preset_upgrade`: `{ status: done }`, not multi-line. Exception: when `modified` is present, use `{ status: done, modified: [...] }`
 2. **Never add extra fields** to pipeline entries — only `status` (and `modified` for gherkin)
 3. **Never add extra entries** to pipeline — only the four listed
-4. **Phase must match reality** — set to the latest completed artifact name, or `implement`/`verify`/`sync`/`archive` for later stages
-5. **Read before write** — always read the current status.yaml before updating to preserve existing fields (like `source` and `verification`)
+4. **Never add top-level fields beyond this schema.** Finding details, review notes, issue links and the like go in the change's markdown artifacts (`verify.md`, `proposal.md`), not here. `scripts/validate-beat.mjs` rejects unknown keys.
+5. **Phase must match reality** — set to the latest completed artifact name, or `implement`/`verify`/`sync`/`archive` for later stages
+6. **Read before write** — always read the current status.yaml before updating to preserve existing fields (like `source`, `preset`, `route`, and `verification`)

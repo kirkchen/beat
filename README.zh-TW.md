@@ -53,6 +53,23 @@ Beat 用 TDD 逐一實作每個 scenario：
 claude --plugin-dir /path/to/beat
 ```
 
+**在 Codex 上：**
+
+```bash
+codex plugin marketplace add https://github.com/kirkchen/beat
+```
+
+然後在 Codex 的 plugins 面板安裝 `Beat`。完整流程與取代 SessionStart hook 的 AGENTS.md 片段見 [docs/INSTALL-CODEX.md](docs/INSTALL-CODEX.md)。
+
+**用 `npx skills add`**（任何會讀 `SKILL.md` 資料夾的 agent）：
+
+```bash
+npx skills add kirkchen/beat --skill design   # 單一 skill
+npx skills add kirkchen/beat                  # 全部
+```
+
+每個 skill 資料夾都是自足的：它讀的 schema（`references/`）和它跑的 lint script（`scripts/`）會一起被複製。script 需要 Node 18+。
+
 接著在你的專案中：
 
 ```bash
@@ -96,7 +113,7 @@ Scenario: 月結帳單自動調整短月天數
 ## 完整 Pipeline
 
 ```
-explore → design → plan → apply → verify → archive
+explore → design → plan → apply ⇄ verify → archive
 ```
 
 | 指令 | 做什麼 | 什麼時候用 |
@@ -112,11 +129,12 @@ explore → design → plan → apply → verify → archive
 
 | 變更規模 | 指令 | 範例 |
 |---------|------|------|
-| Bug 修復 | `design → apply → archive` | 修正日期計算的 off-by-one |
-| 功能開發 | `design → apply → verify → archive` | 新增密碼重設流程 |
-| 大型功能 | `design → plan → apply → verify → archive` | 支付處理系統 |
+| Bug 修復 | `design (minimal) → apply → verify → archive`：plan 只跑一個審查角色、verify 派一個 subagent | 修正日期計算的 off-by-one |
+| 功能開發 | `design → plan → apply → verify → archive` | 新增密碼重設流程 |
+| 一個 change 裝不下 | `explore` 宣告 `too-big` → 建 `beat/routes/<name>/` 地圖 → 每個節點各自是一個 change | 支付處理系統 |
+| 要先看到東西才能決定 | `explore` 宣告 `blocked` → research（agent 跑）/ prototype（storybook，人選方案）/ decision 節點 → 再 explore | 「回覆要開 thread 還是 inline？」 |
 
-每個變更都在 `beat/changes/<name>/` 中，用 `status.yaml` 追蹤進度。
+每個變更都在 `beat/changes/<name>/` 中，用 `status.yaml` 追蹤進度。`/beat:explore` 結束時會宣告走哪條路；`/beat:verify` 把 findings 寫進 `verify.md`，`/beat:apply fix-from-verify` 逐條處理；每個 skill 結尾都有 `## Beat Handoff` 區塊說明下一步指令。
 
 ## Beat 產出什麼
 
@@ -173,6 +191,22 @@ describe('月結帳單', () => {
 | **行為測試** | `@behavior` | 商業邏輯，帶 `@covered-by` 追蹤 |
 | **單元測試** | — | 技術細節，不綁 feature |
 
+## Lint 工具
+
+讀檔就能判定的檢查是 script，不是 prompt。每個 skill 都在 `skills/<name>/scripts/` 帶著它們（Node 18+，不需套件）：
+
+- `validate-beat.mjs`：`status.yaml`、route 的 `status.yaml`、`verify.md`、`beat/config.yaml`、殘留的 `.feature.orig`；`--change <name>` 只看一個 change，另有 `--pre-archive`、`--stale-paths`、`--handoff`。
+- `lint-features.mjs`：`@covered-by` 目標與標註、每個 scenario 一個 layer tag、user story、已知 tag、placeholder、README 索引。
+
+skill 在固定步驟跑它們（design 與 distill 在 commit 前、apply 每個 scenario 後、verify 派 subagent 前、archive 搬移前後），把列出來的錯修掉。要接進自己的 CI，指向安裝好的 plugin 或複製那兩個檔案：
+
+```bash
+node skills/verify/scripts/validate-beat.mjs .          # active change、route、config
+node skills/verify/scripts/lint-features.mjs             # 所有 feature 檔
+```
+
+專案專屬的 tag 放在 `beat/config.yaml` 的 `lint:`。見 `references/lint-tools.md`。
+
 ## 設定
 
 `/beat:setup` 會自動偵測你的技術棧。所有設定都是可選的：
@@ -192,17 +226,31 @@ rules:
     - "在 docs/adr/README.md 加一列索引"
 ```
 
-## 搭配 Superpowers（推薦）
+## 搭配的 Skill
 
-Beat 可以獨立運作，但搭配 [superpowers](https://github.com/obra/superpowers) 能獲得結構化腦力激盪、git worktree 隔離和 TDD 紀律：
+Beat 持有狀態（`status.yaml`、route、`verify.md`）和階段順序。另外兩組 skill 在固定的點接進來。兩組都不是必要的；沒裝時各自退回比較簡單的內建步驟。
 
-| 能力 | 有 superpowers | 沒有 |
-|------|---------------|------|
-| 腦力激盪 | 結構化思考後再寫規格 | 直接對話 |
-| Worktree 隔離 | 在獨立的 git worktree 中工作 | 在目前分支上工作 |
-| TDD 紀律 | 強制紅燈-綠燈-重構 | 標準實作流程 |
-| 任務生成 | 帶審查的詳細計畫 | 簡單 checklist |
-| 歸檔後 | 引導 PR/merge 流程 | 手動 |
+**[superpowers](https://github.com/obra/superpowers)** 負責階段「內部」的紀律：
+
+| Beat 階段 | 呼叫 | 沒有時 |
+|----------|------|-------|
+| explore | `brainstorming`：把工作分成 Spike / Bounded / Architectural，explore 據此對應出口 | 直接對話 |
+| design、plan、apply、distill | `using-git-worktrees`：隔離這個 change | 在目前分支工作 |
+| design | 寫 proposal / design.md 前先 `brainstorming` | 照描述直接寫 |
+| plan | `writing-plans`：產生 tasks.md | 簡單 checklist |
+| apply | `test-driven-development`；卡住時 `systematic-debugging`；獨立 task 用 `subagent-driven-development` | 測試照樣要有，儀式少一點 |
+| archive | `finishing-a-development-branch`：archive commit 之後的 merge / PR | 手動 push 與開 PR |
+
+**[mattpocock-skills](https://github.com/mattpocock/skills)** 負責流程「邊緣」的工具：Beat 需要先拿到一個答案才能往下走的時候。
+
+| Beat 時機 | 呼叫 | 沒有時 |
+|----------|------|-------|
+| design 遇到真的有歧義的 domain 名詞 | `grill-with-docs`：一次一題的追問，寫進 glossary 與 ADR | 內建的四挑戰檢查 |
+| explore 以 `blocked`、`kind: research` 結束 | `research`：無人值守的調查，結果寫成 markdown 檔 | 自己查，把結果路徑記進節點 |
+| explore 以 `blocked`、`kind: prototype` 結束且 `config.yaml` 沒設 `prototype.surface` | `prototype`：丟棄式的原型，回答設計問題 | 在專案自己放原型的地方做（Storybook、CLI、單頁） |
+| archive 之後 | `retro`：把這次 change 學到的變成 lint 規則、hook 或 steering 檔 | 手動改 `config.yaml` rules 與 CLAUDE.md |
+
+判斷方式：某個階段需要「更嚴謹」（想清楚、先寫測試、好好收尾 branch）就是 superpowers；某個階段需要「它自己產不出來的東西」（一個答案、一個原型、一份 glossary、一個教訓）就是 mattpocock。Beat 不會把狀態交給任何一方，只是呼叫它們、把結果拿回來。
 
 ## 設計原則
 

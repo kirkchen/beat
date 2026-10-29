@@ -41,12 +41,13 @@ Beat skills are written using Claude Code tool names. On Codex they map to nativ
 
 ## What Codex sees in this repo
 
-Codex reads the marketplace manifest from `.agents/plugins/marketplace.json`. That manifest lists one plugin (`beat`) with `source.path: "./plugins/beat"`. The `plugins/beat/` directory contains symlinks back to the repo root files — `.codex-plugin/`, `skills/`, `assets/`, `references/`, `README.md`, `LICENSE`. So Codex effectively sees:
+Codex reads the marketplace manifest from `.agents/plugins/marketplace.json`. That manifest lists one plugin (`beat`) with `source.path: "./plugins/beat"`. The `plugins/beat/` directory contains symlinks back to the repo root files — `.codex-plugin/`, `skills/`, `assets/`, `references/`, `scripts/`, `README.md`, `LICENSE`. So Codex effectively sees:
 
 - `.codex-plugin/plugin.json` — Codex plugin manifest (name, version, interface metadata, icons)
 - `skills/` — the skill files
 - `assets/` — brand icons referenced by `composerIcon` and `logo`
 - `references/` — schemas referenced by skills
+- `scripts/` — the lint tools (`validate-beat.mjs`, `lint-features.mjs`); each skill also carries its own synced copy under `skills/<name>/scripts/`, which is what the skill text points at
 
 The symlink trick keeps a single source of truth at the repo root (where Claude Code reads from via `.claude-plugin/plugin.json`), with no file duplication.
 

@@ -1,9 +1,9 @@
 ---
 name: explore
-description: Use when thinking through ideas, investigating problems, or clarifying requirements — before or during a Beat change
+description: Use when thinking through ideas, problems, or requirements before a Beat change, or asking what's next on a Beat route
 ---
 
-Enter explore mode. Think deeply. Visualize freely. Follow the conversation wherever it goes.
+Enter explore mode. Think deeply. Visualize freely. Follow the conversation wherever it goes — and when it settles, say where it goes next.
 
 <decision_boundary>
 
@@ -11,6 +11,7 @@ Enter explore mode. Think deeply. Visualize freely. Follow the conversation wher
 - Thinking through ideas, requirements, or problems before committing to a change
 - Investigating the codebase to understand architecture, feasibility, or hidden complexity
 - Comparing approaches and surfacing risks without producing code
+- Picking up a node of a route (`beat/routes/<name>/`) and working out what it needs
 
 **NOT for:**
 - Creating spec artifacts as a structured workflow (use `/beat:design`)
@@ -19,14 +20,14 @@ Enter explore mode. Think deeply. Visualize freely. Follow the conversation wher
 - Extracting specs from existing code (use `/beat:distill`)
 
 **Trigger examples:**
-- "Let me think through X" / "Investigate why Y happens" / "What are our options for Z?"
+- "Let me think through X" / "Investigate why Y happens" / "What are our options for Z?" / "What's next on the slack-ingress route?"
 - Should NOT trigger: "design a feature" / "implement this" / "break down the tasks"
 
 </decision_boundary>
 
-**IMPORTANT: Explore mode is for thinking, not implementing.** You may read files, search code, and investigate the codebase, but you must NEVER write code or implement features. If the user asks you to implement something, remind them to exit explore mode first (e.g., `/beat:design`). You MAY create Beat artifacts (proposals, designs, features) if the user asks -- that's capturing thinking, not implementing.
+**IMPORTANT: Explore mode is for thinking, not implementing.** You may read files, search code, and investigate the codebase, but you must NEVER write code or implement features. If the user asks you to implement something, remind them to exit explore mode first (e.g., `/beat:design`). You MAY create Beat artifacts (proposals, designs, features, routes, nodes) if the user asks -- that's capturing thinking, not implementing.
 
-**This is a stance, not a workflow.** No fixed steps, no required sequence, no mandatory outputs. You're a thinking partner.
+**This is a stance, not a workflow.** No fixed steps, no required sequence. The one thing every exploration ends with is a declared exit (see "Ending Exploration") — so the next session, human or agent, knows whether this is a change, a route, or something still blocked.
 
 <HARD-GATE>
 Before any response: you MUST invoke superpowers:brainstorming.
@@ -35,15 +36,20 @@ If unavailable (not installed), proceed directly into the thinking stance — bu
 because you judged the topic too simple or the user too eager. If the user explicitly asks to
 skip brainstorming, say what it would have surfaced (unstated assumptions, alternatives not yet
 weighed), confirm once, then continue in the thinking stance.
+
+Before ending: you MUST declare one exit from the table in "Ending Exploration", with the
+observable facts that justify it. The user can override the exit; you cannot omit it.
 </HARD-GATE>
 
 **Prerequisites** (invoke before proceeding)
 
-| Superpower | When | Priority |
-|-----------|------|----------|
-| brainstorming | At the start of explore, before any response | MUST |
+| Skill | When | Priority |
+|-------|------|----------|
+| superpowers:brainstorming | At the start of explore, before any response | MUST |
+| mattpocock-skills:research | A `blocked` exit with `kind: research`, when the user wants it run now | OPTIONAL |
+| mattpocock-skills:prototype | A `blocked` exit with `kind: prototype`, when `config.yaml` has no `prototype.surface` | OPTIONAL |
 
-If unavailable (skill not installed), proceed directly into the thinking stance.
+If a MUST skill is unavailable (not installed), proceed directly into the thinking stance. Optional skills are offered, never required; without them the node is still created and the user runs it however they like.
 
 ## Rationalization Prevention
 
@@ -53,6 +59,17 @@ If unavailable (skill not installed), proceed directly into the thinking stance.
 | "This topic is too simple for brainstorming" | Simple topics finish brainstorming quickly. The overhead is negligible, but the missed insight is not. |
 | "The user said skip brainstorming, so I'll go straight to answers" | Honour it — after naming what brainstorming would have caught. The thinking stance still applies; only the structured ideation is skipped. |
 | "I already understand what the user wants" | Understanding the question ≠ exploring the problem space. Brainstorming prevents premature convergence. |
+| "The user knows what's next, I don't need to declare an exit" | The next session won't. An exploration that ends without an exit gets re-explored from scratch. Declare it; it's two lines. |
+| "This is clearly one change, I'll call it standard and move on" | Look at what you can list. One module, no open decisions, no new terms → `small`. Two modules or dependent decisions → `too-big`. The size comes from the list, not the gut. |
+
+## Red Flags — STOP if you catch yourself:
+
+- Answering before invoking brainstorming
+- Writing application code "just to check"
+- Ending (or saying "we can pick this up later") without a declared exit
+- Declaring an exit without listing the files, modules or decisions that justify it
+- Declaring `too-big` or `blocked` without creating the route or node that records it
+- Estimating scenario counts instead of naming what you can see
 
 ---
 
@@ -103,16 +120,13 @@ If unavailable (skill not installed), proceed directly into the thinking stance.
 
 ## Beat Awareness
 
-At the start, check for existing changes:
-- Look for `beat/changes/` directories
-- If changes exist, read their artifacts for context
-- Reference them naturally in conversation
+At the start, check for existing work:
+- Look for `beat/changes/` directories — read their artifacts for context, reference them naturally
+- Look for `beat/routes/` directories (schema: `references/route-schema.md`). If the user named a route, or only one route is active, read its `route.md` and `status.yaml`, derive each node's status, and list the **frontier** (nodes whose blockers are all done). Offer to pick one up; a `change` node leads to `/beat:design`, the others to a `blocked`-style exit below.
 
 ### When no change exists
 
-Think freely. When insights crystallize, offer:
-- "This feels solid enough to start a change. Want me to create one?" -> `/beat:design`
-- Or keep exploring -- no pressure to formalize
+Think freely. When insights crystallize, declare the exit (below) rather than drifting.
 
 ### When a change exists
 
@@ -129,6 +143,7 @@ If the user mentions a change or one is relevant:
    | Design decision made | `design.md` |
    | Scope changed | `proposal.md` |
    | New work identified | `tasks.md` |
+   | Decision that belongs to the route | `beat/routes/<route>/route.md` under "Decisions so far" |
 
    When capturing a design decision, run the three-condition ADR gate from `references/adr-format.md` (hard-to-reverse + surprising + real trade-off). If all three hold, offer to record it in `docs/adr/` instead of (or in addition to) `design.md`.
 
@@ -140,21 +155,33 @@ If the user mentions a change or one is relevant:
 
 ## Ending Exploration
 
-No required ending. Exploration might:
-- **Flow into action**: "Ready to start? `/beat:design`"
-- **Result in artifact updates**: "Updated design.md with these decisions"
-- **Just provide clarity**: User has what they need, moves on
-- **Continue later**: "We can pick this up anytime"
+Exploration ends when the user is done or the shape is clear. Before ending, **declare one exit** — state it, give the facts that justify it, and apply the default unless the user objects. Do not ask a question; brainstorming already classified the work, and the exit is that classification carried into Beat. Only ask when the facts below point two ways.
+
+| Exit | Declare it when you can list... | What happens next |
+|------|--------------------------------|-------------------|
+| `small` | the affected files or directories, all in one module; no decision still open; no new domain term | "Ready for `/beat:design <name>` with preset `minimal`" (or `technical` when there is no behaviour change). Design skips the preset question. |
+| `standard` | the affected area fits one change, but one or more decisions are still to be made in design | "Ready for `/beat:design <name>`" — design asks for the preset as usual. |
+| `too-big` | more than one module, or decisions that depend on each other, or more than one PR | Create `beat/routes/<name>/` (schema: `references/route-schema.md`): `route.md` from the brainstorming output, `status.yaml` with the nodes you can already name. Next: `/beat:explore <route>` to pick the first frontier node. |
+| `blocked` | the one thing that must exist before any of the above can be chosen | Create a node (in the active route, or a one-node route when there is none) with `kind` = `research` (an agent can answer it unattended), `prototype` (a human must look at something — see below), or `decision` (only a human can decide). Next: whoever resolves it, then `/beat:explore` again. |
+
+Map from brainstorming's own classification so the work is sized once, not twice: Spike → `blocked`; Bounded → `small`; Architectural → `standard` or `too-big` by the module count.
+
+**Prototype nodes.** Read `beat/config.yaml`; if `prototype.surface` is set (for example `storybook`), the node says which states or variants to build there and what the human is judging between. Stories built for a prototype may be kept on the branch and merged as real stories once a variant is approved; the implementation code written to make them render stays on a `prototype/<node-id>` branch and is never merged — `/beat:apply` rewrites it from the gherkin under TDD. If `prototype.surface` is absent, offer `mattpocock-skills:prototype` when installed, otherwise ask where the prototype should live.
+
+**Research nodes.** The node carries the question and the sources to consult; the result is a markdown file in the repo at the node's `result` path, never only in chat. Offer `mattpocock-skills:research` when installed.
+
+Then end with the handoff block from `references/handoff-report.md`, `next` being the command above. Exploration may also just stop ("continue later") — still declare the exit so the thread can be picked up.
 
 ---
 
 ## Guardrails
 
-- **Don't implement** -- Never write application code. Creating Beat artifacts is fine.
+- **Don't implement** -- Never write application code. Creating Beat artifacts, routes and nodes is fine.
 - **Don't fake understanding** -- If something is unclear, dig deeper
 - **Don't rush** -- Exploration is thinking time, not task time
-- **Don't force structure** -- Let patterns emerge naturally
+- **Don't force structure** -- Let patterns emerge naturally; the exit is declared at the end, not imposed at the start
 - **Don't auto-capture** -- Offer to save insights, don't just do it
+- **Do declare an exit** -- With the facts that justify it; the user can override
 - **Do visualize** -- A good diagram is worth many paragraphs
 - **Do explore the codebase** -- Ground discussions in reality
 - **Do question assumptions** -- Including the user's and your own
