@@ -426,8 +426,12 @@ export function checkLayout(projectRoot) {
   const out = git(projectRoot, ['ls-files', '-z']);
   if (out === null) warnings.push('not a git repository; legacy-reference check skipped');
   else {
-    for (const f of out.split('\0').filter(Boolean)) {
-      if (isRecord(f)) continue;
+    const files = out.split('\0').filter(Boolean);
+    // Vendored skill folders (npx skills add copies Beat's skills, references
+    // included) quote the old path in their own docs; they are not project text.
+    const skillDirs = files.filter(f => basename(f) === 'SKILL.md' && f.includes('/')).map(f => dirname(f) + '/');
+    for (const f of files) {
+      if (isRecord(f) || skillDirs.some(d => f.startsWith(d))) continue;
       let text;
       try { text = readFileSyncUtf8(join(projectRoot, f)); } catch { continue; }
       if (text.includes('beat/CONTEXT.md')) errors.push(`${f}: still references beat/CONTEXT.md`);

@@ -79,6 +79,13 @@ tmp=$(mktemp -d "${TMPDIR:-/tmp}/beat-layout.XXXXXX")
 cp -R good/. "$tmp/"
 gitc() { ( cd "$tmp" && git -c user.email=t@t -c user.name=t -c commit.gpgsign=false "$@" ); }
 ( cd "$tmp" && git init -q ) && gitc add -A >/dev/null && gitc commit -qm init
+out=$(node "$VALIDATOR" "$tmp" --layout 2>&1); rc=$?
+if [ $rc -eq 1 ] && echo "$out" | grep -q "docs/agents/issue-tracker.md: missing" && echo "$out" | grep -q "CODING_STANDARDS.md: missing" && echo "$out" | grep -q "Agent docs"; then echo "PASS layout names the missing required files"; else echo "FAIL layout did not name the missing required files"; echo "$out"; fail=1; fi
+mkdir -p "$tmp/beat" && touch "$tmp/beat/CONTEXT.md"
+gitc add -A >/dev/null && gitc commit -qm "legacy glossary"
+out=$(node "$VALIDATOR" "$tmp" --layout 2>&1); rc=$?
+if [ $rc -eq 1 ] && echo "$out" | grep -q "beat/CONTEXT.md exists"; then echo "PASS layout flags an existing beat/CONTEXT.md"; else echo "FAIL layout missed beat/CONTEXT.md"; echo "$out"; fail=1; fi
+gitc rm -q beat/CONTEXT.md && gitc commit -qm "drop legacy glossary"
 mkdir -p "$tmp/docs/agents"
 echo "# Issue tracker" > "$tmp/docs/agents/issue-tracker.md"
 echo "# Coding standards" > "$tmp/CODING_STANDARDS.md"
@@ -97,4 +104,10 @@ echo "notes" > "$tmp/note.md"
 gitc add -A >/dev/null && gitc commit -qm "move to record"
 out=$(node "$VALIDATOR" "$tmp" --layout 2>&1); rc=$?
 if [ $rc -eq 0 ]; then echo "PASS layout ignores legacy references in records"; else echo "FAIL layout flagged a record"; echo "$out"; fail=1; fi
+mkdir -p "$tmp/skills/x/references"
+printf -- '---\nname: x\n---\n' > "$tmp/skills/x/SKILL.md"
+echo "glossary lives in beat/CONTEXT.md" > "$tmp/skills/x/references/note.md"
+gitc add -A >/dev/null && gitc commit -qm "vendored skill"
+out=$(node "$VALIDATOR" "$tmp" --layout 2>&1); rc=$?
+if [ $rc -eq 0 ]; then echo "PASS layout skips vendored skill folders"; else echo "FAIL layout flagged a vendored skill folder"; echo "$out"; fail=1; fi
 exit $fail
