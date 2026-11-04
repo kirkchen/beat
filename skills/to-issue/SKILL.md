@@ -38,7 +38,7 @@ Never add the dispatch label unless the user asked for dispatch in words ("走 t
 | Input | When | Priority |
 |-------|------|----------|
 | `docs/agents/issue-tracker.md` | Always, first | MUST: absent → stop and name `/beat:setup` |
-| The exploration's exit (from its `## Beat Handoff` block) | Always | MUST: absent → stop, finish `/beat:explore` first |
+| The exploration's exit (from the `Exit:` line directly above its `## Beat Handoff` block) | Always | MUST: absent → stop, finish `/beat:explore` first |
 | `beat/routes/<route>/` (`route.md` + `status.yaml`) | Exit `too-big` | MUST: absent → stop, rerun `/beat:explore` |
 | `beat/config.yaml` `language` | Writing the body | OPTIONAL: picks the section titles |
 
@@ -67,7 +67,7 @@ When a recipe this skill needs is missing from Conventions (for example no comma
 
 - Typing a tracker command that is not in `docs/agents/issue-tracker.md`
 - Adding the dispatch label, or clearing `status/blocked`, without the user's words
-- Writing `status/needs-triage` or any status label outside the five in Vocabulary
+- Writing any status label outside the five in Vocabulary
 - Putting a decision under the locked heading that the user never confirmed
 - Creating issues for a `too-big` exit without `beat/routes/<route>/`
 - Passing a multi-line body inline instead of through a body file
@@ -81,7 +81,7 @@ digraph to_issue {
     "Read docs/agents/issue-tracker.md" [shape=box, style=bold];
     "File exists?" [shape=diamond];
     "Stop: run /beat:setup" [shape=octagon];
-    "Read exit from Beat Handoff" [shape=box];
+    "Read Exit: line above Beat Handoff" [shape=box];
     "Exit declared?" [shape=diamond];
     "Stop: finish /beat:explore" [shape=octagon];
     "Which exit?" [shape=diamond];
@@ -100,8 +100,8 @@ digraph to_issue {
 
     "Read docs/agents/issue-tracker.md" -> "File exists?";
     "File exists?" -> "Stop: run /beat:setup" [label="no"];
-    "File exists?" -> "Read exit from Beat Handoff" [label="yes"];
-    "Read exit from Beat Handoff" -> "Exit declared?";
+    "File exists?" -> "Read Exit: line above Beat Handoff" [label="yes"];
+    "Read Exit: line above Beat Handoff" -> "Exit declared?";
     "Exit declared?" -> "Stop: finish /beat:explore" [label="no"];
     "Exit declared?" -> "Which exit?" [label="yes"];
     "Which exit?" -> "Write body, reread as outsider" [label="small / standard\n/ blocked"];
@@ -110,8 +110,7 @@ digraph to_issue {
     "Write body, reread as outsider" -> "Create or rewrite one issue\n(assignee, type/*, status/ready)" [label="small / standard"];
     "Write body, reread as outsider" -> "Create one issue\n(blocker, who resolves it)" [label="blocked"];
     "Route exists?" -> "Stop: rerun /beat:explore" [label="no"];
-    "Route exists?" -> "Write body, reread as outsider" [label="yes"];
-    "Write body, reread as outsider" -> "Epic from route.md,\nsub-issue per change node,\nblocked-by edges" [label="too-big"];
+    "Route exists?" -> "Epic from route.md,\nsub-issue per change node,\nblocked-by edges" [label="yes"];
     "Epic from route.md,\nsub-issue per change node,\nblocked-by edges" -> "Write issue: into status.yaml,\nvalidate, commit";
     "Create or rewrite one issue\n(assignee, type/*, status/ready)" -> "User asked for dispatch?";
     "User asked for dispatch?" -> "Add dispatch label, poll" [label="yes, in words"];
@@ -136,15 +135,17 @@ Take from it: the tracker and its CLI, every command recipe under Conventions, t
 
 ### 2. Read the exit
 
-Find the exploration's `## Beat Handoff` block and the exit it declared: `small`, `standard`, `too-big`, `blocked` or `drop`. For `small` the exploration also named the preset (`minimal` or `technical`); `standard` leaves the preset to design (write `standard` unless the exploration agreed on another).
+Read the exit and preset from the `Exit:` line directly above the exploration's `## Beat Handoff` block (`Exit: <small|standard|too-big|blocked|drop> (preset <...>)`). The preset is present only for `small` (`minimal` or `technical`) and `standard` (`standard`, or `full` when the exploration agreed on it).
 
-No declared exit → stop: "This exploration has no declared exit. Finish `/beat:explore` first; the exit decides how many issues to open and which labels they get." Do not infer one.
+No `Exit:` line → stop: "This exploration has no declared exit. Finish `/beat:explore` first; the exit decides how many issues to open and which labels they get." Do not infer one.
 
 Also note whether the exploration started from an existing issue (`/beat:explore #<n>`, or a route node with an `issue:` field). That issue is rewritten, not duplicated.
 
 Before creating anything new, search open issues once with the list recipe for an epic this work belongs to and for overlapping issues. An epic match becomes the `Epic: #<n>` first line; overlaps go under the not-now section or a closing related-issues line.
 
 ### 3. Write the body (`small`, `standard`, `blocked`)
+
+`too-big` skips this step: its epic and sub-issue bodies come from `route.md`, and step 4.2 rereads them the same way.
 
 Section titles follow `beat/config.yaml` `language`: a `zh-*` language uses the zh-TW titles below; any other value, and no config (Beat's default is English), uses the English titles. The two locked titles are copied exactly, because `/beat:design` finds them by title.
 
@@ -156,7 +157,7 @@ Epic: #<n>                                   ← only when step 2 found one
 
 When the issue being rewritten is a route sub-issue (created with `Route: <route>/<node-id>` as its first line), that line stays the first body line, then the optional `Epic:` line, then the exit line.
 
-English: `Exit: <exit> (preset <...>)`. The exit line comes after any `Route:` and `Epic:` lines and before every section; `/beat:design` reads the preset from it and skips its preset question.
+English: `Exit: <exit> (preset <...>)`. It carries the same exit and preset as the exploration's `Exit:` line. The exit line comes after any `Route:` and `Epic:` lines and before every section; `/beat:design` reads the preset from it and skips its preset question.
 
 | zh-TW | English | What goes in it |
 |-------|---------|-----------------|

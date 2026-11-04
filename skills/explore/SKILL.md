@@ -164,7 +164,7 @@ Exploration ends when the user is done or the shape is clear. Before ending, **d
 |------|--------------------------------|-------------------|
 | `small` | the affected files or directories, all in one module; no decision still open; no new domain term | "Ready for `/beat:design <name>` with preset `minimal`" (or `technical` when there is no behaviour change). Design skips the preset question. |
 | `standard` | the affected area fits one change, but one or more decisions are still to be made in design | "Ready for `/beat:design <name>`" — design asks for the preset as usual. |
-| `too-big` | more than one module, or decisions that depend on each other, or more than one PR | Create `beat/routes/<name>/` (schema: `references/route-schema.md`): `route.md` from the brainstorming output, `status.yaml` with the nodes you can already name. Next: `/beat:explore <route>` to pick the first frontier node. |
+| `too-big` | more than one module, or decisions that depend on each other, or more than one PR | Create `beat/routes/<name>/` (schema: `references/route-schema.md`): `route.md` from the brainstorming output, `status.yaml` with the nodes you can already name. Next: `/beat:explore <route>` to pick the first frontier node. In a project that has `docs/agents/issue-tracker.md`, next is `/beat:to-issue` (the epic plus one sub-issue per change node), and `/beat:explore <route>` follows it. |
 | `drop` | the facts say this should not be built: already covered, out of scope for the project, or the cost is not worth it | Say so, close the issue when there is one (with the one-line reason), create nothing. |
 | `blocked` | the one thing that must exist before any of the above can be chosen | Create a node (in the active route, or a one-node route when there is none) with `kind` = `research` (an agent can answer it unattended), `prototype` (a human must look at something — see below), or `decision` (only a human can decide). Next: whoever resolves it, then `/beat:explore` again. |
 
@@ -178,7 +178,15 @@ In a project that dispatches issues to an orchestrator, `standard` means "decisi
 
 **Research nodes.** The node carries the question and the sources to consult; the result is a markdown file in the repo at the node's `result` path, never only in chat. Offer `mattpocock-skills:research` when installed.
 
-Then end with the handoff block from `references/handoff-report.md`, `next` being the command above. Exploration may also just stop ("continue later") — still declare the exit so the thread can be picked up.
+Then print exactly one line immediately above the handoff block, always in this English form because the handoff region is English:
+
+```
+Exit: <small|standard|too-big|blocked|drop> (preset <minimal|technical|standard|full>)
+```
+
+The preset appears only for `small` (`minimal` or `technical`, as declared) and `standard` (`standard`, or `full` when the exploration agreed on it); the other exits omit it (`Exit: too-big`). `/beat:to-issue` reads the exit and preset from this line.
+
+End with the handoff block from `references/handoff-report.md`, `next` being the command above. Exploration may also just stop ("continue later") — still declare the exit and print the `Exit:` line so the thread can be picked up.
 
 ---
 
