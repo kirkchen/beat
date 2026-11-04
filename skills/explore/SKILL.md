@@ -48,8 +48,11 @@ observable facts that justify it. The user can override the exit; you cannot omi
 | superpowers:brainstorming | At the start of explore, before any response | MUST |
 | mattpocock-skills:research | A `blocked` exit with `kind: research`, when the user wants it run now | OPTIONAL |
 | mattpocock-skills:prototype | A `blocked` exit with `kind: prototype`, when `config.yaml` has no `prototype.surface` | OPTIONAL |
+| grilling + domain-modeling (mattpocock/skills, model-invoked) | When a domain term is ambiguous enough that the conversation keeps circling it | OPTIONAL |
 
-If a MUST skill is unavailable (not installed), proceed directly into the thinking stance. Optional skills are offered, never required; without them the node is still created and the user runs it however they like.
+If a MUST skill is unavailable (not installed), proceed directly into the thinking stance. Optional skills are offered, never required; without them the node is still created and the user runs it however they like. `grilling` and `domain-modeling` are called directly (they are model-invoked); `grill-with-docs` is user-invoked and cannot be reached from a skill — mention that the user can run it themselves, never offer to invoke it.
+
+Explore is never unattended: it is the one phase where the human spends time. What the human settles here is what keeps the later phases quiet — a decision left open becomes a decision brief in design (`references/unattended-mode.md`).
 
 ## Rationalization Prevention
 

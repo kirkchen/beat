@@ -54,11 +54,14 @@ because you judged it unnecessary.
 |-------|------|----------|
 | superpowers:using-git-worktrees | Before first file write | MUST |
 | superpowers:brainstorming | Before creating proposal or design | MUST |
-| mattpocock-skills:grill-with-docs | When CONTEXT.md ambiguity is complex enough that a full grilling session is warranted | OPTIONAL |
+| grilling + domain-modeling (mattpocock/skills, model-invoked) | When a term fails the CONTEXT.md four-challenge check and inline resolution is not enough | OPTIONAL |
 
 If a prerequisite skill is unavailable (skill not installed), skip and continue.
-For optional skills (grill-with-docs), offer to invoke when applicable; if the
-user declines or it isn't installed, proceed with the four-challenge check inline.
+`grilling` and `domain-modeling` are called directly when needed (they are model-invoked); `grill-with-docs` is user-invoked and cannot be reached from a skill — never offer it, tell the user they can run it themselves if they want a longer session.
+
+## Unattended mode
+
+When the run carries a stage-result nonce (see `references/handoff-report.md`), nobody is watching: follow `references/unattended-mode.md`. Every **AskUserQuestion** in this skill becomes a default (recorded in `beat/changes/<name>/decisions/assumed.md`), a decision brief (`references/decision-brief.md`, `blocked-on: decision`), or an environmental stop (`blocked-on: env`). The per-skill table in that reference says which. For design specifically: the preset defaults to what explore declared or `standard`; a Key Decision that meets the ADR gate is written as an ADR without asking; one that is not covered by the issue's locked decisions and still needs the human becomes a brief.
 
 ## Rationalization Prevention
 
@@ -160,6 +163,8 @@ digraph design {
    - If `beat/changes/<name>/` doesn't exist: create it (directory + status.yaml + features/.gitkeep)
    - If it exists: use it, read `status.yaml` (schema: `references/status-schema.md`) to find remaining artifacts
 
+   **From an issue (locked decisions):** when the change was dispatched from an issue, or the input names one, read the issue body. The section `## 已定案（不要重新討論）` (or `## Decided (do not reopen)`) lists decisions the human already made: copy them into `design.md` Key Decisions as given, never re-ask or re-argue them, and skip the ADR gate for them (the human can lift one into an ADR later). `## 先不做` is the out-of-scope list. `## User stories` and `## 測試 seam`, when present, are the raw material for gherkin and for the `@e2e` / `@behavior` split. See `references/unattended-mode.md` "Locked decisions".
+
    **From a route node:** when the input names a route node (`<route>/<node-id>`, or `/beat:explore` just handed one off), read `beat/routes/<route>/route.md` and `status.yaml` (schema: `references/route-schema.md`). Write `route: <route>/<node-id>` into the new change's status.yaml, and add `change: <name>` to that node in the route's status.yaml. The route's "Decisions so far" and the `result` files of the node's blockers are context for every artifact below.
 
 3. **Settle the preset**
@@ -207,7 +212,7 @@ digraph design {
    3. **Stress-test** — invent edge-case scenarios that probe term boundaries; force the boundary to be named.
    4. **Cross-reference code** — the user states behaviour that the code contradicts? Surface, decide source of truth, update the loser.
 
-   **Optional grilling:** If `mattpocock-skills:grill-with-docs` is installed and the ambiguity is complex enough to warrant a full grilling session, offer to invoke it once: *"Want to drop into grill-with-docs for a deeper pass on this?"* If the user declines, or the skill isn't installed, continue inline with the four challenges. Beat never hard-requires grill-with-docs.
+   **Grilling:** when a term fails a challenge and the inline resolution is not enough, call `grilling` (to sharpen the question) and `domain-modeling` (to write the glossary entry and any ADR) directly — both are model-invoked skills from mattpocock/skills. If they are not installed, continue inline with the four challenges. Do not offer `grill-with-docs`: it is user-invoked and unreachable from here; the user can run it themselves for a longer session.
 
    Every project-specific term used in scenarios MUST exist in `beat/CONTEXT.md` before the scenario is written. Bolded terms in scenarios are the canonical form.
 
@@ -255,8 +260,9 @@ digraph design {
        1. Hard to reverse? (cost of changing your mind is meaningful)
        2. Surprising without context? (future reader will wonder *"why on earth this way?"*)
        3. Result of a real trade-off? (genuine alternatives existed)
-       If **all three** hold, use **AskUserQuestion tool**: *"This decision meets the ADR gate. Lift it into `docs/adr/`?"* On Yes, follow "Before writing an ADR" in `references/adr-format.md` (apply config `rules.adr`; use the project's `docs/adr/TEMPLATE.md` if it exists, otherwise Beat's front-matter template with `source: beat/changes/<name>`), write the 1-3 sentence ADR, increment the highest existing number in `docs/adr/` by one, and add a cross-reference from `design.md` (`See docs/adr/NNNN-slug.md`). On No, continue.
+       A decision copied from the issue's locked section skips this gate. Otherwise, if **all three** hold, use **AskUserQuestion tool**: *"This decision meets the ADR gate. Lift it into `docs/adr/`?"* (unattended: Yes without asking). On Yes, follow "Before writing an ADR" in `references/adr-format.md` (apply config `rules.adr`; use the project's `docs/adr/TEMPLATE.md` if it exists, otherwise Beat's front-matter template with `source: beat/changes/<name>`), write the 1-3 sentence ADR, increment the highest existing number in `docs/adr/` by one, and add a cross-reference from `design.md` (`See docs/adr/NNNN-slug.md`). On No, continue.
        Create `docs/adr/` lazily — only on first ADR. Track every ADR (and any project ADR index) written here — step 5 commits them with the change.
+     - **Sensitivity check** (unattended mode only): read `sensitive` from `beat/config.yaml` (schema: `references/config-schema.md`). Compare every Key Decision and every path `design.md` names against `situations` (judge it the way the ADR gate is judged — a plausible match is a match) and `paths` (any touch). Record the result as `sensitive=yes|no` in the handoff suffix; say in one line which situation matched.
      - **Architecture hub suggestion** (Layer 3, advisory) — if `design.md` describes a module-level architecture change (new module, module split/merge, changed module boundaries or responsibilities), suggest updating `beat/ARCHITECTURE.md` — the hub diagram, modules table, or constraints (see `references/architecture-format.md`). Create the hub lazily, only if the project is multi-module and the user accepts. Never block.
 
 5. **Lint, commit artifacts and show final status**
@@ -294,7 +300,7 @@ digraph design {
    Spec artifacts ready! Review them, then run `/beat:plan` for task breakdown.
    ```
 
-   Then end with the handoff block from `references/handoff-report.md` (`next: /beat:plan <name>`).
+   Then end with the handoff block from `references/handoff-report.md` (`next: /beat:plan <name>`). When a decision brief was written, print it in full immediately above the block, set `blocked-on: decision D<n> — <one line>`, and make `next` this same command so the phase re-runs after the answer.
 
 **Guardrails**
 - Gherkin is mandatory by default -- only skip for purely technical changes (option 4: Technical)

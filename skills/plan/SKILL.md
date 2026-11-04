@@ -50,6 +50,10 @@ because you judged it unnecessary.
 
 If a superpower is unavailable (skill not installed), skip and continue.
 
+## Unattended mode
+
+When the run carries a stage-result nonce (see `references/handoff-report.md`), nobody is watching: follow `references/unattended-mode.md`. Every **AskUserQuestion** in this skill becomes a default (recorded in `beat/changes/<name>/decisions/assumed.md`), a decision brief (`references/decision-brief.md`, `blocked-on: decision`), or an environmental stop (`blocked-on: env`). The per-skill table in that reference says which. For plan specifically: use the suggested review roles; a review finding that changes what gets built becomes a brief, one that only reshapes tasks is applied and noted.
+
 ## Rationalization Prevention
 
 | Thought | Reality |
@@ -167,7 +171,7 @@ digraph plan {
 
    **Suggest review roles based on complexity:**
 
-   Use **AskUserQuestion tool**:
+   Use **AskUserQuestion tool** (unattended: take the suggested roles, record in `assumed.md`):
    > "Based on the spec artifacts, I suggest the following review perspectives:
    > [dynamically selected roles with rationale]
    >
@@ -299,7 +303,7 @@ digraph plan {
    Ready for implementation! Run `/beat:apply` to start.
    ```
 
-   Then end with the handoff block from `references/handoff-report.md` (`next: /beat:apply <name>`).
+   Then end with the handoff block from `references/handoff-report.md` (`next: /beat:apply <name>`). In the suffix, repeat design's `sensitive` value (read it from the last handoff or re-derive from `design.md` against `config.yaml`); the orchestrator gates on it once after this phase. A brief, when written, is printed in full above the block with `blocked-on: decision D<n>` and `next` pointing back at this command.
 
 **Guardrails**
 - NEVER proceed without at least one spec artifact (gherkin or proposal) being done
@@ -307,4 +311,4 @@ digraph plan {
 - Review is part of the process, not optional — but depth scales with complexity
 - Test coverage review is always included regardless of complexity
 - Apply review findings directly to tasks.md, not as a separate report
-- If review reveals spec-level issues (missing scenarios, design gaps), surface them to the user rather than silently compensating in tasks
+- If review reveals spec-level issues (missing scenarios, design gaps), surface them to the user rather than silently compensating in tasks (unattended: a brief when it changes what gets built)
