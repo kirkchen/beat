@@ -26,6 +26,14 @@ preset_upgrade:                      # optional, map — thresholds that turn a 
   lines: 200                         # optional, integer (default 200) — net lines added, tests excluded
   modules: 1                         # optional, integer (default 1) — top-level modules touched
 
+sensitive:                           # optional, map — what a human wants to see before implementation (unattended mode)
+  situations:                        # optional, array of strings — one-line descriptions, judged like the ADR gate
+    - 改到費用計算、預算門檻，或任何會變成帳單數字的邏輯
+    - 改到誰可以派工、核准，或代表別人執行的判定
+    - 改到對外契約：label 語意、webhook payload、stage-result 格式
+  paths:                             # optional, array of globs — any touch counts, no judgement
+    - packages/domain/src/schema.ts
+
 lint:                                # optional, map — read by scripts/lint-features.mjs
   tags: [@k8s]                       # optional, extra tags accepted besides the core set
   layer_tags: [@manual-smoke]        # optional, extra tags that count as a testing layer
@@ -82,6 +90,16 @@ Tells `/beat:explore` where a prototype node is built when exploration ends in `
 ### `preset_upgrade`
 
 Thresholds `/beat:apply` checks after each task on a `minimal` or `technical` change. When the accumulated diff (tests excluded) exceeds any threshold, apply upgrades `preset` to `standard`, records `preset_upgrade` in status.yaml (see `references/status-schema.md`), and continues — the next `/beat:verify` runs at standard strength. Defaults when absent: `files: 3`, `lines: 200`, `modules: 1`. A module is a top-level directory under `src/`, `packages/`, `apps/`, or the repo root for single-module projects.
+
+### `sensitive`
+
+Read only in unattended mode (`references/unattended-mode.md`). Names the changes a human wants to look at after `/beat:plan` and before `/beat:apply`, when no interactive checkpoint exists.
+
+**`situations`** is the primary mechanism: one-line descriptions of what makes a change sensitive, written in the same register as the ADR three-condition gate. `/beat:design` reads each Key Decision and every path the design names against the list; `/beat:apply` reads the diff against it. The judgement is the agent's, the same way the ADR gate is, so the list can be generous: a missed match still meets the PR review, a false match costs one ten-line brief.
+
+**`paths`** is the backstop: globs that count as sensitive on any touch, no judgement. Keep it to the few files where "whatever changed, look at it" is literally true.
+
+Either list may be empty or absent. The result is the `sensitive=yes|no` token in the handoff suffix (`references/handoff-report.md`). `/retro` adds a line to `situations` when a change should have stopped and did not.
 
 ### `lint`
 

@@ -316,7 +316,7 @@ function isAncestor(projectRoot, sha) {
 
 export function validateConfig(doc, { file }) {
   const errors = [], warnings = [];
-  checkKeys(doc, ['language', 'context', 'testing', 'prototype', 'preset_upgrade', 'lint', 'rules'], file, errors);
+  checkKeys(doc, ['language', 'context', 'testing', 'prototype', 'preset_upgrade', 'sensitive', 'lint', 'rules'], file, errors);
   if (doc.context !== undefined && String(doc.context).length > 50 * 1024) errors.push(`${file}: context exceeds 50KB`);
   else if (doc.context !== undefined && String(doc.context).length > 2 * 1024) warnings.push(`${file}: context exceeds the 2KB soft limit`);
   if (doc.testing) checkKeys(doc.testing, ['required', 'behavior', 'e2e', 'framework'], `${file} testing`, errors);
@@ -324,6 +324,10 @@ export function validateConfig(doc, { file }) {
   if (doc.preset_upgrade) {
     checkKeys(doc.preset_upgrade, ['files', 'lines', 'modules'], `${file} preset_upgrade`, errors);
     for (const k of ['files', 'lines', 'modules']) if (doc.preset_upgrade[k] !== undefined && typeof doc.preset_upgrade[k] !== 'number') errors.push(`${file}: preset_upgrade.${k} must be a number`);
+  }
+  if (doc.sensitive) {
+    checkKeys(doc.sensitive, ['situations', 'paths'], `${file} sensitive`, errors);
+    for (const k of ['situations', 'paths']) if (doc.sensitive[k] !== undefined && (!Array.isArray(doc.sensitive[k]) || doc.sensitive[k].some(v => typeof v !== 'string'))) errors.push(`${file}: sensitive.${k} must be a list of strings`);
   }
   if (doc.lint) checkKeys(doc.lint, ['tags', 'layer_tags', 'pending_tag'], `${file} lint`, errors);
   if (doc.rules) for (const k of Object.keys(doc.rules)) if (!['proposal', 'gherkin', 'design', 'tasks', 'adr'].includes(k)) warnings.push(`${file}: rules.${k} is not a known artifact and will be ignored`);
@@ -341,6 +345,27 @@ export function validateHandoff(text, { file }) {
   if (keys.next && (keys.next.includes('\n') || /\bor\b/.test(keys.next))) errors.push(`${file}: next must be exactly one command`);
   if (keys.commit && !/^[0-9a-f]{7,40}$/.test(keys.commit)) errors.push(`${file}: commit must be a git sha`);
   for (const k of ['critical', 'warning']) if (keys.findings && !new RegExp(`${k}=\\d+`).test(keys.findings)) errors.push(`${file}: findings must carry ${k}=<n>`);
+  const sr = text.match(/^rhythm-stage-result\[([^\]\n]*)\]:[ \t]*(.*)$/m);
+  if (sr) {
+    if (!sr[1]) errors.push(`${file}: stage-result nonce is empty`);
+    const tail = text.slice(text.indexOf(sr[0]) + sr[0].length);
+    if (tail.trim()) errors.push(`${file}: stage-result must be the last non-empty line`);
+    const kv = {};
+    for (const tok of sr[2].trim().split(/\s+/).filter(Boolean)) { const i = tok.indexOf('='); if (i < 1) { errors.push(`${file}: stage-result token "${tok}" is not k=v`); continue; } kv[tok.slice(0, i)] = tok.slice(i + 1); }
+    for (const k of ['phase', 'sha', 'blocked-on', 'next']) if (!(k in kv)) errors.push(`${file}: stage-result missing "${k}"`);
+    const enums = { 'blocked-on': ['none', 'decision', 'env'], sensitive: ['yes', 'no'], diverging: ['yes', 'no'] };
+    for (const [k, vals] of Object.entries(enums)) if (k in kv && !vals.includes(kv[k])) errors.push(`${file}: stage-result ${k} must be one of ${vals.join('|')}`);
+    for (const k of ['critical', 'warning']) if (k in kv && !/^\d+$/.test(kv[k])) errors.push(`${file}: stage-result ${k} must be an integer`);
+    if ('decision' in kv && !/^(D\d+|none)$/.test(kv.decision)) errors.push(`${file}: stage-result decision must be D<n> or none`);
+    if (kv['blocked-on'] === 'decision' && !/^D\d+$/.test(kv.decision ?? '')) errors.push(`${file}: stage-result blocked-on=decision needs decision=D<n>`);
+    if (kv.sha && !/^[0-9a-f]{7,40}$/.test(kv.sha)) errors.push(`${file}: stage-result sha must be a git sha`);
+    if (keys['blocked-on'] && kv['blocked-on']) {
+      const prose = keys['blocked-on'].trim();
+      const expect = prose === 'none' || prose.startsWith('none ') ? 'none' : null;
+      if (expect && kv['blocked-on'] !== 'none') errors.push(`${file}: block says blocked-on none but stage-result says ${kv['blocked-on']}`);
+      if (!expect && kv['blocked-on'] === 'none') errors.push(`${file}: block has a blocker but stage-result says blocked-on=none`);
+    }
+  }
   return { errors, warnings };
 }
 

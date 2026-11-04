@@ -3,4 +3,7 @@ preset_upgrade: { files: "three" }
 lint:
   tags: [@k8s]
   colour: red
+sensitive:
+  situations: not-a-list
+  colour: red
 unknown_top: 1
