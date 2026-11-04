@@ -6,11 +6,11 @@ Issues for this repo live in `<group>/<project>` on GitLab. Use the `glab` CLI f
 
 - **Create an issue**: `glab issue create --title "..." --description "$(cat <file>)"`. Write the description to a file first; do not pass a multi-line description inline.
 - **Read an issue**: `glab issue view <number> --comments`. Use `-F json` for machine-readable output.
-- **List issues by label**: `glab issue list --label "<label>" -O json`.
+- **List issues by label**: `glab issue list --label "<label>" -P <n> -O json`. The default page size is 20, which truncates large epics; set `-P` to at least the expected count.
 - **Edit labels**: `glab issue update <number> --label "..."` / `--unlabel "..."`. Multiple labels can be comma-separated or given by repeating the flag.
 - **Comment on an issue**: `glab issue note <number> --message "$(cat <file>)"`. GitLab calls comments "notes".
 - **Close**: `glab issue close <number>` does not accept a closing comment, so post the explanation first with `glab issue note <number> --message "..."`, then close.
-- **Make an issue a sub-issue of a parent**: put `Part of #<parent>` at the top of the child description and link it: `glab issue create --linked-issues <parent> --link-type relates_to ...`. On GitLab tiers with native epics, the epic may hold the parent instead.
+- **Make an issue a sub-issue of a parent**: on the free tier a sub-issue is a plain relation plus a first line: put `Part of #<parent>` at the top of the child description and link it with `glab issue create --linked-issues <parent> --link-type relates_to ...` (a relation, not a parent/child link). On Premium/Ultimate, `--epic <epic>` is the native parent.
 - **Add a blocked-by edge**: GitLab's native blocking link. Post the `/blocked_by #<blocker>` quick action as a note: `glab issue note <child> --message "/blocked_by #<blocker>"`. Native blocking links are a Premium/Ultimate feature; on the free tier (or where unavailable) fall back to a `Blocked by: #<n>, #<n>` line at the top of the description. An issue is unblocked when every blocker is closed.
 - **Count open blockers**: `glab api projects/:id/issues/<iid>/links`, then count entries with `link_type` `is_blocked_by` and `state` `opened`. In the fallback case, count the open issues named in the `Blocked by` line.
 
