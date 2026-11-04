@@ -30,7 +30,7 @@ Before anything else: read `docs/agents/issue-tracker.md` (its place in the proj
 `No docs/agents/issue-tracker.md. Run /beat:setup to create it.`
 Never fall back to a default tracker, CLI, owner, assignee or label.
 
-Never add the dispatch label unless the user asked for dispatch in words ("走 ticket flow", "打 rhythm-change", "交給 Rhythm", "dispatch it"). Otherwise name it as the next step.
+Never add the dispatch label unless the user asked for dispatch in words ("走 ticket flow", "打 `<dispatch-label>`（例如 rhythm-change）", "交給 Rhythm", "dispatch it"). Otherwise name it as the next step.
 </HARD-GATE>
 
 **Prerequisites** (check before proceeding)
@@ -56,7 +56,7 @@ When a recipe this skill needs is missing from Conventions (for example no comma
 
 | Thought | Reality |
 |---------|---------|
-| "The user clearly wants this dispatched, I'll add the dispatch label" | Dispatch starts an unattended run under someone's account. Only words from the user add it ("交給 Rhythm", "打 rhythm-change"). Otherwise list it as the next step. |
+| "The user clearly wants this dispatched, I'll add the dispatch label" | Dispatch starts an unattended run under someone's account. Only words from the user add it ("交給 Rhythm", "打 `<dispatch-label>`（例如 rhythm-change）"). Otherwise list it as the next step. |
 | "No issue-tracker.md, but it's obviously GitHub — I'll just use `gh`" | The owner, assignee and labels are project facts you do not have. Stop and name `/beat:setup`; it writes the file in one step. |
 | "The exploration didn't declare an exit, but it's obviously small" | The exit decides how many issues, which labels, and whether a route is needed. Guessing it here re-sizes the work without the person who explored it. Send them back to `/beat:explore`. |
 | "This decision follows from what we agreed, so it goes under 已定案" | The locked heading tells design never to reopen a line. An inferred decision locked there can never be questioned. Only what the user agreed to goes there; inferences go under 留給 design 決定. |
@@ -110,7 +110,8 @@ digraph to_issue {
     "Write body, reread as outsider" -> "Create or rewrite one issue\n(assignee, type/*, status/ready)" [label="small / standard"];
     "Write body, reread as outsider" -> "Create one issue\n(blocker, who resolves it)" [label="blocked"];
     "Route exists?" -> "Stop: rerun /beat:explore" [label="no"];
-    "Route exists?" -> "Epic from route.md,\nsub-issue per change node,\nblocked-by edges" [label="yes"];
+    "Route exists?" -> "Write body, reread as outsider" [label="yes"];
+    "Write body, reread as outsider" -> "Epic from route.md,\nsub-issue per change node,\nblocked-by edges" [label="too-big"];
     "Epic from route.md,\nsub-issue per change node,\nblocked-by edges" -> "Write issue: into status.yaml,\nvalidate, commit";
     "Create or rewrite one issue\n(assignee, type/*, status/ready)" -> "User asked for dispatch?";
     "User asked for dispatch?" -> "Add dispatch label, poll" [label="yes, in words"];
@@ -148,11 +149,14 @@ Before creating anything new, search open issues once with the list recipe for a
 Section titles follow `beat/config.yaml` `language`: a `zh-*` language uses the zh-TW titles below; any other value, and no config (Beat's default is English), uses the English titles. The two locked titles are copied exactly, because `/beat:design` finds them by title.
 
 ```
+Route: <route>/<node-id>                     ← only when rewriting a route sub-issue; stays the first line
 Epic: #<n>                                   ← only when step 2 found one
 出口：<exit>（preset <minimal|technical|standard|full>）
 ```
 
-English: `Exit: <exit> (preset <...>)`. The exit line is the first line after any `Epic:` line; `/beat:design` reads the preset from it and skips its preset question.
+When the issue being rewritten is a route sub-issue (created with `Route: <route>/<node-id>` as its first line), that line stays the first body line, then the optional `Epic:` line, then the exit line.
+
+English: `Exit: <exit> (preset <...>)`. The exit line comes after any `Route:` and `Epic:` lines and before every section; `/beat:design` reads the preset from it and skips its preset question.
 
 | zh-TW | English | What goes in it |
 |-------|---------|-----------------|
@@ -184,7 +188,7 @@ Title: conventional-commit form, `type(scope): one line`. Write the body to a te
 **`too-big`** — the route must exist: `beat/routes/<route>/route.md` and `status.yaml` (schema: `references/route-schema.md`). Absent → stop: "Exploration ended too-big but no route exists; rerun /beat:explore". Otherwise:
 
 1. Create the epic issue. Title from the route's `# Route:` line; body generated from `route.md`'s Destination, Decisions so far, Not yet specified and Out of scope sections, plus the exit line `出口：too-big` (or `Exit: too-big`).
-2. For each `type: change` node, create one sub-issue: title from the node's `title` (in conventional-commit form), first body line `Route: <route>/<node-id>`, then what `route.md` says about it. No status label and no assignee — each node is explored on its own, and its own `/beat:to-issue` run later rewrites this issue.
+2. For each `type: change` node, create one sub-issue: title from the node's `title` (in conventional-commit form), first body line `Route: <route>/<node-id>`, then what `route.md` says about it. No status label and no assignee — each node is explored on its own, and its own `/beat:to-issue` run later rewrites this issue. Reread the epic and every sub-issue body as in step 3 (no conversational shorthand) before sending it.
 3. Link every sub-issue to the epic with the sub-issue recipe. For every `blocked_by` entry between change nodes, add a blocked-by edge with the blocked-by recipe (fallback lines as that recipe says). A blocker that is a research, prototype or decision node has no issue: name it in the sub-issue body (`Blocked by route node <route>/<node-id> (<type>)`).
 4. Read `beat/routes/<route>/status.yaml`, add `issue: "#<n>"` (or the tracker's key, e.g. `"PROJ-123"`) to each node that got an issue, keep every other field and node unchanged, and write it back.
 5. Run `node <skill-dir>/scripts/validate-beat.mjs --file beat/routes/<route>/status.yaml`. Fix what it lists before going on.
