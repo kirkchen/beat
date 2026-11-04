@@ -26,15 +26,30 @@ Write it in the project's `language` from `beat/config.yaml`; the labels above a
 - **State a leaning.** The skill has read everything; the human has read nothing. A brief without a leaning pushes the reading back onto the human.
 - **Name what it blocks.** The reader decides how urgently to answer from this line.
 - **No file paths or code.** They go stale and they are not what the decision turns on. If a type shape or schema is the decision, inline the minimum (three lines, not a listing).
-- **Print it before the handoff block.** The orchestrator takes the run's last message as the gate question, so the brief must be in that message, in full, immediately above `## Beat Handoff`.
+- **Print it last, before the handoff block.** The orchestrator takes the text between the first brief heading (`# D<n>:` or `# P1:`) and `## Beat Handoff` in the run's last message as the gate question. The brief is the phase's final action: no commit, lint or tool call after printing it, or it is no longer in the last message.
+- **Several decisions, one stop.** When a phase finds more than one, write one file each, print them all, and put every id in the suffix (`decision=D1,D2`). The human answers them in one reply.
+
+## Plan brief
+
+When `/beat:plan` finds `decisions/sensitive.md` says `yes`, the orchestrator stops once before apply so the human can look at the plan. There is nothing to choose, so the one-option rule does not apply; the brief is a confirmation:
+
+```
+# P1: <matched situation, one line>
+來源：design 對到 config.yaml sensitive.situations 第 <n> 條 / paths <glob>
+決定：<each Key Decision from design.md, one line each>
+工作：<each task from tasks.md, one line each>
+回覆：/answer continue，或 /answer <what to change>
+```
+
+Ten lines; trim tasks before decisions if it runs long.
 
 ## After the answer
 
-The reply arrives as the first message of the re-run phase. The skill:
+The reply arrives in the prompt of the resumed phase (same session), one line per decision: `D1: A`, `D2: B`, or `/answer <text>` for a plan or divergence brief. The skill:
 
 1. Records the answer in the brief file under a `結論：` / `Outcome:` line.
-2. Writes it where it belongs: the issue's locked-decisions section when the skill can reach the issue, `design.md` Key Decisions always, and `docs/adr/` when the ADR three-condition gate holds.
-3. Continues the phase from where it stopped. It does not re-ask, and it does not run the gate on the same decision again.
+2. Writes it into `design.md` Key Decisions, and into `docs/adr/` when the ADR three-condition gate holds. The issue is the orchestrator's to write (it posts the answer as a comment and under the locked-decisions section); the skill never edits the issue body.
+3. Continues the phase from where it stopped. It does not re-ask, and it does not run the gate on the same decision again. An ADR for the decision is written now, from the answer, never before it.
 
 ## Example
 

@@ -38,12 +38,12 @@ Keys, every value a single token with no whitespace (the orchestrator splits on 
 |-----|--------|-------------|
 | `phase` | the `phase` from status.yaml after this run | every skill |
 | `sha` | short sha of HEAD | every skill |
-| `blocked-on` | `none` / `decision` / `env` | every skill; `decision` when a brief was written, `env` for an environmental blocker, matching the block's `blocked-on` line |
-| `decision` | `D<n>` / `none` | the brief's id when `blocked-on=decision` |
-| `sensitive` | `yes` / `no` | design (artifacts) and apply (diff), against `config.yaml` `sensitive`; other skills repeat the last recorded value or `no` |
+| `blocked-on` | `none` / `decision` / `env` / `scope` | every skill; `decision` when a brief was written, `env` for an environmental blocker, `scope` when the change needs more than one PR, matching the block's `blocked-on` line |
+| `decision` | `D<n>`, `D1,D2` (comma, no spaces) / `none` | the brief ids when `blocked-on=decision` or `scope` |
+| `sensitive` | `yes` / `no` | design (artifacts) and apply (diff), against `config.yaml` `sensitive`; recorded in `decisions/sensitive.md`; other skills repeat that file's value or `no` |
 | `critical`, `warning` | integers | verify, and any skill that can read verify.md |
 | `diverging` | `yes` / `no` | verify, from its Divergence rule; other skills `no` |
-| `next` | one command, no spaces inside arguments beyond the change name | every skill |
+| `next` | the command only, `/beat:<phase>` — no arguments, the orchestrator splits on spaces and supplies the subject itself | every skill |
 
 The block's prose line `blocked-on:` keeps its sentence; the suffix carries the token. When a decision brief was written, print the brief in full immediately above the block so that the run's last message is "brief + block + suffix".
 

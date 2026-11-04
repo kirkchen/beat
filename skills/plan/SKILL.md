@@ -303,7 +303,7 @@ digraph plan {
    Ready for implementation! Run `/beat:apply` to start.
    ```
 
-   Then end with the handoff block from `references/handoff-report.md` (`next: /beat:apply <name>`). In the suffix, repeat design's `sensitive` value (read it from the last handoff or re-derive from `design.md` against `config.yaml`); the orchestrator gates on it once after this phase. A brief, when written, is printed in full above the block with `blocked-on: decision D<n>` and `next` pointing back at this command.
+   Then end with the handoff block from `references/handoff-report.md` (`next: /beat:apply <name>`). In unattended mode read `beat/changes/<name>/decisions/sensitive.md`: when it says `yes`, print the plan brief (`references/decision-brief.md` "Plan brief") as the last thing before the block and set `sensitive=yes` in the suffix — the orchestrator stops once here and, on `/answer continue`, moves to apply without re-running plan. Otherwise `sensitive=no`. A decision brief, when written, is likewise printed last with `blocked-on: decision` and `next` pointing back at this command.
 
 **Guardrails**
 - NEVER proceed without at least one spec artifact (gherkin or proposal) being done

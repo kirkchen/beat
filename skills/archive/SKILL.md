@@ -29,7 +29,9 @@ Archive a completed change. Checks completion, syncs features to living document
 <HARD-GATE>
 After archive is complete: you MUST invoke superpowers:finishing-a-development-branch
 to guide merge/PR/cleanup. If unavailable (not installed), skip and show summary only —
-but NEVER skip because you judged the workflow complete without it.
+but NEVER skip because you judged the workflow complete without it. The one exception is
+unattended mode (`references/unattended-mode.md`): there step 7 opens the PR itself and
+finishing-a-development-branch is not invoked.
 Before archiving: you MUST check the top-level `verification` field in status.yaml;
 if absent or `issues-found`, confirm with the user — inform and confirm, never block.
 When gherkin status is `done`: you MUST sync features before archiving.
@@ -83,7 +85,7 @@ When the run carries a stage-result nonce (see `references/handoff-report.md`), 
 
 ## Red Flags — STOP if you catch yourself:
 
-- Completing archive without invoking finishing-a-development-branch
+- Completing archive without invoking finishing-a-development-branch (interactive mode)
 - Skipping the sync step without checking if gherkin is done
 - Moving to archive without asking user about capability mapping (when features exist)
 - Completing archive while `.feature.orig` files remain in `beat/features/`
@@ -369,7 +371,9 @@ digraph archive {
    - preset 升級：<from → to and reason, or "無">
    ```
 
-   Use the English heading `## Decisions and impact` with the same bullets when the project's `language` is not zh-TW. The data comes from `decisions/`, `design.md`, `verify.md` and `status.yaml` in the archived directory — read them, do not recall. Report the PR URL in the summary and make the handoff `next` the PR URL's review step. Merge stays with the human.
+   Use the English heading `## Decisions and impact` with the same bullets when the project's `language` is not zh-TW. The data comes from `decisions/`, `design.md`, `verify.md` and `status.yaml` in the archived directory — read them, do not recall. When the change came from an issue, the body ends with `Closes #<n>` so the merge closes it. Report the PR URL in the summary and make the handoff `next` the PR URL's review step. Merge stays with the human.
+
+   **Re-entry.** If an earlier unattended run stopped with `env` part-way, resume from what is on disk: the directory already under `beat/changes/archive/` means the move is done; a commit whose message starts with `archive(<name>)` means step 5c is done; `gh pr view` showing a PR for this branch means step 7 is done. Never redo a step whose result exists.
 
 **Guardrails**
 - Always prompt for change selection if not provided

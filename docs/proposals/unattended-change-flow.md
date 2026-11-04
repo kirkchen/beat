@@ -318,7 +318,7 @@ too-big 的形狀：
 
 ### 8.2 影響「人讀十行」的
 
-8. **gate question 只取 brief**（#454、B）。Orchestrator 擷取最後一則訊息裡 `# D<n>:` 到 `## Beat Handoff` 之間的內容；`blocked-on=decision` 但缺這段 → `judge_unreadable`。Beat 端 brief 是 phase 的最後動作，印完不再呼叫工具。
+8. **gate question 只取 brief**（#454、B）。Orchestrator 擷取最後一則訊息裡第一個 brief 標題（`# D<n>:` 或 plan brief 的 `# P1:`）到 `## Beat Handoff` 之間的內容；`blocked-on=decision` 但缺這段 → `judge_unreadable`。Beat 端 brief 是 phase 的最後動作，印完不再呼叫工具。
 9. **plan brief**（B）。sensitive gate 要有東西可讀：對到哪條情境、Key Decisions、tasks 各一行，≤10 行，回覆 `/answer continue`。decision-brief 的「不可單選項」規則對 plan brief 不適用，它是確認不是選擇。
 10. **一個 phase 多個決定一次 gate**（B、#454）。`decision=D1,D2`，每個 brief 一個檔、全部印出；回覆格式 `D1: A`、`D2: B`，一行一題。explore 的文字補一句：有 issue 流程的 repo，`standard` 出口要把決定談完再開票，否則就要預期 gate。
 11. **PR body 帶 `Closes #<n>`**（B）。否則 merge 後 issue 不關、`status/in-review` 永遠掛著。

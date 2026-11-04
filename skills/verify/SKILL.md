@@ -223,7 +223,7 @@ digraph verify {
 
    Run `node <skill-dir>/scripts/validate-beat.mjs --file beat/changes/<name>/verify.md` and the same for `status.yaml` (see `references/lint-tools.md`); fix any schema error before presenting.
 
-   Then end with the handoff block from `references/handoff-report.md`: `findings` from the counts above; `next` is `/beat:apply <name> fix-from-verify` when a CRITICAL is open, otherwise `/beat:archive <name>` — with the open WARNING / SUGGESTION ids listed in `blocked-on: none (open: F3, F7)` so the user can pick which to fix first. The suffix carries `critical`, `warning` and `diverging=yes|no` from the Divergence rule below; an orchestrator reads `diverging` before `critical`, so a diverging round stops for a human instead of looping into another fix.
+   Then end with the handoff block from `references/handoff-report.md`: `findings` from the counts above; `next` is `/beat:apply <name> fix-from-verify` when a CRITICAL is open, otherwise `/beat:archive <name>` — with the open WARNING / SUGGESTION ids listed in `blocked-on: none (open: F3, F7)` so the user can pick which to fix first. The suffix carries `critical`, `warning` and `diverging=yes|no` from the Divergence rule below; an orchestrator reads `diverging` before `critical`, so a diverging round stops for a human instead of looping into another fix. When `diverging=yes`, the report's divergence paragraph (which findings grew, the last fix commit to look at) is printed last, before the block, as the gate question; the human's `/answer <text>` goes to the next fix-from-verify as its first work item.
 
 ## Convergence
 

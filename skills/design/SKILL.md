@@ -169,7 +169,7 @@ digraph design {
 
 3. **Settle the preset**
 
-   Read `status.yaml`. If `preset` is already set (explore declared `small` and named `minimal` or `technical`, or the user passed one), use it and skip the question — say which preset is in effect and why.
+   Read `status.yaml`. If `preset` is already set (explore declared `small` and named `minimal` or `technical`, or the user passed one), use it and skip the question — say which preset is in effect and why. When the change comes from an issue, the body's `出口：` line (written by `/to-issue`, e.g. `出口：small（preset minimal）`) names the preset the same way; use it and skip the question.
 
    Otherwise, for artifacts still `pending`, ask user once upfront:
 
@@ -260,9 +260,9 @@ digraph design {
        1. Hard to reverse? (cost of changing your mind is meaningful)
        2. Surprising without context? (future reader will wonder *"why on earth this way?"*)
        3. Result of a real trade-off? (genuine alternatives existed)
-       A decision copied from the issue's locked section skips this gate. Otherwise, if **all three** hold, use **AskUserQuestion tool**: *"This decision meets the ADR gate. Lift it into `docs/adr/`?"* (unattended: Yes without asking). On Yes, follow "Before writing an ADR" in `references/adr-format.md` (apply config `rules.adr`; use the project's `docs/adr/TEMPLATE.md` if it exists, otherwise Beat's front-matter template with `source: beat/changes/<name>`), write the 1-3 sentence ADR, increment the highest existing number in `docs/adr/` by one, and add a cross-reference from `design.md` (`See docs/adr/NNNN-slug.md`). On No, continue.
+       A decision copied from the issue's locked section skips this gate. Otherwise, if **all three** hold, use **AskUserQuestion tool**: *"This decision meets the ADR gate. Lift it into `docs/adr/`?"* (unattended: this is a decision the human has not made — write a brief per `references/decision-brief.md`, stop with `blocked-on: decision`, and write the ADR only after the reply). On Yes, follow "Before writing an ADR" in `references/adr-format.md` (apply config `rules.adr`; use the project's `docs/adr/TEMPLATE.md` if it exists, otherwise Beat's front-matter template with `source: beat/changes/<name>`), write the 1-3 sentence ADR, increment the highest existing number in `docs/adr/` by one, and add a cross-reference from `design.md` (`See docs/adr/NNNN-slug.md`). On No, continue.
        Create `docs/adr/` lazily — only on first ADR. Track every ADR (and any project ADR index) written here — step 5 commits them with the change.
-     - **Sensitivity check** (unattended mode only): read `sensitive` from `beat/config.yaml` (schema: `references/config-schema.md`). Compare every Key Decision and every path `design.md` names against `situations` (judge it the way the ADR gate is judged — a plausible match is a match) and `paths` (any touch). Record the result as `sensitive=yes|no` in the handoff suffix; say in one line which situation matched.
+     - **Sensitivity check** (unattended mode only): read `sensitive` from `beat/config.yaml` (schema: `references/config-schema.md`). Compare every Key Decision and every path `design.md` names against `situations` (judge it the way the ADR gate is judged — a plausible match is a match) and `paths` (any touch). Write the verdict to `beat/changes/<name>/decisions/sensitive.md` (`yes|no`, what matched, `design`) and as `sensitive=yes|no` in the handoff suffix; say in one line which situation matched.
      - **Architecture hub suggestion** (Layer 3, advisory) — if `design.md` describes a module-level architecture change (new module, module split/merge, changed module boundaries or responsibilities), suggest updating `beat/ARCHITECTURE.md` — the hub diagram, modules table, or constraints (see `references/architecture-format.md`). Create the hub lazily, only if the project is multi-module and the user accepts. Never block.
 
 5. **Lint, commit artifacts and show final status**
@@ -300,7 +300,7 @@ digraph design {
    Spec artifacts ready! Review them, then run `/beat:plan` for task breakdown.
    ```
 
-   Then end with the handoff block from `references/handoff-report.md` (`next: /beat:plan <name>`). When a decision brief was written, print it in full immediately above the block, set `blocked-on: decision D<n> — <one line>`, and make `next` this same command so the phase re-runs after the answer.
+   Then end with the handoff block from `references/handoff-report.md` (`next: /beat:plan <name>`). When decision briefs were written, printing them is the last action of the run: every brief in full, immediately above the block, then the block, then the suffix with `decision=D1` (or `D1,D2`), `blocked-on: decision — <one line>`, `next` this same command. Nothing after the suffix.
 
 **Guardrails**
 - Gherkin is mandatory by default -- only skip for purely technical changes (option 4: Technical)
