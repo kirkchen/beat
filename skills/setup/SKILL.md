@@ -33,6 +33,16 @@ Initialize Beat configuration in the current project.
    - If yes: read it, show current config, ask if user wants to update or keep it
    - If no: proceed to creation
 
+   Keeping the config skips steps 3–7 only; steps 8–11 still run, so a project set up before the layout files existed gets them now.
+
+   Also check for `beat/CONTEXT.md` (the glossary path before 0.6). If it exists, print exactly this one line and continue with setup:
+
+   ```
+   This project still has beat/CONTEXT.md. Run the migration: https://github.com/kirkchen/beat/blob/main/docs/migrations/0.6-project-layout.md
+   ```
+
+   Do not migrate it, move it, or create `GLOSSARY.md` in its place. The migration is the user's step.
+
 2. **Check superpowers dependency**
 
    Check if the superpowers plugin is available by looking for any `superpowers:*` skill in the skill list.
@@ -177,36 +187,80 @@ Initialize Beat configuration in the current project.
    mkdir -p beat/features
    ```
 
-   Do **not** create the three living-doc surfaces here (paths: `references/project-layout.md`).
-   `GLOSSARY.md`, `docs/adr/`, and `beat/ARCHITECTURE.md` (plus module READMEs) are **lazy** —
-   they appear the first time a Beat skill needs them. A small project may
-   never need any of them. Mention this in the summary so the user knows
-   what to expect.
+   Do **not** create the three living-doc surfaces here. They are `GLOSSARY.md`,
+   `docs/adr/` and `beat/ARCHITECTURE.md` (plus module READMEs), all lazy: each
+   appears the first time a Beat skill needs it, and a small project may never
+   need any of them. Their paths are mapped in `references/project-layout.md`.
+   Mention this in the summary so the user knows what to expect.
 
-9. **Show summary**
+Steps 9–11 write the project-layout files from `references/project-layout.md`. Each is idempotent: an existing file is completed (missing sections or placeholders filled), never overwritten, and the user's edits are kept. Re-running setup changes nothing that is already filled in.
 
-   ```
-   ## Beat Initialized
+9. **Issue tracker** (`docs/agents/issue-tracker.md`)
 
-   **Config:** beat/config.yaml
-   **Directories:** beat/changes/, beat/features/
-   **Superpowers:** installed / not installed (fallback mode)
-   **Testing:** {behavior framework} + {e2e framework} (or "not required")
+   Detect the tracker from `git remote -v`:
+   - a `github.com` remote → template `references/issue-tracker-github.md`
+   - a `gitlab` host (gitlab.com or a self-hosted `gitlab.*`) → template `references/issue-tracker-gitlab.md`
+   - any other host, or no remote → template `references/issue-tracker-other.md`
 
-   Your config will be used when creating artifacts.
-   Edit beat/config.yaml anytime to update preferences.
+   Ask with **AskUserQuestion tool** only when detection is ambiguous (remotes on more than one host, or a host that may be a self-hosted GitHub / GitLab). Put the detected answer first as the recommended option.
 
-   Beat will also lazy-create three living-doc surfaces when first needed:
-   - GLOSSARY.md         — domain glossary (see references/context-format.md)
-   - docs/adr/           — ADRs, three-condition gate (see references/adr-format.md)
-   - beat/ARCHITECTURE.md + module READMEs (see references/architecture-format.md)
+   Fill these setup placeholders, everywhere they appear in the template:
+   - `<owner>/<repo>` (GitHub) or `<group>/<project>` (GitLab): from the remote URL. For `issue-tracker-other.md`, ask for `<tracker name>` and `<tracker location>` instead (e.g. "Jira", "project ABC").
+   - `<assignee>`: ask "Which account does the orchestrator run as? (the GitHub / GitLab login that will own the PRs)".
+   - `<dispatch-label>`: `rhythm-change`. Say so ("Dispatch label: `rhythm-change`") and move on unless the user objects.
 
-   Small projects may never need any of these.
+   Every other `<...>` in the template (`<number>`, `<file>`, `<parent>`, `<n>`, ...) is a command argument the skills fill at run time: leave it as written.
 
-   Ready to start? Run `/beat:design` or `/beat:explore`
-   ```
+   For `issue-tracker-other.md`, ask the user for the one-paragraph Conventions description; if they have none yet, leave its placeholder text in place.
 
-   Then end with the handoff block from `references/handoff-report.md` (`next: /beat:explore`).
+   Copy the Vocabulary section as is, apart from the `<assignee>` and `<dispatch-label>` values filled above: the five `status/*` labels and their meanings are fixed, not per project.
+
+   Write `docs/agents/issue-tracker.md` (`mkdir -p docs/agents`). If the file exists, fill only the setup placeholders still in it and add any template section it lacks; keep everything else.
+
+10. **Coding standards** (`CODING_STANDARDS.md`)
+
+    If `CODING_STANDARDS.md` already exists at the project root, keep it as is. If it is absent, write it from `references/coding-standards-template.md` and fill `## Sources` by scanning:
+    - `CONTRIBUTING.md`
+    - `README.md` files at the root and one level under `src/`, `packages/`, `apps/`: headings containing convention, invariant, testing or style
+    - `docs/**` files whose name contains convention, standard, style or guideline
+
+    One line per hit: `path — the heading or first sentence`. If nothing is found, leave the Sources placeholder. Leave `## Judgement rules` with its placeholder; `/retro` and reviewers fill it later.
+
+11. **Agent docs block** (`CLAUDE.md` or `AGENTS.md`)
+
+    Pick the file: `CLAUDE.md` if it exists, else `AGENTS.md` if it exists, else ask with **AskUserQuestion tool** which one to create (`CLAUDE.md` for Claude Code, `AGENTS.md` for Codex and other agents).
+
+    Insert the `## Agent docs` block from `references/project-layout.md` (the heading plus its three pointer lines). If the file already has a `## Agent docs` heading, replace that section's three lines in place instead of adding a second block.
+
+    The block points at `GLOSSARY.md` even when the glossary does not exist yet: the pointer tells agents where it goes. Do not create `GLOSSARY.md` to satisfy it.
+
+12. **Show summary**
+
+    ```
+    ## Beat Initialized
+
+    **Config:** beat/config.yaml
+    **Directories:** beat/changes/, beat/features/
+    **Superpowers:** installed / not installed (fallback mode)
+    **Testing:** {behavior framework} + {e2e framework} (or "not required")
+    **Issue tracker:** docs/agents/issue-tracker.md ({GitHub | GitLab | other}) — written / completed / kept
+    **Coding standards:** CODING_STANDARDS.md — written ({n} sources) / kept
+    **Agent docs:** {CLAUDE.md | AGENTS.md} — block added / updated / kept
+
+    Your config will be used when creating artifacts.
+    Edit beat/config.yaml anytime to update preferences.
+
+    Beat will also lazy-create three living-doc surfaces when first needed:
+    - GLOSSARY.md         — domain glossary (see references/context-format.md)
+    - docs/adr/           — ADRs, three-condition gate (see references/adr-format.md)
+    - beat/ARCHITECTURE.md + module READMEs (see references/architecture-format.md)
+
+    Small projects may never need any of these.
+
+    Ready to start? Run `/beat:design` or `/beat:explore`
+    ```
+
+    Then end with the handoff block from `references/handoff-report.md` (`next: /beat:explore`).
 
 **Guardrails**
 - Never overwrite existing config without asking
@@ -215,3 +269,6 @@ Initialize Beat configuration in the current project.
 - Context should be concise -- warn if it exceeds 2KB (soft limit, 50KB hard limit)
 - Framework recommendations are suggestions -- always let the user override
 - Do not insist on e2e for Library projects
+- Never overwrite `docs/agents/issue-tracker.md`, `CODING_STANDARDS.md`, or the rest of `CLAUDE.md` / `AGENTS.md`: complete them, do not replace them
+- Never create `GLOSSARY.md` or `docs/adr/`; never migrate `beat/CONTEXT.md` (print the one-line pointer instead)
+- Do not skip `docs/agents/issue-tracker.md` because the project has no orchestrator yet: `/beat:to-issue` refuses without it; write it now, it is one file

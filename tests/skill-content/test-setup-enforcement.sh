@@ -23,4 +23,10 @@ assert_contains "$output" "behave\|cucumber\|BDD" "setup recommends BDD runner f
 output=$(run_claude "As beat:setup, does a Library project need an e2e framework?" 30)
 assert_contains "$output" "no\|not needed\|omit\|sufficient\|skip\|unnecessary" "setup knows Library projects don't need e2e"
 
+output=$(run_claude "As beat:setup, which file do you write to record how this project's issue tracker works (tracker, assignee, dispatch label)? Give the exact path." 30)
+assert_contains "$output" "docs/agents/issue-tracker\.md" "setup knows it writes docs/agents/issue-tracker.md"
+
+output=$(run_claude "As beat:setup, do you create the project's domain glossary file during setup? Answer yes or no and name the file." 30)
+assert_contains "$output" "\(no\|never\|not\|lazy\|lazily\|不會\|不建立\|延遲\)[^.]*GLOSSARY\.md\|GLOSSARY\.md[^.]*\(lazy\|lazily\|never\|not\|不會\|延遲\)" "setup does not create GLOSSARY.md"
+
 print_summary
