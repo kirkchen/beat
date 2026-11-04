@@ -173,7 +173,7 @@ when discussing refactors where precision pays off, not as a baseline.
   job. The README describes the module as a whole.
 - **No implementation details that callers don't need.** Internal helpers,
   private types, internal seams — those belong in code, not the README.
-- **Cross-link, don't duplicate.** Refer to ADRs and CONTEXT.md by link.
+- **Cross-link, don't duplicate.** Refer to ADRs and GLOSSARY.md by link.
   Don't paste their content into the README.
 
 ## When Beat updates these files
@@ -193,7 +193,7 @@ the public interface.
 
 ## Lazy creation
 
-Like `beat/CONTEXT.md` and `docs/adr/`, Layer 3 files are created lazily:
+Like `GLOSSARY.md` and `docs/adr/`, Layer 3 files are created lazily:
 
 - `beat/ARCHITECTURE.md` is created the first time `/beat:apply` or
   `/beat:design` confirms the project has multiple modules worth a hub.

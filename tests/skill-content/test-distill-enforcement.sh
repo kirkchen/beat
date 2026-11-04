@@ -29,8 +29,8 @@ assert_contains "$output" "verify\|independent\|never.*self\|cannot.*self\|must 
 output=$(run_claude "As beat:distill, what tag must all distilled scenarios have?" 30)
 assert_contains "$output" "distilled\|@distilled" "distill knows @distilled tag is required"
 
-output=$(run_claude "As beat:distill, before writing feature files, what check must you run against beat/CONTEXT.md?" 30)
-assert_contains "$output" "glossary\|term\|CONTEXT\.md\|bolded\|four.challenge" "distill knows the glossary check before feature files"
+output=$(run_claude "As beat:distill, before writing feature files, what check must you run against GLOSSARY.md?" 30)
+assert_contains "$output" "glossary\|term\|GLOSSARY\.md\|bolded\|four.challenge" "distill knows the glossary check before feature files"
 
 output=$(run_claude "As beat:distill, for a Key Decision recovered from code where the rationale isn't in the evidence, do you invent a plausible why for the ADR?" 30)
 assert_contains "$output" "no\|never\|unverified\|unconfirmed\|don't invent\|do not invent\|ask" "distill knows never to invent ADR rationale"
@@ -47,10 +47,10 @@ assert_contains "$output" "four.check\|self-review\|placeholder\|consistency\|sc
 output=$(run_claude "As beat:distill, before writing an ADR for a recovered Key Decision, what do you check in beat/config.yaml and docs/adr/?" 60 5)
 assert_contains "$output" "rules\.adr\|TEMPLATE\.md\|Before writing an ADR" "distill applies config rules.adr and project TEMPLATE.md before writing an ADR"
 
-output=$(run_claude "As beat:distill, when adding a recovered term to beat/CONTEXT.md, where in the file does it go?" 60 5)
+output=$(run_claude "As beat:distill, when adding a recovered term to GLOSSARY.md, where in the file does it go?" 60 5)
 assert_contains "$output" "Where a new entry goes\|<group>\|before .## Relationships\|full skeleton" "distill inserts glossary terms into their section, not the file end"
 
-output=$(run_claude "As beat:distill, when you commit, do you stage only the change directory or also beat/CONTEXT.md, docs/adr/ and module READMEs written in this run?" 60 5)
+output=$(run_claude "As beat:distill, when you commit, do you stage only the change directory or also GLOSSARY.md, docs/adr/ and module READMEs written in this run?" 60 5)
 assert_contains "$output" "git add docs/adr\|one unit of work\|splits the work\|living-documentation file" "distill commits living docs together with the change directory"
 
 print_summary

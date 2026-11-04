@@ -32,8 +32,8 @@ assert_contains "$output" "yes\|delete\|clean\|remove\|orig" "archive knows to c
 output=$(run_claude "As beat:archive, is the sync flow different for modified features vs new features?" 30)
 assert_contains "$output" "unified\|same\|no.*different\|both\|all.*sync" "archive knows sync is unified for new and modified"
 
-output=$(run_claude "As beat:archive, before syncing features what scan do you run against beat/CONTEXT.md?" 30)
-assert_contains "$output" "term\|glossary\|undefined\|bolded\|CONTEXT\.md\|scan" "archive knows to scan features for undefined terms"
+output=$(run_claude "As beat:archive, before syncing features what scan do you run against GLOSSARY.md?" 30)
+assert_contains "$output" "term\|glossary\|undefined\|bolded\|GLOSSARY\.md\|scan" "archive knows to scan features for undefined terms"
 
 output=$(run_claude "As beat:archive, if zero ADRs were written for this change, what do you do before moving to archive?" 30)
 assert_contains "$output" "prompt\|ask\|sweep\|last.mile\|ADR\|record" "archive knows the last-mile ADR sweep"
@@ -53,7 +53,7 @@ assert_contains "$output" "Supersedes\|## History\|Copy if absent\|append one li
 output=$(run_claude "As beat:archive, after moving the change directory into beat/changes/archive/, what do you do about files that still reference the old beat/changes/<name> path?" 90 5)
 assert_contains "$output" "git grep\|References rewritten\|step 5b\|5b\.\|Rewrite references to the old change path" "archive rewrites stale references to the old change path"
 
-output=$(run_claude "As beat:archive, when the user adds a new glossary term during the pre-sync scan, where in beat/CONTEXT.md does it go?" 60 5)
+output=$(run_claude "As beat:archive, when the user adds a new glossary term during the pre-sync scan, where in GLOSSARY.md does it go?" 60 5)
 assert_contains "$output" "Where a new entry goes\|<group>\|before .## Relationships\|full skeleton" "archive inserts glossary terms into their section, not the file end"
 
 output=$(run_claude "As beat:archive, when the last-mile sweep results in writing an ADR, what do you read or check before writing the file?" 60 5)

@@ -30,7 +30,7 @@ Not every feature needs all of these. Add sections as the feature's complexity w
 | Key design decisions | Non-obvious choices | **Bold keyword** + reasoning (record why, not just what) |
 | External dependencies | External service calls | Table with failure behavior column (error / degrade / silent) |
 
-> **Domain vocabulary** — do NOT add a per-feature Glossary section. The project-level `beat/CONTEXT.md` is the single source of truth (see `context-format.md`). If a scenario uses a term not in the glossary, `/beat:design` will prompt to add it during the four-challenge check.
+> **Domain vocabulary** — do NOT add a per-feature Glossary section. The project-level `GLOSSARY.md` is the single source of truth (see `context-format.md`). If a scenario uses a term not in the glossary, `/beat:design` will prompt to add it during the four-challenge check.
 
 ### Architecture diagram style
 
@@ -76,7 +76,7 @@ Section order should follow the component's operation sequence or logical groupi
 
 ## Domain Terms
 
-Project-specific domain terms (Run, Task, Capability, Customer, etc.) referenced in scenario steps should appear in **bold** the first time they're introduced in a scenario, and remain consistent across scenarios. The canonical form is defined in `beat/CONTEXT.md` — every bolded term must exist there.
+Project-specific domain terms (Run, Task, Capability, Customer, etc.) referenced in scenario steps should appear in **bold** the first time they're introduced in a scenario, and remain consistent across scenarios. The canonical form is defined in `GLOSSARY.md` — every bolded term must exist there.
 
 ```gherkin
 Scenario: A new **Run** extends the current **Task** when topic stays the same
@@ -85,7 +85,7 @@ Scenario: A new **Run** extends the current **Task** when topic stays the same
   Then a new **Run** is appended to the **Task** (not a new **Task**)
 ```
 
-If a scenario needs a term that isn't in `beat/CONTEXT.md` yet, `/beat:design` will prompt to add it inline before the scenario is written. See `context-format.md` for the four-challenge check that maintains the glossary.
+If a scenario needs a term that isn't in `GLOSSARY.md` yet, `/beat:design` will prompt to add it inline before the scenario is written. See `context-format.md` for the four-challenge check that maintains the glossary.
 
 ## Annotation Conventions
 
@@ -113,6 +113,6 @@ When reviewing feature files:
 5. [ ] Scenarios are specific — field names, status codes, payload structures
 6. [ ] Error scenarios placed near corresponding functional block
 7. [ ] No fragmented sections (single-scenario sections merged)
-8. [ ] No per-feature Glossary section — domain terms live in `beat/CONTEXT.md`
-9. [ ] Bolded domain terms in scenarios are all defined in `beat/CONTEXT.md`
+8. [ ] No per-feature Glossary section — domain terms live in `GLOSSARY.md`
+9. [ ] Bolded domain terms in scenarios are all defined in `GLOSSARY.md`
 10. [ ] All `@behavior` scenarios have `@covered-by` annotation (after apply)

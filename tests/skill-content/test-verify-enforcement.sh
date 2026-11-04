@@ -39,7 +39,7 @@ output=$(run_claude "As beat:verify, if one subagent fails, can you fall back to
 assert_contains "$output" "no\|never\|must not\|cannot\|don't\|proceed.*other\|other.*finding" "verify knows no self-verification fallback"
 
 output=$(run_claude "As beat:verify, what does Dimension 5 check and what severity tier are its findings?" 30)
-assert_contains "$output" "living.*doc\|advisory\|WARNING\|warning\|CONTEXT\.md\|ADR\|README\|sync" "verify knows Dimension 5 is living-doc sync, advisory only"
+assert_contains "$output" "living.*doc\|advisory\|WARNING\|warning\|GLOSSARY\.md\|ADR\|README\|sync" "verify knows Dimension 5 is living-doc sync, advisory only"
 
 output=$(run_claude "As beat:verify, after presenting the verification report, what must you write to status.yaml?" 30)
 assert_contains "$output" "verification" "verify knows to record the verification field in status.yaml"

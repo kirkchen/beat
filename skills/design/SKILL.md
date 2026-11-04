@@ -29,10 +29,10 @@ Before writing any artifact files: you MUST invoke superpowers:using-git-worktre
 When the artifact selection includes proposal or design, you MUST invoke superpowers:brainstorming
 before generating content. This applies even when scope seems obvious.
 
-Before writing gherkin scenarios: you MUST run the four-challenge CONTEXT.md check
+Before writing gherkin scenarios: you MUST run the four-challenge glossary check
 (see step 4 below) and ensure every project-specific term used in scenarios is
-defined in `beat/CONTEXT.md`. Create the glossary lazily — only when the first
-term is added.
+defined in `GLOSSARY.md` at the project root (path: `references/project-layout.md`).
+Create the glossary lazily — only when the first term is added.
 
 After writing each artifact: you MUST run the four-check spec self-review
 (placeholder / consistency / scope / ambiguity). Fix issues inline.
@@ -54,7 +54,7 @@ because you judged it unnecessary.
 |-------|------|----------|
 | superpowers:using-git-worktrees | Before first file write | MUST |
 | superpowers:brainstorming | Before creating proposal or design | MUST |
-| grilling + domain-modeling (mattpocock/skills, model-invoked) | When a term fails the CONTEXT.md four-challenge check and inline resolution is not enough | OPTIONAL |
+| grilling + domain-modeling (mattpocock/skills, model-invoked) | When a term fails the glossary four-challenge check and inline resolution is not enough | OPTIONAL |
 
 If a prerequisite skill is unavailable (skill not installed), skip and continue.
 `grilling` and `domain-modeling` are called directly when needed (they are model-invoked); `grill-with-docs` is user-invoked and cannot be reached from a skill — never offer it, tell the user they can run it themselves if they want a longer session.
@@ -71,7 +71,7 @@ When the run carries a stage-result nonce (see `references/handoff-report.md`), 
 | "brainstorming isn't needed, the user already described what they want" | A description is not a design. brainstorming surfaces assumptions, alternatives, and edge cases. |
 | "The user wants speed, invoking superpowers will slow us down" | Skipping prerequisites produces lower-quality artifacts that cause rework during apply and verify. |
 | "This change is simple enough to skip brainstorming" | Simple changes finish brainstorming quickly. Complex changes need it most. There is no middle ground where skipping helps. |
-| "The domain terms are obvious, no need to update CONTEXT.md" | Obvious to you, not to future-you or anyone else reading the feature in six months. Glossary entries are two lines. Add them inline. |
+| "The domain terms are obvious, no need to update GLOSSARY.md" | Obvious to you, not to future-you or anyone else reading the feature in six months. Glossary entries are two lines. Add them inline. |
 | "Spec self-review is overkill, the artifact is short" | Self-review catches placeholders, contradictions, and ambiguities that compound through plan and apply. The four checks take 30 seconds. |
 | "This decision is just for this change, no ADR needed" | Run the three-condition gate. If it's hard-to-reverse, surprising, and a real trade-off, future changes will trip over it — that's the ADR's job. Decisions that *are* change-specific don't pass the gate; let the gate decide, not your gut. |
 | "We'll lift this into an ADR later" | "Later" rarely arrives. The decision is fresh now; the ADR is 1-3 sentences. Write it inline. |
@@ -84,7 +84,7 @@ When the run carries a stage-result nonce (see `references/handoff-report.md`), 
 - Generating proposal sections without having invoked brainstorming
 - Creating design.md without invoking brainstorming first
 - Writing gherkin scenarios that contain internal method names, numeric thresholds, or implementation constants
-- Writing gherkin scenarios that use project-specific domain terms not defined in `beat/CONTEXT.md`
+- Writing gherkin scenarios that use project-specific domain terms not defined in `GLOSSARY.md`
 - Modifying an existing feature in `beat/features/` without creating a `.orig` backup first
 - Writing tasks.md or `- [ ]` checkboxes — tasks belong in `/beat:plan`
 - Skipping the spec self-review because the artifact "looks fine"
@@ -106,7 +106,7 @@ digraph design {
     "Create proposal" [shape=box];
     "Self-review proposal" [shape=box, style=bold];
     "Includes gherkin?" [shape=diamond];
-    "CONTEXT.md\nfour-challenge check" [shape=box, style=bold];
+    "Glossary\nfour-challenge check" [shape=box, style=bold];
     "Existing scenarios\nto modify?" [shape=diamond];
     "Backup .orig +\ncopy to changes/" [shape=box];
     "Create gherkin\n(new features only)" [shape=box];
@@ -129,9 +129,9 @@ digraph design {
     "Invoke brainstorming" -> "Create proposal";
     "Create proposal" -> "Self-review proposal";
     "Self-review proposal" -> "Includes gherkin?";
-    "Includes gherkin?" -> "CONTEXT.md\nfour-challenge check" [label="yes"];
+    "Includes gherkin?" -> "Glossary\nfour-challenge check" [label="yes"];
     "Includes gherkin?" -> "Includes design?" [label="no"];
-    "CONTEXT.md\nfour-challenge check" -> "Existing scenarios\nto modify?";
+    "Glossary\nfour-challenge check" -> "Existing scenarios\nto modify?";
     "Existing scenarios\nto modify?" -> "Backup .orig +\ncopy to changes/" [label="yes"];
     "Existing scenarios\nto modify?" -> "Create gherkin\n(new features only)" [label="no"];
     "Backup .orig +\ncopy to changes/" -> "Create gherkin\n(new features only)";
@@ -194,18 +194,18 @@ digraph design {
    For each artifact to create (pipeline order: proposal -> gherkin -> design):
    - Read all completed artifacts for context
    - Invoke prerequisites per the table above (brainstorming before proposal/design — invoke once before the first artifact that needs it; skip for subsequent artifacts if already invoked)
-   - **Gherkin only — before writing scenarios:** run the CONTEXT.md four-challenge check (see sub-step below)
+   - **Gherkin only — before writing scenarios:** run the glossary four-challenge check (see sub-step below)
    - Create the artifact following the patterns below
    - **After writing:** run the spec self-review (see sub-step below); fix issues inline
    - Update `status.yaml`
    - Show brief progress: "Created <artifact>"
    - If context is critically unclear, pause and ask
 
-   **CONTEXT.md four-challenge check** (before writing gherkin):
+   **glossary four-challenge check** (before writing gherkin):
 
-   Read `beat/CONTEXT.md` if it exists (schema: `references/context-format.md`). Create it lazily when the first term is added — never preemptively.
+   Read `GLOSSARY.md` if it exists (schema: `references/context-format.md`). Create it lazily when the first term is added — never preemptively.
 
-   Walk through the brainstorming output and any draft scenario text. For each project-specific term, run these checks and update `beat/CONTEXT.md` **inline** as findings emerge (never batch). Insert each entry where "Where a new entry goes" in `references/context-format.md` says — a term goes inside its `## <group>` section (or `## Language`), never appended to the end of the file after `## Flagged ambiguities`:
+   Walk through the brainstorming output and any draft scenario text. For each project-specific term, run these checks and update `GLOSSARY.md` **inline** as findings emerge (never batch). Insert each entry where "Where a new entry goes" in `references/context-format.md` says — a term goes inside its `## <group>` section (or `## Language`), never appended to the end of the file after `## Flagged ambiguities`:
 
    1. **Against the glossary** — the term conflicts with an existing entry? Call it out, resolve, update.
    2. **Sharpen fuzzy** — the term is vague or overloaded (e.g. "account" meaning Customer and User both)? Pick the canonical word, list the others as `_Avoid_`.
@@ -214,7 +214,7 @@ digraph design {
 
    **Grilling:** when a term fails a challenge and the inline resolution is not enough, call `grilling` (to sharpen the question) and `domain-modeling` (to write the glossary entry and any ADR) directly — both are model-invoked skills from mattpocock/skills. If they are not installed, continue inline with the four challenges. Do not offer `grill-with-docs`: it is user-invoked and unreachable from here; the user can run it themselves for a longer session.
 
-   Every project-specific term used in scenarios MUST exist in `beat/CONTEXT.md` before the scenario is written. Bolded terms in scenarios are the canonical form.
+   Every project-specific term used in scenarios MUST exist in `GLOSSARY.md` before the scenario is written. Bolded terms in scenarios are the canonical form.
 
    **Spec self-review** (after writing each artifact):
 
@@ -275,7 +275,7 @@ digraph design {
    git add beat/changes/<name>/
    git add docs/adr/NNNN-<slug>.md   # each ADR written at the ADR gate, by file name
    git add docs/adr/<index-file>     # only if the project keeps an ADR index there and this run updated it
-   git add beat/CONTEXT.md           # glossary entries from the four-challenge check
+   git add GLOSSARY.md           # glossary entries from the four-challenge check
    git add beat/ARCHITECTURE.md      # if the hub suggestion was accepted
    git commit
    ```

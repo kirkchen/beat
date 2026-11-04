@@ -146,16 +146,16 @@ This dimension is **advisory** — findings always classify as WARNING or
 SUGGESTION, never CRITICAL. The purpose is to surface drift in Layer 1 / 2 / 3
 living documentation; the user decides whether to act before archiving.
 
-### 5A: CONTEXT.md (Layer 1)
+### 5A: Glossary (GLOSSARY.md, Layer 1)
 
-If `beat/CONTEXT.md` exists:
+If `GLOSSARY.md` exists:
 - Scan the change's feature files and proposal/design for **bolded** project-
   specific terms.
-- Any bolded term that is not defined in `beat/CONTEXT.md` → WARNING.
+- Any bolded term that is not defined in `GLOSSARY.md` → WARNING.
 - Any term used in the codebase that conflicts with a glossary entry
   (different meaning) → WARNING.
 
-If `beat/CONTEXT.md` doesn't exist and the project has ≥ 1 archived change,
+If `GLOSSARY.md` doesn't exist and the project has ≥ 1 archived change,
 this is fine — Beat creates it lazily.
 
 ### 5B: ADR coverage (Layer 2)
@@ -189,7 +189,7 @@ Internal refactors that don't change the public interface do not trigger
 findings. Use the deletion test as the heuristic: would deleting an export
 break callers outside the module?
 
-Skip Dimension 5 entirely if none of `beat/CONTEXT.md`, `docs/adr/`, or
+Skip Dimension 5 entirely if none of `GLOSSARY.md`, `docs/adr/`, or
 module READMEs exist — this means the project hasn't adopted living docs
 yet, and Beat shouldn't pretend it has.
 

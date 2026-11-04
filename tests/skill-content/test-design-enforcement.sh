@@ -39,7 +39,7 @@ output=$(run_claude "As beat:design, what is the tasks status after design compl
 assert_contains "$output" "pending\|not.*create\|beat:plan\|separate" "design knows tasks stay pending after design"
 
 output=$(run_claude "As beat:design, before writing Gherkin scenarios that use project-specific domain terms, what must you do?" 30)
-assert_contains "$output" "CONTEXT\.md\|glossary\|four.challenge\|define\|add.*term" "design knows the CONTEXT.md four-challenge check before gherkin"
+assert_contains "$output" "GLOSSARY\.md\|glossary\|four.challenge\|define\|add.*term" "design knows the glossary four-challenge check before gherkin"
 
 output=$(run_claude "As beat:design, after writing each artifact, what self-check do you run?" 30)
 assert_contains "$output" "self.review\|placeholder\|consistency\|scope\|ambiguity" "design knows the four-check spec self-review"
@@ -50,10 +50,10 @@ assert_contains "$output" "ADR\|docs/adr\|three.condition\|gate\|record" "design
 output=$(run_claude "As beat:design, before writing an ADR for a Key Decision, what do you check in beat/config.yaml and docs/adr/?" 60 5)
 assert_contains "$output" "rules\.adr\|TEMPLATE\.md\|Before writing an ADR" "design applies config rules.adr and project TEMPLATE.md before writing an ADR"
 
-output=$(run_claude "As beat:design, when you add a new term to beat/CONTEXT.md during the four-challenge check, where in the file do you put it?" 60 5)
+output=$(run_claude "As beat:design, when you add a new term to GLOSSARY.md during the four-challenge check, where in the file do you put it?" 60 5)
 assert_contains "$output" "Where a new entry goes\|<group>\|before .## Relationships\|full skeleton" "design inserts glossary terms into their section, not the file end"
 
-output=$(run_claude "As beat:design, when you commit at the end, do you stage only beat/changes/<name>/ or also the ADRs and beat/CONTEXT.md you wrote during this run?" 60 5)
+output=$(run_claude "As beat:design, when you commit at the end, do you stage only beat/changes/<name>/ or also the ADRs and GLOSSARY.md you wrote during this run?" 60 5)
 assert_contains "$output" "git add docs/adr\|one unit of work\|splits the work\|living-documentation file" "design commits ADRs and glossary edits together with the change directory"
 
 print_summary
