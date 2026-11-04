@@ -4,18 +4,18 @@ Original: skills/engineering/grill-with-docs/CONTEXT-FORMAT.md
 Copyright (c) 2026 Matt Pocock
 -->
 
-# CONTEXT.md Format
+# GLOSSARY.md Format
 
-The single source of truth for the `beat/CONTEXT.md` glossary format.
+The single source of truth for the `GLOSSARY.md` glossary format.
 
-`beat/CONTEXT.md` is **Layer 1 living documentation** — the project's domain
+`GLOSSARY.md` is **Layer 1 living documentation** — the project's domain
 glossary. It is **created lazily** (only when the first term is resolved) and
 maintained inline by `/beat:design`, `/beat:distill`, and `/beat:archive`.
 
 ## Contents
 
-- [What goes in CONTEXT.md](#what-goes-in-contextmd)
-- [What does NOT go in CONTEXT.md](#what-does-not-go-in-contextmd)
+- [What goes in GLOSSARY.md](#what-goes-in-glossarymd)
+- [What does NOT go in GLOSSARY.md](#what-does-not-go-in-glossarymd)
 - [Structure](#structure)
 - [Where a new entry goes](#where-a-new-entry-goes)
 - [Rules](#rules)
@@ -24,7 +24,7 @@ maintained inline by `/beat:design`, `/beat:distill`, and `/beat:archive`.
 - [The four challenges (used by `/beat:design`, adapted by `/beat:distill`)](#the-four-challenges-used-by-beatdesign-adapted-by-beatdistill)
 - [Optional grilling](#optional-grilling)
 
-## What goes in CONTEXT.md
+## What goes in GLOSSARY.md
 
 A glossary, and nothing else.
 
@@ -34,7 +34,7 @@ A glossary, and nothing else.
 - Relationships between terms (cardinality where obvious)
 - Flagged ambiguities that came up and how they were resolved
 
-## What does NOT go in CONTEXT.md
+## What does NOT go in GLOSSARY.md
 
 - Implementation details (code paths, function names, framework choices)
 - Spec content (those belong in `proposal.md` / `design.md` / `features/`)
@@ -43,7 +43,7 @@ A glossary, and nothing else.
 - ADR-shaped decisions (those belong in `docs/adr/`)
 - Architecture descriptions (those belong in `beat/ARCHITECTURE.md`)
 
-Treating `CONTEXT.md` as a scratch pad is the fastest way to make it untrustworthy.
+Treating `GLOSSARY.md` as a scratch pad is the fastest way to make it untrustworthy.
 
 ## Structure
 
@@ -100,7 +100,7 @@ glossary stops being trustworthy.
 | An ambiguity and its resolution | Under `## Flagged ambiguities` |
 | An `_Avoid_` alias for an existing term | On that term's existing entry — never as a new entry |
 
-When creating `beat/CONTEXT.md` for the first time, write the full skeleton
+When creating `GLOSSARY.md` for the first time, write the full skeleton
 from [Structure](#structure) (title, one-line description, `## Language`,
 `## Relationships`, `## Flagged ambiguities`) and put the first term inside
 `## Language`, so later insertions have sections to land in.
@@ -129,14 +129,14 @@ from [Structure](#structure) (title, one-line description, `## Language`,
 
 ## Path
 
-- Default location: `<project-root>/beat/CONTEXT.md`
-- This keeps `CONTEXT.md` co-located with Beat's other artifacts under `beat/`
+- The file is `GLOSSARY.md` in the project root
+- The full map of project-level files is in `references/project-layout.md`
 - Single glossary per project — multi-context (DDD bounded contexts) is not
   supported in this iteration
 
 ## When to update
 
-`CONTEXT.md` is touched inline as terms resolve — not batched.
+`GLOSSARY.md` is touched inline as terms resolve — not batched.
 
 | Skill | Trigger |
 |-------|---------|
@@ -148,7 +148,7 @@ from [Structure](#structure) (title, one-line description, `## Language`,
 ## The four challenges (used by `/beat:design`, adapted by `/beat:distill`)
 
 When a scenario or description is being written, the design skill checks for
-these four signals and updates `CONTEXT.md` inline as they fire. `/beat:distill`
+these four signals and updates `GLOSSARY.md` inline as they fire. `/beat:distill`
 adapts the same four challenges with the code (not user intent) as the source —
 see the distill skill for the adapted wording.
 
