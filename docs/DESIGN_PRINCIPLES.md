@@ -168,7 +168,7 @@ The pause between them is intentional. It gives the team a chance to review spec
 
 ### Why Explore Declares an Exit
 
-An exploration that just stops is the most expensive kind: the next session re-explores it. `/beat:explore` therefore ends by naming one of four exits — `small`, `standard`, `too-big`, `blocked` — with the facts that justify it (which files, which modules, which decisions are still open). The user can override the exit; the skill cannot omit it.
+An exploration that just stops is the most expensive kind: the next session re-explores it. `/beat:explore` therefore ends by naming one of five exits — `small`, `standard`, `too-big`, `blocked`, `drop` — with the facts that justify it (which files, which modules, which decisions are still open). The user can override the exit; the skill cannot omit it.
 
 **What we rejected:** Asking the user a sizing question. Brainstorming already classified the work (Spike / Bounded / Architectural); explore maps that onto its exits so the work is sized once. A question would be the double prompt the exit was meant to remove.
 

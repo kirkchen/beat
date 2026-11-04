@@ -7,7 +7,7 @@ Beat writes into a project at fixed places so that other tools (mattpocock/skill
 | Path | What | Created by | Lazy / required | Format |
 |------|------|------------|-----------------|--------|
 | `GLOSSARY.md` (project root) | Layer 1 domain glossary | `/beat:design`, `/beat:distill`, `/beat:archive`, and mattpocock `domain-modeling` | Lazy (created on the first term) | `references/context-format.md` |
-| `CODING_STANDARDS.md` (project root) | Reviewer-facing judgement rules plus a "Sources" index of pointers to README conventions sections | `/beat:setup` scaffolds, mattpocock `/retro` appends, cadence `pr-review` reads | Required when the project uses an orchestrator or cadence, otherwise optional | `references/coding-standards-template.md` |
+| `CODING_STANDARDS.md` (project root) | Reviewer-facing judgement rules plus a "Sources" index of pointers to README conventions sections | `/beat:setup` scaffolds, mattpocock `/retro` appends, cadence `pr-review` reads | Required when the project uses an orchestrator or cadence, otherwise optional (`--layout` always requires it) | `references/coding-standards-template.md` |
 | `docs/agents/issue-tracker.md` | Tracker, CLI, assignee, dispatch label, status labels, epic / sub-issue / blocking conventions | `/beat:setup` | Required for `/beat:to-issue` | `references/issue-tracker-github.md` / `-gitlab.md` / `-other.md` |
 | `CLAUDE.md` or `AGENTS.md`, `## Agent docs` block | Three pointer lines to the files above | `/beat:setup` | Required with the files above | Inline example below |
 | `docs/adr/NNNN-slug.md` | Layer 2 decisions (ADRs) | Skills at the ADR trigger points | Lazy | `references/adr-format.md` |

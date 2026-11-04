@@ -185,7 +185,7 @@ Gherkin scenario 描述**行為**。它不描述**詞彙**（這個專案的「R
 
 ### 為什麼 Explore 要宣告出口
 
-最貴的探索是就這樣停掉的那種：下一個 session 得重探一次。所以 `/beat:explore` 結束時要宣告四個出口之一（`small`、`standard`、`too-big`、`blocked`），附上依據（哪些檔案、哪些 module、哪些決策還沒定）。使用者可以覆寫出口，skill 不能省略。
+最貴的探索是就這樣停掉的那種：下一個 session 得重探一次。所以 `/beat:explore` 結束時要宣告五個出口之一（`small`、`standard`、`too-big`、`blocked`、`drop`（不做）），附上依據（哪些檔案、哪些 module、哪些決策還沒定）。使用者可以覆寫出口，skill 不能省略。
 
 **我們捨棄了什麼：** 問使用者「這個多大」。brainstorming 已經把工作分成 Spike / Bounded / Architectural，explore 把它對應到出口，工作只被量一次。再問一次就是出口本來要消掉的那個重複提問。
 
