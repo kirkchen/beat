@@ -25,6 +25,7 @@ Checks `status.yaml` (schema, phase vs. artifacts, route link, verify.md cross-c
 | `validate-beat.mjs` (whole project, active changes only; `--all` includes archive) | In CI, or when cleaning up a project |
 | `validate-beat.mjs --pre-archive <name>` | Archive step 3b — verification passed, sha is an ancestor of HEAD, tasks all checked; incremental mode and open WARNINGs are reported as warnings |
 | `validate-beat.mjs --stale-paths <name>` | Archive step 5b, after the move — lists files still pointing at `beat/changes/<name>`; rerun until it prints none |
+| `validate-beat.mjs --layout` | After setup scaffolds the agent docs, after the 0.6 migration, and in CI — the 0.6 project layout (`references/project-layout.md`): errors for missing `docs/agents/issue-tracker.md`, `CODING_STANDARDS.md` or the `## Agent docs` heading in `CLAUDE.md` / `AGENTS.md`, for a leftover `beat/CONTEXT.md`, and for tracked files outside the records still referencing `beat/CONTEXT.md`; missing `GLOSSARY.md` / `docs/adr/` are warnings (lazy) |
 | `validate-beat.mjs --handoff <file\|->` | Optional self-check of a handoff block (tests use it) |
 
 ## lint-features.mjs
