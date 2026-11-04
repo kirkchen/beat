@@ -1,7 +1,7 @@
 # Proposal: 無人值守的 change flow，人只在 explore 與 merge 出現
 
 日期：2026-11-04
-狀態：draft v2，經一輪 builder check 修訂（gate question 來源、stage-result 值的文法、Stage session 模型、archive 停點對應、babysit 已有機器行）
+狀態：draft v3。v2 經一輪 builder check 修訂（gate question 來源、stage-result 值的文法、Stage session 模型、archive 停點對應、babysit 已有機器行）；v3 加 §7 票的入口、狀態字彙、tracker 設定與規模
 範圍：Beat、cadence、rhythm 三個 repo 的 skill 與 flow 設定；搭配 mattpocock/skills（HEAD 4ae2317）
 前置：`beat-topology.md`（explore 出口、preset、fix-from-verify 迴圈）已落地，本文建立在它之上
 來源：本文的事實來自三份 recon：rhythm 的 Task Flow 與 label 協定（ADR-0077、ADR-0087、`packages/domain/src/flows/`）、Beat 與 cadence 每個 skill 的機器可讀輸出與停點、Claude Code 對 user-invoked skill 在 headless 模式的行為（`code.claude.com/docs/en/skills.md`、`headless.md`）
@@ -232,6 +232,75 @@ PR merged 事件 wake 一個 Stage，prompt `/retro`，指向該 Task 的 sessio
 - verify 第 3 輪 `diverging=yes` → gate，question 是 divergence 說明與最後一次 fix commit；人決定回退或繼續。
 - pr-review 出 Q（spec gap）→ `awaiting_decision` → 既有 PR_REVIEW_FLOW 的 gate。
 - budget / maxRuns → 既有 gate。
+
+## 7. 票的入口、狀態、tracker 設定、規模（v3 定案）
+
+前面的章節假設 issue 已經存在而且寫好了。這一節定義票從哪裡來、狀態怎麼表示、多 tracker 怎麼設定、以及 spec 與 ticket 兩種規模怎麼對應。
+
+### 7.1 入口只有 explore
+
+triage 回答的問題是「這張票現在能不能交給 agent」，答案需要看懂它、該定的決定定了、大小切對，這三樣就是 explore + `/to-issue` 的產出。cadence 的 `triage-issue`（貼 type / priority、留 comment）與 `investigate-issue`（驗證 body 的 file:line、確認根因）不回答這個問題，前者是簿記、後者是 explore 開頭本來就做的事。兩個都退役，cadence 回到它原本的範圍「PR lifecycle」（`self-review`、`pr-review`、`pr-babysit`、`maintenance-routine`）。
+
+任何票（自己開的、別人開的、bug、feature）走同一條：
+
+```
+/beat:explore #n ─┬─ small / standard ─► /to-issue 寫 body、標 status/ready ─► 人加 rhythm-change
+                  ├─ blocked ─► research / prototype / decision node，不標
+                  ├─ too-big ─► epic + sub-issues（§7.4），各 node 自己再 explore
+                  └─ 不做 ─► close，留一句原因
+```
+
+explore 多一個出口動作「不做」：close 並留原因；現有四個出口沒有這個。bug 也走這條，explore 讀 code 確認真假與位置，apply 裡 superpowers 的 `systematic-debugging` 接手；mattpocock 的 `diagnosing-bugs` 是本機自己修難纏 bug 用的，與 Rhythm 流程平行。
+
+### 7.2 狀態：一個 `status/*` 維度，互斥，沒有人工簿記
+
+| 狀態 | 意思 | 誰設 | 誰移除 |
+|---|---|---|---|
+| （無 status label） | backlog，還沒 explore | — | — |
+| `status/ready` | explore 完、body 是規格、可以丟給 Rhythm（Matt 的 `ready-for-agent`） | `/to-issue` | Rhythm 派工時 |
+| `status/running` | Rhythm 在跑（取代 `rhythm-running`） | Rhythm | Rhythm |
+| `status/waiting` | 停在 gate 等人回（§1 的 `rhythm-waiting`） | Rhythm | Rhythm 收到 reply |
+| `status/blocked` | 出狀況或被 policy 擋（取代 `rhythm-blocked`） | Rhythm | 人移除即重派 |
+| `status/in-review` | PR 開了、merge-ready | Rhythm 在 Run 結束帶 PR URL 時 | PR merge 自動 close issue |
+
+`rhythm-change` 仍是命令 label 不是狀態：加上去、Rhythm 收掉、狀態換成 `status/running`。`status/ready` 與 `rhythm-change` 分開，是讓「可以做」與「現在做」不同步，board 上才有 todo 欄；之後要讓 Rhythm 自己從 ready 排隊取，再加 scheduler。`priority/*` 留給人手動排序，不在流程裡；`type/*` 由 `/to-issue` 標。沒有 `status/ready` 的 issue Rhythm 不派，留言「尚未 ready」並標 `status/blocked`，同現在 assignee 缺的處理。
+
+Rhythm 端：狀態 label 從兩個擴成五個，定義在 Installation 層（`provider_config.labels`，現有 running / blocked 已可改名），**設新狀態時移除舊狀態**（GitHub 要自己 swap；GitLab scoped label `status::running` 原生互斥；Jira 是 transition，Jira 版已有 ready / running / blocked）。
+
+GitHub Projects 的 board 直接用 `status/*` 分欄；`gh issue list --label status/ready` 就是 todo。
+
+### 7.3 Repo 端的 tracker 設定：`docs/agents/issue-tracker.md`
+
+跑在 repo 裡的 skill（`/to-issue`、之後的 `/retro`）要知道：tracker 是哪個、CLI（`gh` / `glab` / Jira）、派工 label 叫什麼、五個狀態的名稱、epic 與 blocking 在這個 tracker 怎麼表示。現在這些寫死在 rhythm 的 `/to-issue`（`gh`、`kirkchen`、`rhythm-plan`）。導入 mattpocock 的檔名與 template 形狀（`docs/agents/issue-tracker.md`，github / gitlab / local 三種 template），內容是我們的字彙。`triage-labels.md` 不需要（沒有 triage skill）。不要跑 `setup-matt-pocock-skills`，它會建 Matt 原名的五個 label。
+
+`/to-issue` 從 rhythm 的 repo-local skill 搬進 Beat 成為 `/beat:to-issue`，讀這份檔；explore 的 handoff `next` 指向它。
+
+### 7.4 規模：spec 與 ticket 的對應
+
+| mattpocock | 這裡 | 誰產生 |
+|---|---|---|
+| ticket（一個 context window 的垂直切片） | Beat 的 task（`tasks.md` 一項，apply 時一個 subagent 一項） | `/beat:plan`，不上 tracker |
+| spec（一個 feature、一張 issue） | 一個 change = 一張 issue = 一個 Task = 一個 PR | `/to-issue`，出口 small / standard |
+| spec 大到多個 PR | 一條 route = 多個 change node | `/to-issue`，出口 too-big |
+
+Matt 把 ticket 開成 issue是因為每張要 `/clear` 換 context、而且 `implement-spec` 從 tracker 讀 blocking edge 排 frontier；這兩件事 Beat 內部已解決（task 靠 `tasks.md` 與 status.yaml 銜接，frontier 在 route 的 `blocked_by`），ticket 這層不上 tracker。
+
+too-big 的形狀：
+- 一張 **epic issue** = route 的 map，body 由 `route.md` 生成（目的地、已定案、還沒定、先不做），不另寫一份。
+- 每個 change node 一張 **sub-issue**（GitHub 原生 sub-issue；GitLab / Jira 對應 epic child），`blocked_by` 寫成 tracker 的原生 blocking 關係。node 自己 explore 完才標 `status/ready`，所以 board 上「ready 且沒被 block」就是 frontier。
+- route `status.yaml` 每個 node 加 `issue:` 欄位記 `#n`，兩邊互指（schema 與 validator 要改）。node 狀態仍從 change 推導，tracker 的 `status/*` 是 Rhythm 寫的投影，不是第二個真相來源。
+
+`beat/routes/` 管「決定了什麼、還沒決定什麼」（agent 讀），tracker 管「誰能做、誰在跑」（人看 board）。route 不能廢：要離線、要跨 tracker、「decisions so far」tracker 放不下。
+
+### 7.5 mattpocock repo 端檔案的取捨
+
+| 檔案 | 決定 | 原因 |
+|---|---|---|
+| `GLOSSARY.md`（根目錄） | 導入，rhythm 放 symlink `GLOSSARY.md -> beat/CONTEXT.md` | `domain-modeling`、`pr`、`tdd`、`diagnosing-bugs` 寫死讀根目錄，路徑不可設；格式與 Beat 的 `context-format.md` 幾乎相同。design 叫完 `domain-modeling` 要跑一次既有的「新詞插進所屬 group」位置檢查 |
+| `docs/adr/` | 已對齊 | glossary 交 `domain-modeling`，ADR 仍由 Beat 照 `adr-format.md` 寫（Matt 的沒有 front matter，rhythm `lint:docs` 會擋） |
+| `CODING_STANDARDS.md` | 導入，當索引 | 只放 navigation pointer 指向各 README 的 conventions 段；retro 寫這裡，cadence pr-review 已會找 |
+| `docs/agents/issue-tracker.md` | 導入（§7.3） | 多 tracker 後 skill 需要 |
+| `docs/agents/triage-labels.md`、`docs/agents/domain.md`、`.scratch/` | 不導入 | 沒有 skill 會讀，或已被取代 |
 
 ## 不做的
 
