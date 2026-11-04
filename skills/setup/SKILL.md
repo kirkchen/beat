@@ -193,7 +193,7 @@ Initialize Beat configuration in the current project.
    need any of them. Their paths are mapped in `references/project-layout.md`.
    Mention this in the summary so the user knows what to expect.
 
-Steps 9–11 write the project-layout files from `references/project-layout.md`. Each is idempotent: an existing file is completed (missing sections or placeholders filled), never overwritten, and the user's edits are kept. Re-running setup changes nothing that is already filled in.
+Steps 9–11 write the project-layout files from `references/project-layout.md`. Each is idempotent: an existing file is completed (missing sections or placeholders filled) or kept as is, never overwritten, and the user's edits are kept. Re-running setup changes nothing that is already filled in.
 
 9. **Issue tracker** (`docs/agents/issue-tracker.md`)
 
@@ -207,13 +207,13 @@ Steps 9–11 write the project-layout files from `references/project-layout.md`.
    Fill these setup placeholders, everywhere they appear in the template:
    - `<owner>/<repo>` (GitHub) or `<group>/<project>` (GitLab): from the remote URL. For `issue-tracker-other.md`, ask for `<tracker name>` and `<tracker location>` instead (e.g. "Jira", "project ABC").
    - `<assignee>`: ask "Which account does the orchestrator run as? (the GitHub / GitLab login that will own the PRs)".
-   - `<dispatch-label>`: `rhythm-change`. Say so ("Dispatch label: `rhythm-change`") and move on unless the user objects.
+   - `<dispatch-label>`: `rhythm-change`. Say so ("Dispatch label: `rhythm-change`") and move on unless the user objects. When the filled value is `rhythm-change`, drop the "(default `rhythm-change`)" note after it in the Vocabulary row; keep the note when the user chose another label.
 
    Every other `<...>` in the template (`<number>`, `<file>`, `<parent>`, `<n>`, ...) is a command argument the skills fill at run time: leave it as written.
 
    For `issue-tracker-other.md`, ask the user for the one-paragraph Conventions description; if they have none yet, leave its placeholder text in place.
 
-   Copy the Vocabulary section as is, apart from the `<assignee>` and `<dispatch-label>` values filled above: the five `status/*` labels and their meanings are fixed, not per project.
+   Copy the Vocabulary section as is, apart from the `<assignee>` and `<dispatch-label>` edits above: the five `status/*` labels and their meanings are fixed, not per project.
 
    Write `docs/agents/issue-tracker.md` (`mkdir -p docs/agents`). If the file exists, fill only the setup placeholders still in it and add any template section it lacks; keep everything else.
 
