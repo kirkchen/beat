@@ -184,7 +184,7 @@ Then print exactly one line immediately above the handoff block, always in this 
 Exit: <small|standard|too-big|blocked|drop> (preset <minimal|technical|standard|full>)
 ```
 
-The preset appears only for `small` (`minimal` or `technical`, as declared) and `standard` (`standard`, or `full` when the exploration agreed on it); the other exits omit it (`Exit: too-big`). `/beat:to-issue` reads the exit and preset from this line.
+`small` always names its preset (`minimal` or `technical`, as declared). `standard` names one only when the exploration agreed on it (`Exit: standard (preset full)`); otherwise the line is `Exit: standard` and design asks for the preset as its row says. The other exits never carry one (`Exit: too-big`). `/beat:to-issue` reads the exit and preset from this line.
 
 End with the handoff block from `references/handoff-report.md`, `next` being the command above. Exploration may also just stop ("continue later") — still declare the exit and print the `Exit:` line so the thread can be picked up.
 

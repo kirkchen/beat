@@ -135,7 +135,7 @@ Take from it: the tracker and its CLI, every command recipe under Conventions, t
 
 ### 2. Read the exit
 
-Read the exit and preset from the `Exit:` line directly above the exploration's `## Beat Handoff` block (`Exit: <small|standard|too-big|blocked|drop> (preset <...>)`). The preset is present only for `small` (`minimal` or `technical`) and `standard` (`standard`, or `full` when the exploration agreed on it).
+Read the exit and preset from the `Exit:` line directly above the exploration's `## Beat Handoff` block (`Exit: <small|standard|too-big|blocked|drop> (preset <...>)`). `small` always names a preset (`minimal` or `technical`); `standard` names one only when the exploration agreed on it, otherwise the line is plain `Exit: standard`.
 
 No `Exit:` line → stop: "This exploration has no declared exit. Finish `/beat:explore` first; the exit decides how many issues to open and which labels they get." Do not infer one.
 
@@ -152,12 +152,12 @@ Section titles follow `beat/config.yaml` `language`: a `zh-*` language uses the 
 ```
 Route: <route>/<node-id>                     ← only when rewriting a route sub-issue; stays the first line
 Epic: #<n>                                   ← only when step 2 found one
-出口：<exit>（preset <minimal|technical|standard|full>）
+出口：<exit>（preset <minimal|technical|standard|full>）   ← preset part only when the exploration's Exit: line names one
 ```
 
 When the issue being rewritten is a route sub-issue (created with `Route: <route>/<node-id>` as its first line), that line stays the first body line, then the optional `Epic:` line, then the exit line.
 
-English: `Exit: <exit> (preset <...>)`. It carries the same exit and preset as the exploration's `Exit:` line. The exit line comes after any `Route:` and `Epic:` lines and before every section; `/beat:design` reads the preset from it and skips its preset question.
+English: `Exit: <exit> (preset <...>)`. It carries the same exit and preset as the exploration's `Exit:` line, and no preset when that line has none (`出口：standard` / `Exit: standard`). The exit line comes after any `Route:` and `Epic:` lines and before every section; when it names a preset, `/beat:design` uses it and skips its preset question; when it does not, design asks.
 
 | zh-TW | English | What goes in it |
 |-------|---------|-----------------|
