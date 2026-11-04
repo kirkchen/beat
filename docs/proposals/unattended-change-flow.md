@@ -96,7 +96,7 @@ archive 的停點逐一對應：
 | ADR 最後一哩 sweep | offer-only，跳過 |
 | route 全部完成要不要 archive route | 採預設 archive，記 assumed |
 
-這條規則取代 `beat-supervise` 現在「替人回答 AskUserQuestion」的那一段；supervisor 只剩 verify 的 critic-actor loop。
+`beat-supervise` 現在「替人回答 AskUserQuestion」的那一段保留：帶 nonce 的 flow Stage 裡 Beat 不會問，這段不觸發；Rhythm UI 手動建的 supervised Task（`SUPERVISED_FLOW`，prompt 不帶 nonce）Beat 照常發問，仍靠它回答。
 
 **2.2 Issue body 是鎖定的決策來源。** design 讀 issue 的「已定案（不要重新討論）」當 locked decisions，不重開；design 自己產生的 Key Decision 若不在已定案內且過 ADR 三條件 → decision brief。這是現在 `tpl-github-rhythm-plan` prompt 裡的規則，搬進 `/beat:design` 本體，讓本機跑也一致。
 
