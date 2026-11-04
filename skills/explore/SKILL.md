@@ -168,9 +168,11 @@ Exploration ends when the user is done or the shape is clear. Before ending, **d
 | `drop` | the facts say this should not be built: already covered, out of scope for the project, or the cost is not worth it | Say so, close the issue when there is one (with the one-line reason), create nothing. |
 | `blocked` | the one thing that must exist before any of the above can be chosen | Create a node (in the active route, or a one-node route when there is none) with `kind` = `research` (an agent can answer it unattended), `prototype` (a human must look at something — see below), or `decision` (only a human can decide). Next: whoever resolves it, then `/beat:explore` again. |
 
+In a project that has `docs/agents/issue-tracker.md`, `small` and `standard` hand off to the tracker instead: `next: /beat:to-issue`, which writes the conclusion into an issue that design later runs from. Without that file, `next` is `/beat:design <name>` as in the table.
+
 Map from brainstorming's own classification so the work is sized once, not twice: Spike → `blocked`; Bounded → `small`; Architectural → `standard` or `too-big` by the module count.
 
-In a project that dispatches issues to an orchestrator, `standard` means "decisions still to be made in design" and each of those becomes a stop for a human mid-flow. Settle them here when you can; what is settled goes into the issue's locked-decisions section via `/to-issue`, and what is left open will come back as a decision brief.
+In a project that dispatches issues to an orchestrator, `standard` means "decisions still to be made in design" and each of those becomes a stop for a human mid-flow. Settle them here when you can; what is settled goes into the issue's locked-decisions section via `/beat:to-issue`, and what is left open will come back as a decision brief.
 
 **Prototype nodes.** Read `beat/config.yaml`; if `prototype.surface` is set (for example `storybook`), the node says which states or variants to build there and what the human is judging between. Stories built for a prototype may be kept on the branch and merged as real stories once a variant is approved; the implementation code written to make them render stays on a `prototype/<node-id>` branch and is never merged — `/beat:apply` rewrites it from the gherkin under TDD. If `prototype.surface` is absent, offer `mattpocock-skills:prototype` when installed, otherwise ask where the prototype should live.
 

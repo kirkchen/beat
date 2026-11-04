@@ -23,6 +23,7 @@ Rules:
 - `checks` lists exit codes of commands this run actually executed. Paste the last lines of their output above the block when they failed.
 - `next` is one command. If the skill's natural successor needs a decision first (archive waiting on an unverified change, apply paused on a blocker), say so in `blocked-on` and make `next` the command that resolves it.
 - Skills that write nothing (`/beat:explore` without artifacts) still emit the block with `commit` and `dirty`, `next` being the declared exit (see `skills/explore/SKILL.md`).
+- `/beat:to-issue` emits `change: none` and `phase: to-issue`; `next` is `/beat:design <name>`, `/beat:explore <route>` or `none`.
 
 ## Machine-readable suffix (optional)
 

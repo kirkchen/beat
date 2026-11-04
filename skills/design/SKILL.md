@@ -169,7 +169,7 @@ digraph design {
 
 3. **Settle the preset**
 
-   Read `status.yaml`. If `preset` is already set (explore declared `small` and named `minimal` or `technical`, or the user passed one), use it and skip the question — say which preset is in effect and why. When the change comes from an issue, the body's `出口：` line (written by `/to-issue`, e.g. `出口：small（preset minimal）`) names the preset the same way; use it and skip the question.
+   Read `status.yaml`. If `preset` is already set (explore declared `small` and named `minimal` or `technical`, or the user passed one), use it and skip the question — say which preset is in effect and why. When the change comes from an issue, the body's `出口：` line (written by `/beat:to-issue`, e.g. `出口：small（preset minimal）`) names the preset the same way; use it and skip the question.
 
    Otherwise, for artifacts still `pending`, ask user once upfront:
 

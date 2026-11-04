@@ -14,6 +14,7 @@ TESTS=(
     "archive:finalize-change.txt"
     "setup:setup-beat.txt"
     "distill:extract-specs.txt"
+    "to-issue:to-issue.txt"
 )
 
 PASS=0
@@ -37,6 +38,7 @@ NEGATIVE_TESTS=(
     "design:design-negative-plan.txt"
     "plan:plan-negative-design.txt"
     "plan:plan-negative-apply.txt"
+    "to-issue:to-issue-negative-explore.txt"
 )
 
 echo "=== Negative Triggering Tests ==="
