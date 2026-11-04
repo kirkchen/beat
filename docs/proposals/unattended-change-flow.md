@@ -1,7 +1,7 @@
 # Proposal: 無人值守的 change flow，人只在 explore 與 merge 出現
 
 日期：2026-11-04
-狀態：draft v3。v2 經一輪 builder check 修訂（gate question 來源、stage-result 值的文法、Stage session 模型、archive 停點對應、babysit 已有機器行）；v3 加 §7 票的入口、狀態字彙、tracker 設定與規模
+狀態：draft v4。v3 經兩輪獨立 review（設計對抗、六情境模擬）修訂，差異集中在 §8；v2 經一輪 builder check 修訂（gate question 來源、stage-result 值的文法、Stage session 模型、archive 停點對應、babysit 已有機器行）；v3 加 §7 票的入口、狀態字彙、tracker 設定與規模
 範圍：Beat、cadence、rhythm 三個 repo 的 skill 與 flow 設定；搭配 mattpocock/skills（HEAD 4ae2317）
 前置：`beat-topology.md`（explore 出口、preset、fix-from-verify 迴圈）已落地，本文建立在它之上
 來源：本文的事實來自三份 recon：rhythm 的 Task Flow 與 label 協定（ADR-0077、ADR-0087、`packages/domain/src/flows/`）、Beat 與 cadence 每個 skill 的機器可讀輸出與停點、Claude Code 對 user-invoked skill 在 headless 模式的行為（`code.claude.com/docs/en/skills.md`、`headless.md`）
@@ -41,11 +41,11 @@
 ```
 rhythm-change
   │
-  ▼
-design ──► plan ──► apply ──► verify ◄──► fix (loop ≤3) ──► archive+PR ──► pr-review ◄──► fix (loop ≤3) ──► babysit ──► pass
-   │          │        │         │                              │                                   (merge-ready，人 merge)
-   └──────────┴────────┴─────────┴── blocked-on ≠ none ──► gate:input_required（附 brief）
-                       └── sensitive=yes（plan 之後一次）──► gate:input_required（附 plan brief）
+  ▼  BEAT_CHANGE_FLOW（一個 Task）                                                PR_REVIEW_FLOW（PR 事件另開的 Task）
+design ──► plan ──► apply ──► verify ◄──► fix (loop ≤3) ──► archive+PR ──complete──► pr-review ◄──► fix ──► babysit ──► ready（人 merge）
+   │          │        │         │                              status/in-review
+   └──────────┴────────┴─────────┴── gate（issue 留言 + status/waiting）：decision / env / scope 回覆後接續同 phase；
+                       │                                        plan 之後 sensitive=yes 回覆後跳 apply；verify diverging=yes 回覆後跳 fix
 ```
 
 每個 Stage 的 judge 都是 `run_output`。stage-result 的值一律是不含空白的 token（`stage-result.ts:28` 以空白切割；`matchOutcome` 只做等值與 enum 比對，沒有前綴與否定），所以 `blocked-on` 收斂成三個值，decision id 另一個 key。規則依序 first-match：
@@ -301,6 +301,43 @@ too-big 的形狀：
 | `CODING_STANDARDS.md` | 導入，當索引 | 只放 navigation pointer 指向各 README 的 conventions 段；retro 寫這裡，cadence pr-review 已會找 |
 | `docs/agents/issue-tracker.md` | 導入（§7.3） | 多 tracker 後 skill 需要 |
 | `docs/agents/triage-labels.md`、`docs/agents/domain.md`、`.scratch/` | 不導入 | 沒有 skill 會讀，或已被取代 |
+
+## 8. v4 修訂（兩輪 review 後）
+
+兩輪獨立 review（設計對抗、六情境紙上模擬）找到 24 項，合併後的決定如下。每項標落點：B = Beat branch、#454 / #610 = Rhythm 既有 issue、§7 issue = 新開的 Rhythm issue。
+
+### 8.1 動工前必修
+
+1. **gate 回覆不再一律重跑同一個 Stage**（B、#454）。`OutcomeThen` 的 gate 加 `onReply: <stage>`：`decision` / `env` / `scope` 回覆後接續同一個 phase；plan 之後的 `sensitive` 回覆後跳 `apply`；verify 的 `diverging` 回覆後跳 `fix`，回覆內容是 fix 的第一個工作項。否則 sensitive 與 diverging 會無限 gate 到 `run_limit`。sensitive 的值寫進 `beat/changes/<name>/decisions/sensitive.md`，plan 在新 session 讀檔，不靠上一個 handoff。
+2. **過 ADR 三條件、不在已定案的決定一律 brief**（B）。v2 的 `design/SKILL.md` 與 `unattended-mode.md` 有一處寫「unattended: 直接寫 ADR」，會讓 agent 自己選邊、0 個 gate。改成 brief、停，ADR 在回覆後寫。
+3. **issue 寫回改以 flow state 為單位**（#610）。現在 Run 終態的 hook 在每個 gate 都留言「已完成」並移除 running；`run_failed` 還把派工 label 加回去並教人「移除 blocked 重派」，對 flow Task 是錯的動作。改成：gate → `status/waiting`、`run_failed` → `status/blocked`（不加回派工 label，留言「回 `/resume` 繼續」）、complete → `status/in-review`；hook 在 `waitingOn=user` 時跳過。
+4. **`status/ready` 只在第一次派工檢查**（§7 issue）。派工時 ready 被移除，若之後重派也要求 ready，失敗一次就永遠重派不了。Task 已存在的重派不看 ready。
+5. **Stage 模板與 change 名稱**（#454、B）。#454 列出每個 Stage 的模板 `/beat:<phase> {{subject}}` + TAIL。Beat 在 unattended 下以唯一 active 的 `beat/changes/*` 為本次 change，多於一個 → `env`。
+6. **companion skill 的提問有對應**（B）。design 的 brainstorming 是 MUST、會問問題並要 approve；unattended 下一問 turn 就結束、沒有 stage-result。規則：從 issue body 回答，「已定案就是 approval」，跳過 approve 步驟；TDD 的 baseline 問題採預設。
+7. **verify 規則寫成 matchOutcome 做得到的形式**（#454、B）。`critical>0` 寫不出來（只有等值與 enum）。順序改為 `diverging=yes → gate`、`blocked-on=decision → gate`、`blocked-on=env → gate`、`blocked-on=scope → gate`、`critical=0 ∧ blocked-on=none → archive`、`blocked-on=none → fix`。`next=` 的值含空白會被切掉，只放 `/beat:<phase>`。
+
+### 8.2 影響「人讀十行」的
+
+8. **gate question 只取 brief**（#454、B）。Orchestrator 擷取最後一則訊息裡 `# D<n>:` 到 `## Beat Handoff` 之間的內容；`blocked-on=decision` 但缺這段 → `judge_unreadable`。Beat 端 brief 是 phase 的最後動作，印完不再呼叫工具。
+9. **plan brief**（B）。sensitive gate 要有東西可讀：對到哪條情境、Key Decisions、tasks 各一行，≤10 行，回覆 `/answer continue`。decision-brief 的「不可單選項」規則對 plan brief 不適用，它是確認不是選擇。
+10. **一個 phase 多個決定一次 gate**（B、#454）。`decision=D1,D2`，每個 brief 一個檔、全部印出；回覆格式 `D1: A`、`D2: B`，一行一題。explore 的文字補一句：有 issue 流程的 repo，`standard` 出口要把決定談完再開票，否則就要預期 gate。
+11. **PR body 帶 `Closes #<n>`**（B）。否則 merge 後 issue 不關、`status/in-review` 永遠掛著。
+12. **preset 跟著 issue 走**（B）。explore 不寫 status.yaml，preset 沒地方記；`/to-issue` 在 body 寫「出口：small（preset minimal）」，design 從 body 讀。
+13. **session 模型照程式碼寫**（本文、B）。Stage 之間新 session；gate 回覆 resume 同一個 session，prompt 是模板 + 回覆。這比新 session 好（不會重問）。decision-brief 的「After the answer」改成「回覆在 prompt 裡」。
+14. **PR 階段不在 BEAT_CHANGE_FLOW 裡**（本文、#454）。flow 在 archive 結束（complete → `status/in-review`），PR_REVIEW_FLOW 由 PR 事件另開 Task；否則兩個 Task 在同一條 branch 上互 push。§1 的圖已改。
+15. **所有 gate reason 都上 issue surface**（#610）。不只 `input_required`：`loop_limit` / `budget` 的回覆視為 `resume`，`run_limit` 留言「到 Task UI 處理」。
+16. **issue 留言當回覆的語意收窄**（#610）。只有開頭 `D<n>:`、`/answer`、`/resume` 的 Approver 留言算回覆；非 Approver 留言靜默忽略、不回「授權者尚未連結」。
+
+### 8.3 文字漂移與缺票
+
+17. #610 改用 `status/waiting`（v3 §7.2），並列 #606 為依賴（PR Review trigger 對 issue 留言也觸發，`issue_comment` 訂閱會撞）。
+18. §7 全部沒有 issue：開一張 Rhythm issue 涵蓋 `status/*` 五態與 swap 語意、ready 只在首派檢查、派工時檢查 tracker 的 blocking、外部 issue 開立時自動留言。
+19. 已定案只有一個寫入方（#610、B）：Rhythm 從 gate 回覆寫 issue（留言 + body 段），Beat 只寫 design.md。
+20. route 與 sub-issue 的 linkage（B 第二個 change）：sub-issue body 帶 `Route: <r>/<node>`，design 據此設 `route:`；node 狀態 `blocked` → `env`；route 的 archive 搬到 `/beat:explore <route>`（平行 node 在各自 branch 看不到彼此的 archive）；route `status.yaml` 加 `issue:`。
+21. `blocked-on=scope`（B、#454）：apply 才發現要拆第二個 PR 時的出口，brief 給兩個選項（縮小範圍、剩下開新 issue / 改走 route），回覆後由人重新 explore。
+22. archive 重入規則與 HARD-GATE（B）：env 中斷後重跑從「已 archive、未開 PR」接續；HARD-GATE 的「MUST invoke finishing-a-development-branch」加 unattended 例外。worker 每個 run 都 auto-push，「archive 只 push 一次」刪掉。
+23. explore 加「不做」出口：close 並留原因（B）。
+24. review 後的 spec 漂移（cadence、本文「不做的」）：babysit 碰到 `beat/features` 或 gherkin 行為時 `needs-user-input`；其他漂移接受，PR 的「決定與影響」是 archive 當下的快照。
 
 ## 不做的
 
