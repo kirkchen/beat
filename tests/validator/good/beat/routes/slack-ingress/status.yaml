@@ -6,6 +6,7 @@ nodes:
     title: "How do agent workbenches store large attachments?"
     question: "Which storage model fits attachments up to 50MB?"
     result: docs/research/2026-06-02-attachment-storage.md
+    issue: "#12"
   thread-ux:
     type: prototype
     title: "Thread vs. inline reply presentation"

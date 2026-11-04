@@ -9,4 +9,5 @@ nodes:
   b:
     type: decision
     title: "B"
+    issue: 12
     blocked_by: [a, zzz]

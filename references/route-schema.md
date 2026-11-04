@@ -48,7 +48,10 @@ nodes:                           # required, map keyed by node-id (kebab-case)
     change: <change-name>                         # change nodes only — the beat/changes/<name> that implements it
     result: <path>                                # research/prototype/decision nodes — file that records the outcome
     question: "<what this node must answer>"      # research/prototype/decision nodes — required
+    issue: "#12"                                  # optional, any node type — tracker issue ("#<n>" for GitHub/GitLab, or a key like PROJ-123); written by /beat:to-issue
 ```
+
+The `issue` field links a node to its tracker issue. It is a string, written by `/beat:to-issue` when it creates the epic's sub-issues, and is never used to derive node status.
 
 Node types:
 

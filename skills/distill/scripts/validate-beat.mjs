@@ -439,7 +439,8 @@ export function validateRoute(doc, { file, projectRoot }) {
     const n = nodes[id] ?? {};
     const w = `${where} nodes.${id}`;
     if (!KEBAB.test(id)) errors.push(`${w}: node id must be kebab-case`);
-    checkKeys(n, ['type', 'title', 'blocked_by', 'change', 'result', 'question'], w, errors);
+    checkKeys(n, ['type', 'title', 'blocked_by', 'change', 'result', 'question', 'issue'], w, errors);
+    if (n.issue !== undefined && typeof n.issue !== 'string') errors.push(`${w}: issue must be a string like "#12" or "PROJ-1"`);
     if (!NODE_TYPES.includes(n.type)) errors.push(`${w}: type must be one of ${NODE_TYPES.join(', ')}`);
     if (!n.title) errors.push(`${w}: title is required`);
     const bb = n.blocked_by ?? [];
