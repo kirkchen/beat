@@ -29,14 +29,16 @@ beat/
 │   ├── apply/                   # /beat:apply — TDD implementation
 │   ├── verify/                  # /beat:verify — 5-dimension verification
 │   ├── archive/                 # /beat:archive — sync features + archive completed change
-│   ├── explore/                 # /beat:explore — thinking partner mode; ends by declaring an exit (small / standard / too-big / blocked)
-│   ├── setup/                   # /beat:setup — create beat/config.yaml
+│   ├── explore/                 # /beat:explore — thinking partner mode; ends by declaring an exit (small / standard / too-big / blocked / drop)
+│   ├── to-issue/                # /beat:to-issue — turn a settled exploration into a tracker issue (or epic + sub-issues)
+│   ├── setup/                   # /beat:setup — create beat/config.yaml + the agent docs (issue-tracker.md, CODING_STANDARDS.md, Agent docs block)
 │   └── distill/                 # /beat:distill — reverse-engineer specs from code
 ├── references/                  # Source of truth for shared schemas — edit here, then run scripts/sync-references.mjs
 │   ├── status-schema.md         # status.yaml format
 │   ├── config-schema.md         # config.yaml format
 │   ├── testing-conventions.md   # Annotation format and e2e test style reference
-│   ├── context-format.md        # beat/CONTEXT.md glossary format (Layer 1 living docs)
+│   ├── project-layout.md        # Map of every project-level path Beat writes (authority for paths)
+│   ├── context-format.md        # GLOSSARY.md glossary format (Layer 1 living docs)
 │   ├── adr-format.md            # docs/adr/ ADR format + three-condition gate (Layer 2 living docs)
 │   ├── architecture-format.md   # beat/ARCHITECTURE.md hub + module README format (Layer 3 living docs)
 │   ├── route-schema.md          # beat/routes/<name>/ map + nodes (research / prototype / decision / change); status is derived
@@ -44,12 +46,17 @@ beat/
 │   ├── handoff-report.md        # The "## Beat Handoff" block every skill ends with, plus the rhythm-stage-result suffix
 │   ├── unattended-mode.md       # How skills behave under an orchestrator: defaults, decision briefs, sensitivity, per-skill mapping
 │   ├── decision-brief.md        # Ten-line brief a skill writes when it must stop for a human in unattended mode
+│   ├── issue-tracker-github.md  # docs/agents/issue-tracker.md template — GitHub (gh)
+│   ├── issue-tracker-gitlab.md  # docs/agents/issue-tracker.md template — GitLab (glab)
+│   ├── issue-tracker-other.md   # docs/agents/issue-tracker.md template — any other tracker
+│   ├── coding-standards-template.md  # CODING_STANDARDS.md template
 │   ├── lint-tools.md            # How and when skills run validate-beat.mjs / lint-features.mjs
 │   ├── tool-mapping.md          # Cross-platform tool name mapping (root only)
 │   └── codex-agents-snippet.md  # Per-project AGENTS.md snippet for Codex (root only)
 ├── scripts/sync-references.mjs  # Syncs /references and /scripts into each skill's references/ and scripts/ (see header)
-├── scripts/validate-beat.mjs    # Deterministic checks: status.yaml, routes, verify.md, config, .orig residue, --pre-archive, --stale-paths, --handoff
+├── scripts/validate-beat.mjs    # Deterministic checks: status.yaml, routes, verify.md, config, .orig residue, --pre-archive, --stale-paths, --handoff, --layout
 ├── scripts/lint-features.mjs    # Feature-file linter (annotations, layer tags, user story, tags, placeholders, README index)
+├── docs/migrations/             # Upgrade prompts an agent runs inside a target project (0.6-project-layout.md)
 ├── NOTICE.md                    # Third-party attribution (mattpocock-skills, superpowers — both MIT)
 ├── hooks/                       # Claude Code hooks (Codex ignores; replaced by AGENTS.md snippet)
 │   ├── hooks.json               # SessionStart hook config
@@ -72,9 +79,11 @@ When installed in a user's project, Beat creates this structure:
 
 ```
 <project>/
+├── GLOSSARY.md                  # Layer 1 — domain glossary (lazy, created on first term)
+├── CODING_STANDARDS.md          # Reviewer-facing judgement rules (written by /beat:setup)
+├── CLAUDE.md | AGENTS.md        # Contains the "## Agent docs" pointer block (written by /beat:setup)
 ├── beat/
 │   ├── config.yaml              # Optional project config (language, context, rules)
-│   ├── CONTEXT.md               # Layer 1 — domain glossary (lazy, created on first term)
 │   ├── ARCHITECTURE.md          # Layer 3 — architecture hub (lazy, multi-module projects)
 │   ├── changes/                 # Active and archived changes
 │   │   ├── <change-name>/       # One directory per active change
@@ -94,8 +103,11 @@ When installed in a user's project, Beat creates this structure:
 │       └── <capability>/        # Organized by capability after sync
 │           ├── *.feature
 │           └── README.md
-├── docs/adr/                    # Layer 2 — ADRs (lazy, three-condition gate)
-│   └── NNNN-slug.md
+├── docs/
+│   ├── adr/                     # Layer 2 — ADRs (lazy, three-condition gate)
+│   │   └── NNNN-slug.md
+│   └── agents/
+│       └── issue-tracker.md     # Tracker, labels, dispatch conventions (required for /beat:to-issue)
 └── packages|src/<module>/
     └── README.md                # Layer 3 — module README (lazy, on public-interface change)
 ```
@@ -103,17 +115,18 @@ When installed in a user's project, Beat creates this structure:
 ### Pipeline Flow
 
 ```
-explore ──exit──► design → plan → apply ⇄ verify → archive
-   │                │        │        (fix-from-verify / incremental)
-   │                │        └── tasks (review depth follows preset)
-   │                └── [proposal] → gherkin → [design]   (preset: full / standard / minimal / technical)
-   ├─ too-big → beat/routes/<name>/ (map + nodes); each change node re-enters at explore/design
-   └─ blocked → research (AFK) / prototype (HITL) / decision (HITL) node, then explore again
+explore ──exit──► [to-issue ──label──►] design → plan → apply ⇄ verify → archive
+   │                                       │        │        (fix-from-verify / incremental)
+   │                                       │        └── tasks (review depth follows preset)
+   │                                       └── [proposal] → gherkin → [design]   (preset: full / standard / minimal / technical)
+   ├─ too-big → beat/routes/<name>/ (map + nodes); each change node re-enters at explore/design (to-issue: epic + sub-issues)
+   ├─ blocked → research (AFK) / prototype (HITL) / decision (HITL) node, then explore again
+   └─ drop → nothing is built; the issue (if any) is closed with the reason
 ```
 
 For purely technical changes (tooling, deps, refactor): gherkin can be skipped, proposal becomes the driver.
 
-Explore ends by declaring one exit (`small`, `standard`, `too-big`, `blocked`) with the facts behind it. The preset chosen in design sets the strength of later phases: `minimal`/`technical` get a test-coverage-only plan review and a single verify subagent, and `/beat:apply` upgrades them to `standard` when the diff crosses `config.yaml` `preset_upgrade` thresholds. Verify writes `verify.md`; `apply fix-from-verify` fixes the open CRITICALs (explicit ids for anything else); re-runs are incremental from `verification.sha` and bounded by convergence rules (severity floor, prose ceiling, iteration ramp, round cap — see `skills/verify/SKILL.md` "Convergence"). A full re-run is the user's choice; archive never requires it. Apply never pushes — pushing comes after archive. Every skill ends with the `## Beat Handoff` block.
+Explore ends by declaring one exit (`small`, `standard`, `too-big`, `blocked`, `drop`) with the facts behind it. `/beat:to-issue` is optional: it writes the conclusion into a tracker issue (an epic with sub-issues for a route) so an orchestrator or a person can run design later without the conversation; the dispatch label is added only when the user asks. The preset chosen in design sets the strength of later phases: `minimal`/`technical` get a test-coverage-only plan review and a single verify subagent, and `/beat:apply` upgrades them to `standard` when the diff crosses `config.yaml` `preset_upgrade` thresholds. Verify writes `verify.md`; `apply fix-from-verify` fixes the open CRITICALs (explicit ids for anything else); re-runs are incremental from `verification.sha` and bounded by convergence rules (severity floor, prose ceiling, iteration ramp, round cap — see `skills/verify/SKILL.md` "Convergence"). A full re-run is the user's choice; archive never requires it. Apply never pushes — pushing comes after archive. Every skill ends with the `## Beat Handoff` block.
 
 - **design**: Creates worktree + change container + generates spec artifacts (proposal, gherkin, design.md) + commits
 - **plan**: Creates execution plan (tasks.md) with multi-role review against spec artifacts + commits
@@ -123,6 +136,7 @@ Explore ends by declaring one exit (`small`, `standard`, `too-big`, `blocked`) w
 
 ### Key Concepts
 
+- **Project-level paths** (`GLOSSARY.md`, `CODING_STANDARDS.md`, `docs/agents/issue-tracker.md`, the `## Agent docs` block, `docs/adr/`, `beat/…`) are defined in `references/project-layout.md`; it is the authority, and skills point at it instead of hardcoding paths. Projects created before 0.6 migrate with `docs/migrations/0.6-project-layout.md`.
 - **status.yaml** is the state machine — schema defined in `references/status-schema.md`. Phase advances forward only. Pipeline entries use inline YAML flow style: `{ status: done }`. `preset` records the artifact preset and drives later-phase strength; `route` links a change to its route node. `/beat:verify` records its outcome in the top-level `verification` field (status, counts, `sha`, `mode`; it never advances phase); `/beat:archive` warns when archiving a change without a passing, full verification record. No field outside the schema — `node scripts/validate-beat.mjs <project>` rejects unknown keys.
 - **routes** (`beat/routes/<name>/`, schema `references/route-schema.md`) hold work too big for one change: a map plus nodes with `blocked_by` edges. Node status is always derived (a change node is done when its change is archived), never written, so there is no second state machine to drift. Rhythm or any dispatcher only sees one change per task; parallelism is a human reading the frontier.
 - **config.yaml** is optional project config — schema in `references/config-schema.md`. Controls artifact language, injects project context, and adds per-artifact rules (`proposal`, `gherkin`, `design`, `tasks`, `adr`). `rules.adr` applies at every ADR trigger point, so every skill that can write an ADR (including `/beat:explore`) reads the config; a project `docs/adr/TEMPLATE.md` takes precedence over Beat's built-in ADR template.
@@ -135,7 +149,7 @@ Explore ends by declaring one exit (`small`, `standard`, `too-big`, `blocked`) w
 
 Beat maintains three layers of project-level living documentation alongside the per-change artifacts. All three are **lazy** — created on first need, never preemptively. They complement the per-change archives, not replace them.
 
-- **Layer 1 — `beat/CONTEXT.md`** (glossary). Domain vocabulary, one canonical term per concept, opinionated about synonyms. Maintained inline by `/beat:design` (four-challenge check before writing gherkin), `/beat:distill` (glossary check on terms recovered from code), and `/beat:archive` (scan synced features for undefined terms). Format: `references/context-format.md`. Optional grilling via `mattpocock-skills:grill-with-docs` when ambiguity is complex.
+- **Layer 1 — `GLOSSARY.md`** at the project root (glossary, the same file mattpocock's `domain-modeling` writes). Domain vocabulary, one canonical term per concept, opinionated about synonyms. Maintained inline by `/beat:design` (four-challenge check before writing gherkin), `/beat:distill` (glossary check on terms recovered from code), and `/beat:archive` (scan synced features for undefined terms). Format: `references/context-format.md`. Optional grilling via `mattpocock-skills:grill-with-docs` when ambiguity is complex.
 
 - **Layer 2 — `docs/adr/NNNN-slug.md`** (decisions). 1-3 sentence ADRs gated by three conditions: hard-to-reverse + surprising without context + result of a real trade-off. Offered at six trigger points: `/beat:explore` (decision capture during exploration), `/beat:design` (per Key Decision), `/beat:plan` (review rejections), `/beat:apply` (implementation-forced choices), `/beat:distill` (Key Decisions recovered from code — rationale from evidence or the user, never invented), `/beat:archive` (last-mile sweep when zero ADRs written). Format: `references/adr-format.md`. ADRs live at `docs/adr/` rather than `beat/adr/` because the ADR format is an industry standard (Nygard 2011) with its own tool ecosystem; Beat only triggers and offers, while the files belong to the project and outlive Beat if the plugin is removed.
 

@@ -170,7 +170,7 @@ Scenario 應該在**行為層級**：PM、QA、或新進團隊成員不需要看
 
 Gherkin scenario 描述**行為**。它不描述**詞彙**（這個專案的「Run」是什麼意思？）、**決策**（為什麼選 X 不選 Y？）或**結構**（哪個 module 擁有這件事？）。Beat 在 feature 之外維護三層 living doc，每層半衰期不同：
 
-- **Layer 1 — `beat/CONTEXT.md`**（詞彙）：每個概念只有一個正統詞，對同義詞 opinionated。半衰期：很長（domain 詞彙變化慢）。
+- **Layer 1 — 專案根目錄的 `GLOSSARY.md`**（詞彙）：每個概念只有一個正統詞，對同義詞 opinionated。半衰期：很長（domain 詞彙變化慢）。
 - **Layer 2 — `docs/adr/`**（決策）：1-3 句 ADR，需通過 hard-to-reverse + surprising + real trade-off 三條件 gate。半衰期：不確定（寫了就不太回頭）。
 - **Layer 3 — `beat/ARCHITECTURE.md` + module `README.md`**（結構與意圖）：hub + spokes、手寫。半衰期：短（必須跟著 code 動）。
 

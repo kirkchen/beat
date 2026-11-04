@@ -73,8 +73,12 @@ Each skill folder is self-contained: the schemas it reads (`references/`) and th
 Then, in your project:
 
 ```bash
-/beat:setup    # Detects your stack, creates beat/config.yaml
+/beat:setup    # Detects your stack, creates beat/config.yaml and the agent docs
 ```
+
+### Upgrading to 0.6
+
+0.6 moves the glossary out of `beat/` to `GLOSSARY.md` at the project root and adds `CODING_STANDARDS.md`, `docs/agents/issue-tracker.md` and an `## Agent docs` block. Skills no longer read the old path. Paste [docs/migrations/0.6-project-layout.md](docs/migrations/0.6-project-layout.md) into an agent running in your project; it renames the glossary, rewrites references to the old path, writes the three agent docs from Beat's templates and checks the result with `validate-beat.mjs --layout`.
 
 ## Quick Start — 3 Commands
 
@@ -113,12 +117,13 @@ Now you have living documentation of what your system actually does. Next time y
 ## Full Pipeline
 
 ```
-explore → design → plan → apply ⇄ verify → archive
+explore ──exit──► [to-issue ──label──►] design → plan → apply ⇄ verify → archive
 ```
 
 | Command | What it does | When to use |
 |---------|-------------|-------------|
 | `/beat:explore` | Think through ideas, no code | Unclear requirements, brainstorming |
+| `/beat:to-issue` | Turn a settled exploration into a tracker issue (or an epic with sub-issues) | Handing the work to an orchestrator or to someone else later |
 | `/beat:design` | Create change + generate specs | Starting any change |
 | `/beat:plan` | Task breakdown + multi-role review | Complex features (5+ scenarios) |
 | `/beat:apply` | TDD implementation per scenario | Every change |
@@ -149,13 +154,33 @@ Each change can include these artifacts (you choose which):
 
 For purely technical changes (refactoring, tooling, deps), you can skip Gherkin entirely and drive from `proposal.md` instead.
 
+## What Beat Writes Into Your Project
+
+```
+<project>/
+├── GLOSSARY.md                  # Layer 1 glossary (lazy, created on the first term)
+├── CODING_STANDARDS.md          # Judgement rules reviewers enforce (/beat:setup)
+├── CLAUDE.md or AGENTS.md       # Gets an "## Agent docs" block pointing at the three files (/beat:setup)
+├── docs/
+│   ├── adr/NNNN-slug.md         # Layer 2 decisions (lazy)
+│   └── agents/issue-tracker.md  # Tracker, labels, dispatch label (/beat:setup; required by /beat:to-issue)
+└── beat/
+    ├── config.yaml              # Optional project config
+    ├── ARCHITECTURE.md          # Layer 3 hub (lazy)
+    ├── changes/<name>/          # One directory per change; archive/ holds finished ones
+    ├── routes/<name>/           # Work too big for one change (lazy)
+    └── features/<capability>/   # Living feature files, synced by archive
+```
+
+`references/project-layout.md` is the authoritative map: which skill creates each file and which are lazy.
+
 ## Living Documentation (three layers)
 
 Beat also maintains **project-level** living docs alongside per-change artifacts. All three are lazy — created the first time they're needed, never preemptively.
 
 | Layer | File(s) | Format | Maintained by |
 |-------|---------|--------|--------------|
-| **1. Glossary** | `beat/CONTEXT.md` | Domain vocabulary (one canonical term per concept) | `/beat:design` (4-challenge check before gherkin), `/beat:distill` (glossary check on terms recovered from code), `/beat:archive` (scan synced features for undefined terms) |
+| **1. Glossary** | `GLOSSARY.md` (project root) | Domain vocabulary (one canonical term per concept) | `/beat:design` (4-challenge check before gherkin), `/beat:distill` (glossary check on terms recovered from code), `/beat:archive` (scan synced features for undefined terms) |
 | **2. Decisions** | `docs/adr/NNNN-slug.md` | 1-3 sentence ADRs, gated by hard-to-reverse + surprising + real trade-off | `/beat:explore` (decision capture), `/beat:design` (per Key Decision), `/beat:plan` (review rejections), `/beat:apply` (implementation-forced), `/beat:distill` (decisions recovered from code), `/beat:archive` (last-mile sweep) |
 | **3. Structure** | `beat/ARCHITECTURE.md` + module `README.md` | Hub diagram + module purpose/interface/deps | `/beat:design` (hub suggestion on module-level change), `/beat:apply` (prompt on public-interface change, scaffold offer on new module), `/beat:distill` (README scaffold offer), `/beat:verify` (Dimension 5, advisory) |
 
@@ -195,7 +220,7 @@ Three test layers, each using your project's own frameworks:
 
 The checks that can be decided by reading files are scripts, not prompts. Every skill carries them under `skills/<name>/scripts/` (Node 18+, no packages):
 
-- `validate-beat.mjs` — `status.yaml`, route `status.yaml`, `verify.md`, `beat/config.yaml`, `.feature.orig` residue; `--change <name>` for one change, `--pre-archive`, `--stale-paths`, `--handoff`.
+- `validate-beat.mjs` — `status.yaml`, route `status.yaml`, `verify.md`, `beat/config.yaml`, `.feature.orig` residue; `--change <name>` for one change, `--pre-archive`, `--stale-paths`, `--handoff`, `--layout` (project layout).
 - `lint-features.mjs` — `@covered-by` targets and annotations, one layer tag per scenario, user story, known tags, placeholders, README index.
 
 Skills run them at fixed steps (design and distill before committing, apply after each scenario, verify before dispatching subagents, archive before and after the move) and fix what they list. To run them in your own CI, point at the installed plugin or copy the two files:

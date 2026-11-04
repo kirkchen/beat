@@ -220,7 +220,7 @@ Beat invokes other skill sets at fixed points and takes their result back; it ne
 
 Gherkin scenarios describe **behavior**. They do not describe **vocabulary** (what does "Run" mean here?), **decisions** (why did we pick X over Y?), or **structure** (which module owns this?). Beat maintains three additional living-doc surfaces alongside features, each with a different half-life:
 
-- **Layer 1 — `beat/CONTEXT.md`** (vocabulary): one canonical term per concept, opinionated about synonyms. Half-life: very long (domain words change slowly).
+- **Layer 1 — `GLOSSARY.md`** at the project root (vocabulary): one canonical term per concept, opinionated about synonyms. Half-life: very long (domain words change slowly).
 - **Layer 2 — `docs/adr/`** (decisions): 1-3 sentence ADRs, gated by hard-to-reverse + surprising + real trade-off. Half-life: indefinite (once written, rarely revisited).
 - **Layer 3 — `beat/ARCHITECTURE.md` + module `README.md`** (structure & intent): hub + spokes, hand-written. Half-life: short (must update with code).
 
