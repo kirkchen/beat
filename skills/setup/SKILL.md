@@ -11,6 +11,7 @@ Initialize Beat configuration in the current project.
 - Setting up Beat for the first time in a project
 - Updating existing Beat configuration (language, testing frameworks, rules)
 - Detecting project tech stack and recommending test frameworks
+- Setting up or completing `docs/agents/issue-tracker.md`, `CODING_STANDARDS.md` or the Agent docs block
 
 **NOT for:**
 - Editing `beat/config.yaml` directly (just edit the file)
@@ -230,7 +231,7 @@ Steps 9–11 write the project-layout files from `references/project-layout.md`.
 
     Pick the file: `CLAUDE.md` if it exists, else `AGENTS.md` if it exists, else ask with **AskUserQuestion tool** which one to create (`CLAUDE.md` for Claude Code, `AGENTS.md` for Codex and other agents).
 
-    Insert the `## Agent docs` block from `references/project-layout.md` (the heading plus its three pointer lines). If the file already has a `## Agent docs` heading, replace that section's three lines in place instead of adding a second block.
+    Insert the `## Agent docs` block from `references/project-layout.md` (the heading plus its three pointer lines). If the file already has a `## Agent docs` heading, replace Beat's three pointer lines in that section in place; keep any other lines the user added. Never add a second block.
 
     The block points at `GLOSSARY.md` even when the glossary does not exist yet: the pointer tells agents where it goes. Do not create `GLOSSARY.md` to satisfy it.
 
