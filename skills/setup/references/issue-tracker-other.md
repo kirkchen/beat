@@ -4,7 +4,7 @@ Issues for this repo live in `<tracker location>`.
 
 ## Conventions
 
-Describe in one paragraph how issues are created, read, labelled and closed here (Jira project and transitions, Linear team, a local `docs/issues/` folder...). Skills follow this paragraph literally.
+Describe in one paragraph how issues are created, read, edited (body and title), labelled and closed here (Jira project and transitions, Linear team, a local `docs/issues/` folder...). Skills follow this paragraph literally.
 
 The status labels in the Vocabulary table map to whatever this tracker uses for state (Jira: transitions). Record the mapping in the paragraph above.
 

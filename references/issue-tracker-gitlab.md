@@ -7,6 +7,7 @@ Issues for this repo live in `<group>/<project>` on GitLab. Use the `glab` CLI f
 - **Create an issue**: `glab issue create --title "..." --description "$(cat <file>)"`. Write the description to a file first; do not pass a multi-line description inline.
 - **Read an issue**: `glab issue view <number> --comments`. Use `-F json` for machine-readable output.
 - **List issues by label**: `glab issue list --label "<label>" -P <n> -O json`. The default page size is 20, which truncates large epics; set `-P` to at least the expected count.
+- **Edit the description**: `glab issue update <iid> --description "$(cat <file>)"` (add `--title "..."` to change the title). Write the new description to a file first.
 - **Edit labels**: `glab issue update <number> --label "..."` / `--unlabel "..."`. Multiple labels can be comma-separated or given by repeating the flag.
 - **Comment on an issue**: `glab issue note <number> --message "$(cat <file>)"`. GitLab calls comments "notes".
 - **Close**: `glab issue close <number>` does not accept a closing comment, so post the explanation first with `glab issue note <number> --message "..."`, then close.
