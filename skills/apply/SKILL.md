@@ -59,6 +59,10 @@ It existed to let a human judge a variant. Rewrite the behaviour from the gherki
 
 Invoke in order: worktrees first (verify isolation), then TDD (discipline). Debugging and subagent are conditional — only invoke when triggered. If a superpower is unavailable (skill not installed), skip and continue.
 
+## Unattended mode
+
+When the run carries a stage-result nonce (see `references/handoff-report.md`), nobody is watching: follow `references/unattended-mode.md`. Every **AskUserQuestion** in this skill becomes a default (recorded in `beat/changes/<name>/decisions/assumed.md`), a decision brief (`references/decision-brief.md`, `blocked-on: decision`), or an environmental stop (`blocked-on: env`). The per-skill table in that reference says which. For apply specifically: an unclear scenario takes the reading the gherkin most plainly supports (assumed) unless the ambiguity changes behaviour (brief); a design issue that reverses a Key Decision is a brief, anything smaller updates `design.md` and is noted; e2e failures and blockers are `env`. TDD and the no-push rule do not change.
+
 ## Rationalization Prevention
 
 | Thought | Reality |
@@ -272,6 +276,8 @@ digraph apply {
 
    d2. **Preset upgrade check** (only when `preset` is `minimal` or `technical`): run `git diff --stat <base>..HEAD` and count, tests excluded, the source files touched, the net lines added, and the top-level modules touched (directories under `src/`, `packages/`, `apps/`, or the repo root). Compare against `preset_upgrade` in `beat/config.yaml` (thresholds and defaults: `references/config-schema.md`). If any threshold is exceeded: set `preset: standard` and write `preset_upgrade: { from: <old>, by: /beat:apply, date: <today>, reason: "<which threshold, with numbers>" }` in `status.yaml`, announce it in one line, and continue — the next `/beat:verify` runs at standard strength. Do this check once per task, not once at the end.
 
+   d3. **Sensitivity check** (unattended mode only, once after the last task): run `git diff --name-only <base>..HEAD` and compare the touched paths and what they implement against `sensitive` in `beat/config.yaml` (schema: `references/config-schema.md`). Read `beat/changes/<name>/decisions/sensitive.md`: if it already says `yes`, repeat it. If it says `no` and the diff now matches, update the file (`yes`, what matched, `apply`) and report `sensitive=yes` — this does not stop the run; archive lists it in the PR body. If the diff shows the change needs a second PR (a second module, a migration that must land first), stop with a `scope` brief per `references/unattended-mode.md` instead of continuing.
+
    e. **Continue to next**
 
    f. **Scenario completion check** (before moving to the next scenario):
@@ -286,9 +292,9 @@ digraph apply {
       Do NOT move to the next scenario until lint is clean and all items are checked.
 
    **Pause if:**
-   - Task/scenario is unclear -> ask for clarification
-   - Implementation reveals design issue -> suggest updating artifacts
-   - Error or blocker -> report and wait
+   - Task/scenario is unclear -> ask for clarification (unattended: brief if behaviour-changing, else assumed)
+   - Implementation reveals design issue -> suggest updating artifacts (unattended: brief if it reverses a Key Decision)
+   - Error or blocker -> report and wait (unattended: `blocked-on: env`)
 
 7. **E2E regression check** (after all scenarios implemented)
 
@@ -316,7 +322,7 @@ digraph apply {
 
    In fix-from-verify mode, report `fixed`/`open` counts instead of scenarios and suggest `/beat:verify <name>` (verify decides between incremental and full, and the round it is on).
 
-   Then end with the handoff block from `references/handoff-report.md` (`next: /beat:verify <name>`, or the blocker that paused the run). Do not push.
+   Then end with the handoff block from `references/handoff-report.md` (`next: /beat:verify <name>`, or the blocker that paused the run). The suffix carries `sensitive` from step d3 and `blocked-on` as `none`, `decision` (brief printed above the block) or `env`. Do not push.
 
 **Testing Rule: Conditional TDD**
 

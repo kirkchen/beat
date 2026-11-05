@@ -48,8 +48,11 @@ observable facts that justify it. The user can override the exit; you cannot omi
 | superpowers:brainstorming | At the start of explore, before any response | MUST |
 | mattpocock-skills:research | A `blocked` exit with `kind: research`, when the user wants it run now | OPTIONAL |
 | mattpocock-skills:prototype | A `blocked` exit with `kind: prototype`, when `config.yaml` has no `prototype.surface` | OPTIONAL |
+| grilling + domain-modeling (mattpocock/skills, model-invoked) | When a domain term is ambiguous enough that the conversation keeps circling it | OPTIONAL |
 
-If a MUST skill is unavailable (not installed), proceed directly into the thinking stance. Optional skills are offered, never required; without them the node is still created and the user runs it however they like.
+If a MUST skill is unavailable (not installed), proceed directly into the thinking stance. Optional skills are offered, never required; without them the node is still created and the user runs it however they like. `grilling` and `domain-modeling` are called directly (they are model-invoked); `grill-with-docs` is user-invoked and cannot be reached from a skill — mention that the user can run it themselves, never offer to invoke it.
+
+Explore is never unattended: it is the one phase where the human spends time. What the human settles here is what keeps the later phases quiet — a decision left open becomes a decision brief in design (`references/unattended-mode.md`).
 
 ## Rationalization Prevention
 
@@ -162,9 +165,12 @@ Exploration ends when the user is done or the shape is clear. Before ending, **d
 | `small` | the affected files or directories, all in one module; no decision still open; no new domain term | "Ready for `/beat:design <name>` with preset `minimal`" (or `technical` when there is no behaviour change). Design skips the preset question. |
 | `standard` | the affected area fits one change, but one or more decisions are still to be made in design | "Ready for `/beat:design <name>`" — design asks for the preset as usual. |
 | `too-big` | more than one module, or decisions that depend on each other, or more than one PR | Create `beat/routes/<name>/` (schema: `references/route-schema.md`): `route.md` from the brainstorming output, `status.yaml` with the nodes you can already name. Next: `/beat:explore <route>` to pick the first frontier node. |
+| `drop` | the facts say this should not be built: already covered, out of scope for the project, or the cost is not worth it | Say so, close the issue when there is one (with the one-line reason), create nothing. |
 | `blocked` | the one thing that must exist before any of the above can be chosen | Create a node (in the active route, or a one-node route when there is none) with `kind` = `research` (an agent can answer it unattended), `prototype` (a human must look at something — see below), or `decision` (only a human can decide). Next: whoever resolves it, then `/beat:explore` again. |
 
 Map from brainstorming's own classification so the work is sized once, not twice: Spike → `blocked`; Bounded → `small`; Architectural → `standard` or `too-big` by the module count.
+
+In a project that dispatches issues to an orchestrator, `standard` means "decisions still to be made in design" and each of those becomes a stop for a human mid-flow. Settle them here when you can; what is settled goes into the issue's locked-decisions section via `/to-issue`, and what is left open will come back as a decision brief.
 
 **Prototype nodes.** Read `beat/config.yaml`; if `prototype.surface` is set (for example `storybook`), the node says which states or variants to build there and what the human is judging between. Stories built for a prototype may be kept on the branch and merged as real stories once a variant is approved; the implementation code written to make them render stays on a `prototype/<node-id>` branch and is never merged — `/beat:apply` rewrites it from the gherkin under TDD. If `prototype.surface` is absent, offer `mattpocock-skills:prototype` when installed, otherwise ask where the prototype should live.
 

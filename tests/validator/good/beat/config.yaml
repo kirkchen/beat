@@ -11,3 +11,9 @@ prototype:
 
 lint:
   tags: [@k8s]
+
+sensitive:
+  situations:
+    - 改到費用計算
+  paths:
+    - packages/domain/src/schema.ts

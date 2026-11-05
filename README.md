@@ -159,7 +159,7 @@ Beat also maintains **project-level** living docs alongside per-change artifacts
 | **2. Decisions** | `docs/adr/NNNN-slug.md` | 1-3 sentence ADRs, gated by hard-to-reverse + surprising + real trade-off | `/beat:explore` (decision capture), `/beat:design` (per Key Decision), `/beat:plan` (review rejections), `/beat:apply` (implementation-forced), `/beat:distill` (decisions recovered from code), `/beat:archive` (last-mile sweep) |
 | **3. Structure** | `beat/ARCHITECTURE.md` + module `README.md` | Hub diagram + module purpose/interface/deps | `/beat:design` (hub suggestion on module-level change), `/beat:apply` (prompt on public-interface change, scaffold offer on new module), `/beat:distill` (README scaffold offer), `/beat:verify` (Dimension 5, advisory) |
 
-The three formats are specified in `references/context-format.md`, `references/adr-format.md`, and `references/architecture-format.md`. Optional `mattpocock-skills:grill-with-docs` integration for deeper glossary grilling.
+The three formats are specified in `references/context-format.md`, `references/adr-format.md`, and `references/architecture-format.md`. When a term stays ambiguous, design and explore call mattpocock's `grilling` and `domain-modeling` directly (they are model-invoked); `grill-with-docs` is user-invoked, so Beat only mentions it.
 
 ## Testing Architecture
 
@@ -245,12 +245,17 @@ Beat owns the state (`status.yaml`, routes, `verify.md`) and the order of phases
 
 | Beat moment | Invokes | Without it |
 |-------------|---------|-----------|
-| design, when a domain term is genuinely ambiguous | `grill-with-docs` — one-question-at-a-time grilling that writes the glossary and ADRs | The inline four-challenge check |
+| explore / design, when a domain term is genuinely ambiguous | `grilling` + `domain-modeling` — sharpen the question, write the glossary entry and ADR (model-invoked; `grill-with-docs` is user-invoked and cannot be called from a skill) | The inline four-challenge check |
 | explore exits `blocked` with `kind: research` | `research` — unattended investigation written to a markdown file | Run the research yourself and record the result path |
 | explore exits `blocked` with `kind: prototype` and `config.yaml` has no `prototype.surface` | `prototype` — a throwaway build to settle a design question | Build it where the project keeps prototypes (Storybook, a CLI, a page) |
+| archive, unattended mode | `pr` — shapes the PR body; Beat adds the "決定與影響" section on top | Project PR template |
 | after archive | `retro` — turns what the change taught you into lint rules, hooks, or steering files | Edit `config.yaml` rules and CLAUDE.md by hand |
 
 Rule of thumb: when a phase needs *more rigor* (think harder, test first, finish the branch properly), it is a superpowers skill. When a phase needs *something it cannot produce itself* (an answer, a prototype, a glossary, a lesson), it is a mattpocock skill. Beat never hands the state to either; it invokes them and takes the result back.
+
+### Unattended mode
+
+When an orchestrator such as [Rhythm](https://github.com/kirkchen/rhythm) runs each phase as a stage, the run carries a stage-result nonce and the skills switch to `references/unattended-mode.md`: every question takes its default (recorded in `decisions/assumed.md`), a decision that meets the ADR gate or a `config.yaml` `sensitive` situation becomes a ten-line brief (`references/decision-brief.md`) and the run stops with `blocked-on: decision`, and the handoff suffix carries `blocked-on` / `decision` / `sensitive` / `diverging` so the orchestrator decides whether to continue, stop for a human, or loop. Archive pushes and opens a ready PR with a "決定與影響" section. The human appears at explore and at the PR; the design is in `docs/proposals/unattended-change-flow.md`.
 
 ## Design Principles
 

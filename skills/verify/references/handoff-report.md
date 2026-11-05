@@ -26,10 +26,25 @@ Rules:
 
 ## Machine-readable suffix (optional)
 
-When the environment injects a nonce for a stage result (Rhythm's `rhythm-stage-result[{{nonce}}]: k=v ...` contract), append it as the very last non-empty line of the run, after the block, carrying the same facts:
+When the run carries a stage-result nonce (Rhythm's `rhythm-stage-result[{{nonce}}]: k=v ...` contract), append it as the very last non-empty line of the run, after the block. The nonce also switches the skill into unattended mode (`references/unattended-mode.md`).
 
 ```
-rhythm-stage-result[<nonce>]: phase=verify sha=3f9c1a2 critical=0 warning=2 next=/beat:archive
+rhythm-stage-result[<nonce>]: phase=verify sha=3f9c1a2 blocked-on=none decision=none sensitive=no critical=0 warning=2 diverging=no next=/beat:archive
 ```
+
+Keys, every value a single token with no whitespace (the orchestrator splits on spaces and matches values by equality):
+
+| Key | Values | Who sets it |
+|-----|--------|-------------|
+| `phase` | the `phase` from status.yaml after this run | every skill |
+| `sha` | short sha of HEAD | every skill |
+| `blocked-on` | `none` / `decision` / `env` / `scope` | every skill; `decision` when a brief was written, `env` for an environmental blocker, `scope` when the change needs more than one PR, matching the block's `blocked-on` line |
+| `decision` | `D<n>`, `D1,D2` (comma, no spaces) / `none` | the brief ids when `blocked-on=decision` or `scope` |
+| `sensitive` | `yes` / `no` | design (artifacts) and apply (diff), against `config.yaml` `sensitive`; recorded in `decisions/sensitive.md`; other skills repeat that file's value or `no` |
+| `critical`, `warning` | integers | verify, and any skill that can read verify.md |
+| `diverging` | `yes` / `no` | verify, from its Divergence rule; other skills `no` |
+| `next` | the command only, `/beat:<phase>` — no arguments, the orchestrator splits on spaces and supplies the subject itself | every skill |
+
+The block's prose line `blocked-on:` keeps its sentence; the suffix carries the token. When a decision brief was written, print the brief in full immediately above the block so that the run's last message is "brief + block + suffix".
 
 Without a nonce, emit nothing extra. Never invent a nonce.

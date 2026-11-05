@@ -29,7 +29,9 @@ Archive a completed change. Checks completion, syncs features to living document
 <HARD-GATE>
 After archive is complete: you MUST invoke superpowers:finishing-a-development-branch
 to guide merge/PR/cleanup. If unavailable (not installed), skip and show summary only —
-but NEVER skip because you judged the workflow complete without it.
+but NEVER skip because you judged the workflow complete without it. The one exception is
+unattended mode (`references/unattended-mode.md`): there step 7 opens the PR itself and
+finishing-a-development-branch is not invoked.
 Before archiving: you MUST check the top-level `verification` field in status.yaml;
 if absent or `issues-found`, confirm with the user — inform and confirm, never block.
 When gherkin status is `done`: you MUST sync features before archiving.
@@ -61,6 +63,10 @@ the answer and record the skip in the summary — never skip silently.
 
 If unavailable (skill not installed), skip and show archive summary only.
 
+## Unattended mode
+
+When the run carries a stage-result nonce (see `references/handoff-report.md`), nobody is watching: follow `references/unattended-mode.md`. Every **AskUserQuestion** in this skill becomes a default (recorded in `beat/changes/<name>/decisions/assumed.md`), a decision brief (`references/decision-brief.md`, `blocked-on: decision`), or an environmental stop (`blocked-on: env`). The per-skill table in that reference says which. For archive specifically: the confirmations in steps 2, 3 and 3b should not arise in a flow (verify precedes archive) and are `env` if they do; capability mapping and glossary terms take the obvious answer and are recorded; the ADR sweep is skipped; the route is archived when complete. Step 7 changes shape: no finishing-a-development-branch, the branch is pushed and a ready PR opened with a decisions section.
+
 ## Rationalization Prevention
 
 | Thought | Reality |
@@ -79,7 +85,7 @@ If unavailable (skill not installed), skip and show archive summary only.
 
 ## Red Flags — STOP if you catch yourself:
 
-- Completing archive without invoking finishing-a-development-branch
+- Completing archive without invoking finishing-a-development-branch (interactive mode)
 - Skipping the sync step without checking if gherkin is done
 - Moving to archive without asking user about capability mapping (when features exist)
 - Completing archive while `.feature.orig` files remain in `beat/features/`
@@ -351,7 +357,23 @@ digraph archive {
 
 7. **Finish the development branch**
 
-   After showing the summary, invoke `superpowers:finishing-a-development-branch` (if available) to guide the user through merge, PR creation, or cleanup. The archive commit from step 5c is already on the branch, so whichever option the user picks carries it — this is the first point in the pipeline where pushing is expected. If not available, skip this step.
+   **Interactive:** invoke `superpowers:finishing-a-development-branch` (if available) to guide the user through merge, PR creation, or cleanup. The archive commit from step 5c is already on the branch, so whichever option the user picks carries it — this is the first point in the pipeline where pushing is expected. If not available, skip this step.
+
+   **Unattended** (`references/unattended-mode.md`): do not invoke finishing-a-development-branch. Push the branch (`git push -u origin <branch>`) and open a **ready** pull request (never a draft) against the base branch. Build the body with the `pr` skill from mattpocock/skills when installed (it shapes the smallest visual, before/after evidence and the one-way / two-way door call), the project's PR template when there is one, and in every case one section with this exact heading that the human reads before the diff:
+
+   ```
+   ## 決定與影響
+   - 已定案（來自 issue）：<each locked decision, one line; "無" if none>
+   - 這次做的決定：<each Key Decision from design.md with its ADR link; each D<n> brief with its outcome>
+   - assumed（採預設、沒問人）：<each line of decisions/assumed.md; "無" if the file is absent>
+   - 沒處理的 verify WARNING：<open WARNING / SUGGESTION ids with one phrase each; "無">
+   - sensitive：<"無", or which situation / path matched and in which phase>
+   - preset 升級：<from → to and reason, or "無">
+   ```
+
+   Use the English heading `## Decisions and impact` with the same bullets when the project's `language` is not zh-TW. The data comes from `decisions/`, `design.md`, `verify.md` and `status.yaml` in the archived directory — read them, do not recall. When the change came from an issue, the body ends with `Closes #<n>` so the merge closes it. Report the PR URL in the summary and make the handoff `next` the PR URL's review step. Merge stays with the human.
+
+   **Re-entry.** If an earlier unattended run stopped with `env` part-way, resume from what is on disk: the directory already under `beat/changes/archive/` means the move is done; a commit whose message starts with `archive(<name>)` means step 5c is done; `gh pr view` showing a PR for this branch means step 7 is done. Never redo a step whose result exists.
 
 **Guardrails**
 - Always prompt for change selection if not provided
@@ -362,4 +384,5 @@ digraph archive {
 - Never overwrite an existing capability `design.md` — merge and rewrite as current state
 - After the move, no tracked file may still reference `beat/changes/<name>`
 - Archive runs before the PR/merge and commits its result; it is never deferred until after the PR lands
+- Unattended mode opens the PR itself and never merges; interactive mode hands off to finishing-a-development-branch
 - Never write node status into a route — it is derived from the changes

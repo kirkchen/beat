@@ -48,6 +48,10 @@ top-level `verification` field of status.yaml (see step 6). If verification coul
 do NOT record — a failed run is not a verification outcome.
 </HARD-GATE>
 
+## Unattended mode
+
+When the run carries a stage-result nonce (see `references/handoff-report.md`), nobody is watching: follow `references/unattended-mode.md`. Every **AskUserQuestion** in this skill becomes a default (recorded in `beat/changes/<name>/decisions/assumed.md`), a decision brief (`references/decision-brief.md`, `blocked-on: decision`), or an environmental stop (`blocked-on: env`). The per-skill table in that reference says which. For verify specifically: nothing is asked in the first place; the only change is that the Divergence rule's outcome is also written as `diverging=yes|no` in the handoff suffix, and "offer a full re-run" becomes a line in the report, never a question.
+
 ## Rationalization Prevention
 
 | Thought | Reality |
@@ -219,7 +223,7 @@ digraph verify {
 
    Run `node <skill-dir>/scripts/validate-beat.mjs --file beat/changes/<name>/verify.md` and the same for `status.yaml` (see `references/lint-tools.md`); fix any schema error before presenting.
 
-   Then end with the handoff block from `references/handoff-report.md`: `findings` from the counts above; `next` is `/beat:apply <name> fix-from-verify` when a CRITICAL is open, otherwise `/beat:archive <name>` — with the open WARNING / SUGGESTION ids listed in `blocked-on: none (open: F3, F7)` so the user can pick which to fix first.
+   Then end with the handoff block from `references/handoff-report.md`: `findings` from the counts above; `next` is `/beat:apply <name> fix-from-verify` when a CRITICAL is open, otherwise `/beat:archive <name>` — with the open WARNING / SUGGESTION ids listed in `blocked-on: none (open: F3, F7)` so the user can pick which to fix first. The suffix carries `critical`, `warning` and `diverging=yes|no` from the Divergence rule below; an orchestrator reads `diverging` before `critical`, so a diverging round stops for a human instead of looping into another fix. When `diverging=yes`, the report's divergence paragraph (which findings grew, the last fix commit to look at) is printed last, before the block, as the gate question; the human's `/answer <text>` goes to the next fix-from-verify as its first work item.
 
 ## Convergence
 
@@ -234,7 +238,7 @@ The one thing no rule below changes: **CRITICAL is never lowered, deferred or dr
 | **Prose ceiling** | A finding whose `file` is prose (`.feature`, `.md`, docs) and whose class is wording, symmetry with a sibling scenario, drifted line numbers, counts or annotation placement is a SUGGESTION. This never applies to a CRITICAL class (a missing test for a scenario, a scenario that contradicts the code in accuracy mode). |
 | **Iteration ramp** | Round 1 records everything. Round 2 records new CRITICAL and new reachable WARNING; new SUGGESTIONs are counted on one line (`+N suggestions not recorded`) and not written to verify.md. Round 3 and later record only new CRITICAL; everything else is counted. Re-checks of previously open findings are always recorded (still open / fixed). |
 | **Round cap** | From round 4, stop hunting: record only CRITICAL and re-checks, and recommend archive when none is open. A CRITICAL on round 4 is still fixed; say that a change still producing CRITICALs this late is too large and should be split after this one. |
-| **Divergence** | If this round's open count is larger than the previous round's, or at least three new findings sit in files the last fix-from-verify commit touched and none of the previous findings recur, say so in the report: the fixes are opening surfaces, not closing them. Recommend reviewing the last fix commit by hand before any further round. |
+| **Divergence** | If this round's open count is larger than the previous round's, or at least three new findings sit in files the last fix-from-verify commit touched and none of the previous findings recur, say so in the report: the fixes are opening surfaces, not closing them. Recommend reviewing the last fix commit by hand before any further round. Write `diverging=yes` in the handoff suffix (otherwise `no`); the recommendation is the gate question. |
 | **Shared files** | A full re-run after round 1 is the user's decision. When the diff touched files many scenarios share, name them in the report and offer `/beat:verify <name> full`; do not require it, and archive does not require it. |
 
 `verify.md` front matter records `round`; `status.yaml` `verification.round` carries it so the next run knows where it is.

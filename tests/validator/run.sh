@@ -35,7 +35,9 @@ for expect in \
   'orphan backup' \
   'unknown field "unknown_top"' \
   'preset_upgrade.files must be a number' \
-  'lint: unknown field "colour"'; do
+  'lint: unknown field "colour"' \
+  'sensitive: unknown field "colour"' \
+  'sensitive.situations must be a list of strings'; do
   if echo "$out" | grep -qF -- "$expect"; then echo "PASS expects: $expect"; else echo "FAIL missing: $expect"; fail=1; fi
 done
 
@@ -48,6 +50,9 @@ if node "$VALIDATOR" bad --change badverify >/dev/null 2>&1; then echo "FAIL --c
 echo "== modes"
 if node "$VALIDATOR" good --pre-archive slack-thread-dedupe >/dev/null 2>&1; then echo "FAIL pre-archive should reject issues-found"; fail=1; else echo "PASS pre-archive rejects issues-found"; fi
 if node "$VALIDATOR" --handoff good/handoff.md >/dev/null 2>&1; then echo "PASS handoff good"; else echo "FAIL handoff good"; fail=1; fi
+if node "$VALIDATOR" --handoff good/handoff-decision.md >/dev/null 2>&1; then echo "PASS handoff decision good"; else echo "FAIL handoff decision good"; node "$VALIDATOR" --handoff good/handoff-decision.md; fail=1; fi
+out=$(node "$VALIDATOR" --handoff bad/handoff-stage.md 2>&1); rc=$?
+if [ $rc -ne 0 ] && echo "$out" | grep -q 'nonce is empty' && echo "$out" | grep -q 'must be the last non-empty line' && echo "$out" | grep -q 'blocked-on=decision needs' && echo "$out" | grep -q 'sensitive must be one of' && echo "$out" | grep -q 'critical must be an integer' && echo "$out" | grep -q 'block says blocked-on none'; then echo "PASS handoff stage bad"; else echo "FAIL handoff stage bad"; echo "$out"; fail=1; fi
 out=$(node "$VALIDATOR" --handoff bad/handoff.md 2>&1); rc=$?
 if [ $rc -ne 0 ] && echo "$out" | grep -q 'missing "branch"' && echo "$out" | grep -q 'exactly one command' && echo "$out" | grep -q 'commit must be'; then echo "PASS handoff bad"; else echo "FAIL handoff bad"; echo "$out"; fail=1; fi
 echo "== lint-features"
