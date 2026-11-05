@@ -76,14 +76,13 @@ jobs:
           fi
           echo "item=$ITEM_ID state=$ISSUE_STATE labels=[$LABELS] -> Status \"$target\""
 
-          field=$(gh api graphql -F owner="$PROJECT_OWNER" -F number="$PROJECT_NUMBER" \
+          # $target is one of six fixed strings above, so it is safe inside the jq literal.
+          lookup=$(gh api graphql -F owner="$PROJECT_OWNER" -F number="$PROJECT_NUMBER" \
             -f query='query($owner: String!, $number: Int!) {
               user(login: $owner) { projectV2(number: $number) { id
                 field(name: "Status") { ... on ProjectV2SingleSelectField { id options { id name } } } } } }' \
-            --jq '.data.user.projectV2')
-          project_id=$(jq -r '.id' <<<"$field")
-          field_id=$(jq -r '.field.id' <<<"$field")
-          option_id=$(jq -r --arg n "$target" '.field.options[] | select(.name == $n) | .id' <<<"$field")
+            --jq '.data.user.projectV2 | [.id, .field.id, ((.field.options[] | select(.name == "'"$target"'") | .id) // "")] | @tsv')
+          IFS=$'\t' read -r project_id field_id option_id <<<"$lookup"
           if [ -z "$option_id" ]; then
             echo "::error::Status option \"$target\" not found in Project $PROJECT_OWNER/$PROJECT_NUMBER; see docs/backlog.md §Pipeline"
             exit 1
