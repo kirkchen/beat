@@ -372,7 +372,7 @@ digraph archive {
    - preset 升級：<from → to and reason, or "無">
    ```
 
-   Use the English heading `## Decisions and impact` with the same bullets when the project's `language` is not zh-TW. The data comes from `decisions/`, `design.md`, `verify.md` and `status.yaml` in the archived directory — read them, do not recall. When the change came from an issue, the body ends with `Closes #<n>` so the merge closes it. Report the PR URL in the summary and make the handoff `next` the PR URL's review step. Merge stays with the human.
+   Use the English heading `## Decisions and impact` with the same bullets when the project's `language` is not zh-TW. The data comes from `decisions/`, `design.md`, `verify.md` and `status.yaml` in the archived directory — read them, do not recall. When `status.yaml` has `issue` (or the change otherwise came from an issue), the body ends with `Closes <issue>` (for example `Closes #454`) so the merge closes it. Report the PR URL in the summary and make the handoff `next` the PR URL's review step. Merge stays with the human.
 
    **Re-entry.** If an earlier unattended run stopped with `env` part-way, resume from what is on disk: the directory already under `beat/changes/archive/` means the move is done; a commit whose message starts with `archive(<name>)` means step 5c is done; `gh pr view` showing a PR for this branch means step 7 is done. Never redo a step whose result exists.
 

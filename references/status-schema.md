@@ -14,6 +14,7 @@ preset: <preset>                 # optional, artifact preset chosen in /beat:des
 preset_upgrade: { from: <preset>, by: <skill>, date: YYYY-MM-DD, reason: "<text>" }
                                  # optional, written when a skill upgrades preset mechanically
 route: <route-name>/<node-id>    # optional, the route node this change implements
+issue: "#<n>"                    # optional, the tracker issue this change implements; written by /beat:design
 source: distill                  # optional, only present when created by /beat:distill
 verification: { status: <verification-status>, critical: N, warning: N, date: YYYY-MM-DD, sha: <git-sha>, mode: <full|incremental>, round: N }
                                  # optional, written by /beat:verify after presenting the report
@@ -85,6 +86,10 @@ Once upgraded, `/beat:verify` runs at standard strength. A preset is never downg
 ### `route` (optional, top-level)
 
 `<route-name>/<node-id>` — the node in `beat/routes/<route-name>/status.yaml` this change implements. Written by `/beat:design` when the change is created from a route node (see `references/route-schema.md`). A change without `route` is standalone. Route node status is derived from this change's `phase`; nothing is written back to the route.
+
+### `issue` (optional, top-level)
+
+The tracker issue this change implements, in the form `docs/agents/issue-tracker.md` uses: `"#454"` for GitHub / GitLab, a key like `PROJ-123` for Jira, `owner/repo#454` when the issue lives in another repo. Always a string, the same value `/beat:to-issue` writes into a route node's `issue` field. Written by `/beat:design` when the change starts from an issue (the input names one, or the run was dispatched from one). Read by every later phase to find its change in unattended mode (`references/unattended-mode.md` "Which change") and by `/beat:archive` for the PR's `Closes` line. Never used to derive status.
 
 ### `verification` (optional, top-level)
 

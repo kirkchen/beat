@@ -32,6 +32,8 @@ for expect in \
   'change "ghost" not found' \
   'decision nodes need a question' \
   'issue must be a string' \
+  'issue must be a non-empty string' \
+  'both claim issue #13' \
   'pipeline.tasks is done but tasks.md is missing' \
   'orphan backup' \
   'unknown field "unknown_top"' \

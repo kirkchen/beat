@@ -1,0 +1,9 @@
+name: dup
+created: 2026-06-12
+phase: new
+issue: "#13"
+pipeline:
+  proposal: { status: pending }
+  gherkin: { status: pending }
+  design: { status: pending }
+  tasks: { status: pending }
