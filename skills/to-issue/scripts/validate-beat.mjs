@@ -194,12 +194,13 @@ function checkKeys(obj, allowed, where, errors) {
 export function validateStatus(doc, { file, projectRoot }) {
   const errors = [], warnings = [];
   const where = file;
-  checkKeys(doc, ['name', 'created', 'phase', 'preset', 'preset_upgrade', 'route', 'source', 'verification', 'pipeline'], where, errors);
+  checkKeys(doc, ['name', 'created', 'phase', 'preset', 'preset_upgrade', 'route', 'issue', 'source', 'verification', 'pipeline'], where, errors);
   if (typeof doc.name !== 'string' || !KEBAB.test(doc.name)) errors.push(`${where}: name must be kebab-case`);
   if (typeof doc.created !== 'string' || !DATE.test(doc.created)) errors.push(`${where}: created must be YYYY-MM-DD`);
   if (!PHASES.includes(doc.phase)) errors.push(`${where}: phase must be one of ${PHASES.join(', ')}`);
   if (doc.preset !== undefined && !PRESETS.includes(doc.preset)) errors.push(`${where}: preset must be one of ${PRESETS.join(', ')}`);
   if (doc.source !== undefined && doc.source !== 'distill') errors.push(`${where}: source may only be "distill"`);
+  if (doc.issue !== undefined && (typeof doc.issue !== 'string' || !doc.issue.trim())) errors.push(`${where}: issue must be a non-empty string like "#454" or "PROJ-1"`);
   if (doc.preset_upgrade !== undefined) {
     const u = doc.preset_upgrade;
     if (typeof u !== 'object' || u === null) errors.push(`${where}: preset_upgrade must be an inline flow map`);
@@ -594,6 +595,25 @@ function report(results) {
   return { errors, warnings };
 }
 
+// More than one active change is legal: an unattended run finds its change by status.yaml `issue`
+// (references/unattended-mode.md "Which change"). A leftover is noise until someone archives or
+// deletes it, and two changes claiming the same issue would stop the run, so say so.
+function activeChangeHygiene(projectRoot) {
+  const dir = join(projectRoot, 'beat', 'changes');
+  if (!existsSync(dir)) return { errors: [], warnings: [] };
+  const active = readdirSync(dir, { withFileTypes: true })
+    .filter(d => d.isDirectory() && d.name !== 'archive' && existsSync(join(dir, d.name, 'status.yaml')))
+    .map(d => d.name);
+  const errors = [], warnings = [];
+  const byIssue = new Map();
+  for (const name of active) {
+    try { const i = parseYaml(readFileSyncUtf8(join(dir, name, 'status.yaml'))).issue; if (typeof i === 'string' && i.trim()) byIssue.set(i, [...(byIssue.get(i) ?? []), name]); } catch {}
+  }
+  for (const [issue, names] of byIssue) if (names.length > 1) errors.push(`beat/changes/: ${names.join(' and ')} both claim issue ${issue}`);
+  if (active.length > 1) warnings.push(`beat/changes/: ${active.length} active changes (${active.join(', ')}) — unattended runs find theirs by status.yaml issue; archive or delete the ones nobody is working on`);
+  return { errors, warnings };
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const takeOpt = name => { const i = args.indexOf(name); if (i < 0) return null; const v = args[i + 1]; args.splice(i, 2); return v; };
@@ -632,6 +652,7 @@ async function main() {
       catch (e) { results.push({ errors: [`beat/config.yaml: ${e.message}`], warnings: [] }); }
     }
     results.push(checkOrigResidue(projectRoot));
+    results.push(activeChangeHygiene(projectRoot));
   }
   for (const f of files) results.push(await validateFile(f, projectRoot));
   const { errors, warnings } = report(results);

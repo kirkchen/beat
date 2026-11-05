@@ -31,6 +31,11 @@ All notable changes to Beat are documented in this file. The format follows
   coding-standards templates).
 - Optional `issue` field on route nodes, written by `/beat:to-issue` (03d7c85
   feat(routes): optional issue field on route nodes).
+- Optional `issue` field on change `status.yaml`, written by `/beat:design`
+  when the change starts from an issue. Unattended phases find their change
+  by it instead of requiring a single active change, `/beat:archive` writes
+  `Closes` from it, and `validate-beat.mjs` warns about leftover active
+  changes and rejects two changes claiming one issue.
 - `validate-beat.mjs --layout` checks the 0.6 project layout (0240cfa
   feat(validate-beat): --layout checks the 0.6 project layout).
 - `/beat:setup` writes `docs/agents/issue-tracker.md`, `CODING_STANDARDS.md`

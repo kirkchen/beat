@@ -3,6 +3,7 @@ created: 2026-06-10
 phase: implementation
 artifact_preset: full
 bundled_issues: [12, 13]
+issue: 12
 verification: { status: passed, critical: 2, date: 2026-06-11 }
 pipeline:
   proposal: { status: done, notes: "x" }
