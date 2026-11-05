@@ -73,8 +73,12 @@ npx skills add kirkchen/beat                  # 全部
 接著在你的專案中：
 
 ```bash
-/beat:setup    # 偵測技術棧，建立 beat/config.yaml
+/beat:setup    # 偵測技術棧，建立 beat/config.yaml 與 agent docs
 ```
+
+### 升級到 0.6
+
+0.6 把詞彙表從 `beat/` 底下搬到專案根目錄的 `GLOSSARY.md`，並新增 `CODING_STANDARDS.md`、`docs/agents/issue-tracker.md` 與 `## Agent docs` 區塊。skill 不再讀舊路徑。把 [docs/migrations/0.6-project-layout.md](docs/migrations/0.6-project-layout.md) 貼給在你專案裡執行的 agent，它會搬移詞彙表、改寫指向舊路徑的引用、照 Beat 的範本寫出三份 agent docs，最後用 `validate-beat.mjs --layout` 檢查。
 
 ## 快速開始 — 3 個指令
 
@@ -113,12 +117,13 @@ Scenario: 月結帳單自動調整短月天數
 ## 完整 Pipeline
 
 ```
-explore → design → plan → apply ⇄ verify → archive
+explore ──exit──► [to-issue ──label──►] design → plan → apply ⇄ verify → archive
 ```
 
 | 指令 | 做什麼 | 什麼時候用 |
 |------|--------|-----------|
 | `/beat:explore` | 思考、釐清想法，不寫 code | 需求不明確、腦力激盪 |
+| `/beat:to-issue` | 把定案的 explore 結論寫成 tracker issue（或 epic 加 sub-issue） | 要交給 orchestrator 或之後由別人接手 |
 | `/beat:design` | 建立變更 + 產生規格 | 開始任何變更 |
 | `/beat:plan` | 任務拆解 + 多角色審查 | 複雜功能（5+ scenario） |
 | `/beat:apply` | 逐 scenario TDD 實作 | 每次變更 |
@@ -149,13 +154,33 @@ explore → design → plan → apply ⇄ verify → archive
 
 純技術性變更（重構、工具鏈、依賴升級）可以完全跳過 Gherkin，改由 `proposal.md` 驅動。
 
+## Beat 在你的專案裡寫什麼
+
+```
+<project>/
+├── GLOSSARY.md                  # Layer 1 詞彙表（lazy，第一個詞出現時才建）
+├── CODING_STANDARDS.md          # reviewer 執行的判斷規則（/beat:setup）
+├── CLAUDE.md 或 AGENTS.md       # 加一段 "## Agent docs"，指向這三個檔案（/beat:setup）
+├── docs/
+│   ├── adr/NNNN-slug.md         # Layer 2 決策（lazy）
+│   └── agents/issue-tracker.md  # tracker、label、dispatch label（/beat:setup；/beat:to-issue 必需）
+└── beat/
+    ├── config.yaml              # 可選的專案設定
+    ├── ARCHITECTURE.md          # Layer 3 hub（lazy）
+    ├── changes/<name>/          # 每個變更一個目錄；完成的放 archive/
+    ├── routes/<name>/           # 一個 change 裝不下的工作（lazy）
+    └── features/<capability>/   # living feature 檔，由 archive 同步
+```
+
+完整對照（哪個 skill 建哪個檔、哪些是 lazy）以 `references/project-layout.md` 為準。
+
 ## Living Documentation（三層）
 
 除了 per-change artifact，Beat 也維護 **專案層級** living docs。三層全部 lazy — 第一次需要時才建，不會 preemptively 建立。
 
 | Layer | 檔案 | 格式 | 由誰維護 |
 |-------|------|------|---------|
-| **1. 詞彙表** | `beat/CONTEXT.md` | 領域詞彙（每個概念只有一個正統詞） | `/beat:design`（寫 gherkin 前 4 challenge）、`/beat:distill`（從 code 萃取 term 時檢查）、`/beat:archive`（sync 前掃未定義 term） |
+| **1. 詞彙表** | 專案根目錄的 `GLOSSARY.md` | 領域詞彙（每個概念只有一個正統詞） | `/beat:design`（寫 gherkin 前 4 challenge）、`/beat:distill`（從 code 萃取 term 時檢查）、`/beat:archive`（sync 前掃未定義 term） |
 | **2. 決策** | `docs/adr/NNNN-slug.md` | 1-3 句 ADR，需通過 hard-to-reverse + surprising + real trade-off 三條件 gate | `/beat:explore`（捕捉決策時）、`/beat:design`（每個 Key Decision）、`/beat:plan`（review 拒絕方案時）、`/beat:apply`（實作中浮現時）、`/beat:distill`（從 code 還原的決策）、`/beat:archive`（last-mile sweep） |
 | **3. 結構** | `beat/ARCHITECTURE.md` + module `README.md` | Hub 圖 + 每個 module 的職責/interface/依賴 | `/beat:design`（module 層級變更時建議更新 hub）、`/beat:apply`（改 public interface 時 prompt、新 module 時 offer scaffold）、`/beat:distill`（offer module README scaffold）、`/beat:verify`（Dimension 5，advisory） |
 
@@ -195,7 +220,7 @@ describe('月結帳單', () => {
 
 讀檔就能判定的檢查是 script，不是 prompt。每個 skill 都在 `skills/<name>/scripts/` 帶著它們（Node 18+，不需套件）：
 
-- `validate-beat.mjs`：`status.yaml`、route 的 `status.yaml`、`verify.md`、`beat/config.yaml`、殘留的 `.feature.orig`；`--change <name>` 只看一個 change，另有 `--pre-archive`、`--stale-paths`、`--handoff`。
+- `validate-beat.mjs`：`status.yaml`、route 的 `status.yaml`、`verify.md`、`beat/config.yaml`、殘留的 `.feature.orig`；`--change <name>` 只看一個 change，另有 `--pre-archive`、`--stale-paths`、`--handoff`、`--layout`（專案結構）。
 - `lint-features.mjs`：`@covered-by` 目標與標註、每個 scenario 一個 layer tag、user story、已知 tag、placeholder、README 索引。
 
 skill 在固定步驟跑它們（design 與 distill 在 commit 前、apply 每個 scenario 後、verify 派 subagent 前、archive 搬移前後），把列出來的錯修掉。要接進自己的 CI，指向安裝好的 plugin 或複製那兩個檔案：

@@ -199,7 +199,7 @@ digraph verify {
    Combine the subagent reports:
    - Dimensions 1-3 from verification subagent (spec alignment)
    - Dimension 4 from code-reviewer (code quality)
-   - Dimension 5 from verification subagent (living docs sync — Layer 1/2/3, advisory only)
+   - Dimension 5 from verification subagent (living docs sync — Layer 1/2/3, advisory only; paths in `references/project-layout.md`)
    - Step 4 test results (if available)
 
    On an incremental run, prefix the report with what was and was not re-read.

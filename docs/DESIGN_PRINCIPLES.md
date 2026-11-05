@@ -168,7 +168,7 @@ The pause between them is intentional. It gives the team a chance to review spec
 
 ### Why Explore Declares an Exit
 
-An exploration that just stops is the most expensive kind: the next session re-explores it. `/beat:explore` therefore ends by naming one of four exits — `small`, `standard`, `too-big`, `blocked` — with the facts that justify it (which files, which modules, which decisions are still open). The user can override the exit; the skill cannot omit it.
+An exploration that just stops is the most expensive kind: the next session re-explores it. `/beat:explore` therefore ends by naming one of five exits — `small`, `standard`, `too-big`, `blocked`, `drop` — with the facts that justify it (which files, which modules, which decisions are still open). The user can override the exit; the skill cannot omit it.
 
 **What we rejected:** Asking the user a sizing question. Brainstorming already classified the work (Spike / Bounded / Architectural); explore maps that onto its exits so the work is sized once. A question would be the double prompt the exit was meant to remove.
 
@@ -220,7 +220,7 @@ Beat invokes other skill sets at fixed points and takes their result back; it ne
 
 Gherkin scenarios describe **behavior**. They do not describe **vocabulary** (what does "Run" mean here?), **decisions** (why did we pick X over Y?), or **structure** (which module owns this?). Beat maintains three additional living-doc surfaces alongside features, each with a different half-life:
 
-- **Layer 1 — `beat/CONTEXT.md`** (vocabulary): one canonical term per concept, opinionated about synonyms. Half-life: very long (domain words change slowly).
+- **Layer 1 — `GLOSSARY.md`** at the project root (vocabulary): one canonical term per concept, opinionated about synonyms. Half-life: very long (domain words change slowly).
 - **Layer 2 — `docs/adr/`** (decisions): 1-3 sentence ADRs, gated by hard-to-reverse + surprising + real trade-off. Half-life: indefinite (once written, rarely revisited).
 - **Layer 3 — `beat/ARCHITECTURE.md` + module `README.md`** (structure & intent): hub + spokes, hand-written. Half-life: short (must update with code).
 

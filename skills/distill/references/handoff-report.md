@@ -22,7 +22,8 @@ Rules:
 - `commit`, `branch`, `dirty` come from `git rev-parse --short HEAD`, `git branch --show-current`, `git status --porcelain`. Run them; do not recall them.
 - `checks` lists exit codes of commands this run actually executed. Paste the last lines of their output above the block when they failed.
 - `next` is one command. If the skill's natural successor needs a decision first (archive waiting on an unverified change, apply paused on a blocker), say so in `blocked-on` and make `next` the command that resolves it.
-- Skills that write nothing (`/beat:explore` without artifacts) still emit the block with `commit` and `dirty`, `next` being the declared exit (see `skills/explore/SKILL.md`).
+- Skills that write nothing (`/beat:explore` without artifacts) still emit the block with `commit` and `dirty`, `next` being the declared exit (see `skills/explore/SKILL.md`). Explore also prints one `Exit: <exit> (preset <preset>)` line immediately above the block (preset only for `small` / `standard`); `/beat:to-issue` reads the exit and preset from that line.
+- `/beat:to-issue` emits `change: none` and `phase: to-issue`; `next` is `/beat:design <name>`, `/beat:explore <route>` or `none`.
 
 ## Machine-readable suffix (optional)
 

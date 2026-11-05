@@ -23,4 +23,15 @@ assert_contains "$output" "behave\|cucumber\|BDD" "setup recommends BDD runner f
 output=$(run_claude "As beat:setup, does a Library project need an e2e framework?" 30)
 assert_contains "$output" "no\|not needed\|omit\|sufficient\|skip\|unnecessary" "setup knows Library projects don't need e2e"
 
+# The next two check only the final answer (assert_output_matches): the whole
+# stream also holds the SessionStart context and SKILL.md text, which already
+# contain these words.
+log="$OUTPUT_BASE/setup-issue-tracker.jsonl"
+run_claude "As beat:setup, which file do you write to record how this project's issue tracker works (tracker, assignee, dispatch label)? Give the exact path." 30 > "$log"
+assert_output_matches "$log" 'docs/agents/issue-tracker\.md' "setup knows it writes docs/agents/issue-tracker.md"
+
+log="$OUTPUT_BASE/setup-glossary.jsonl"
+run_claude "As beat:setup, do you create the project's domain glossary file during setup? Answer yes or no and name the file." 30 > "$log"
+assert_output_matches "$log" '\b(no|never|not|lazy|lazily)\b[^.]*GLOSSARY\.md|不會|不建立' "setup does not create GLOSSARY.md"
+
 print_summary

@@ -46,7 +46,7 @@ What each interactive prompt becomes. Anything not listed follows the general ru
 | Skill | Prompt | Unattended |
 |-------|--------|------------|
 | design | "What do you want to build?" (no input) | `env` — a dispatched change always has an input |
-| design | Preset question | The preset named in the issue body (`出口：small（preset minimal）` from `/to-issue`), else `standard`; assumed |
+| design | Preset question | The preset named in the issue body (`出口：small（preset minimal）` from `/beat:to-issue`), else `standard`; assumed |
 | design | ADR gate on a Key Decision | Decision in the locked section: skip the gate, copy as given. Otherwise all three hold: it is a decision the human has not made — brief, stop. The ADR is written after the reply, from the answer. |
 | design | grilling offer | Call `grilling` and `domain-modeling` directly when a term fails the four-challenge check; they are model-invoked. Never offer `grill-with-docs` (user-invoked, unreachable). |
 | plan | Review roles | Use the suggested roles; assumed |

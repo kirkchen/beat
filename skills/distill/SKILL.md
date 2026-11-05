@@ -32,7 +32,8 @@ Distilled artifacts live in a change container that flows through verify → arc
 Worktree isolation ensures they don't contaminate the main workspace.
 
 Before writing feature files: you MUST run the glossary check (see step 6) and ensure
-every project-specific term used in scenarios is defined in `beat/CONTEXT.md`.
+every project-specific term used in scenarios is defined in `GLOSSARY.md` at the project
+root (path: `references/project-layout.md`).
 Create the glossary lazily — only when the first term is added.
 
 After writing each artifact: you MUST run the four-check spec self-review
@@ -80,7 +81,7 @@ If a superpower is unavailable (skill not installed), skip and continue.
 - Claiming verification passed without running `/beat:verify`
 - Finishing without committing artifacts
 - Writing Gherkin scenarios that contain internal method names, numeric thresholds, or implementation constants
-- Writing scenarios that use project-specific domain terms not defined in `beat/CONTEXT.md`
+- Writing scenarios that use project-specific domain terms not defined in `GLOSSARY.md`
 - Writing a Key Decision in `design.md` without running the three-condition ADR gate
 - Inventing rationale for a recovered decision instead of marking it unverified or asking
 - Skipping the spec self-review because the scenarios "came straight from the code"
@@ -98,7 +99,7 @@ digraph distill {
     "Scope already covered?" [shape=diamond];
     "STOP: inform user" [shape=box, style=dashed];
     "Create change container" [shape=box];
-    "Glossary check\n(terms → CONTEXT.md)" [shape=box, style=bold];
+    "Glossary check\n(terms → GLOSSARY.md)" [shape=box, style=bold];
     "Generate draft artifacts\n(self-review each)" [shape=box];
     "design.md included?" [shape=diamond];
     "ADR gate\n(design.md Key Decisions)" [shape=box, style=bold];
@@ -112,8 +113,8 @@ digraph distill {
     "Scan existing features" -> "Scope already covered?";
     "Scope already covered?" -> "STOP: inform user" [label="yes"];
     "Scope already covered?" -> "Create change container" [label="no"];
-    "Create change container" -> "Glossary check\n(terms → CONTEXT.md)";
-    "Glossary check\n(terms → CONTEXT.md)" -> "Generate draft artifacts\n(self-review each)";
+    "Create change container" -> "Glossary check\n(terms → GLOSSARY.md)";
+    "Glossary check\n(terms → GLOSSARY.md)" -> "Generate draft artifacts\n(self-review each)";
     "Generate draft artifacts\n(self-review each)" -> "design.md included?";
     "design.md included?" -> "ADR gate\n(design.md Key Decisions)" [label="yes"];
     "design.md included?" -> "Offer module README\n(Layer 3, optional)" [label="no"];
@@ -177,16 +178,16 @@ digraph distill {
 
    **Glossary check (Layer 1) — before writing feature files:**
 
-   Read `beat/CONTEXT.md` if it exists (schema: `references/context-format.md`). Create it lazily when the first term is added — never preemptively.
+   Read `GLOSSARY.md` if it exists (schema: `references/context-format.md`). Create it lazily when the first term is added — never preemptively.
 
-   Distill is often the first time an established codebase builds its glossary, and the code itself is the source. For each project-specific term that will appear in scenarios, adapt the four challenges from `references/context-format.md` and update `beat/CONTEXT.md` **inline** as terms resolve (never batch). Insert each entry where "Where a new entry goes" in `references/context-format.md` says — inside its `## <group>` section (or `## Language`), never appended after `## Flagged ambiguities`; when creating the file, write the full skeleton first:
+   Distill is often the first time an established codebase builds its glossary, and the code itself is the source. For each project-specific term that will appear in scenarios, adapt the four challenges from `references/context-format.md` and update `GLOSSARY.md` **inline** as terms resolve (never batch). Insert each entry where "Where a new entry goes" in `references/context-format.md` says — inside its `## <group>` section (or `## Language`), never appended after `## Flagged ambiguities`; when creating the file, write the full skeleton first:
 
    1. **Against the glossary** — the term conflicts with an existing entry? Surface, resolve, update.
    2. **Sharpen fuzzy** — the code uses synonyms for one concept (e.g. `user`/`account`/`member` for the same entity)? Pick the canonical word, list the others as `_Avoid_`.
    3. **Stress-test against code** — probe term boundaries with the edge cases the code actually handles; name the boundary.
    4. **Cross-reference docs** — README/comments/docs use a term differently from the code? Surface it and ask the user which is canonical.
 
-   Every project-specific term used in scenarios MUST exist in `beat/CONTEXT.md` before the scenario is written. Bold terms in scenarios are the canonical form (see `references/feature-writing.md`). If a term's meaning is genuinely uncertain from code alone, ask the user rather than guessing.
+   Every project-specific term used in scenarios MUST exist in `GLOSSARY.md` before the scenario is written. Bold terms in scenarios are the canonical form (see `references/feature-writing.md`). If a term's meaning is genuinely uncertain from code alone, ask the user rather than guessing.
 
    **features/*.feature (mandatory):**
    - Read `references/feature-writing.md` for conventions on description blocks, scenario organization, and review checklist
@@ -239,7 +240,7 @@ digraph distill {
    git add beat/changes/distill-<scope-name>/
    git add docs/adr/NNNN-<slug>.md   # each ADR from the ADR gate, by file name
    git add docs/adr/<index-file>     # only if the project keeps an ADR index there and this run updated it
-   git add beat/CONTEXT.md           # glossary entries from the glossary check
+   git add GLOSSARY.md           # glossary entries from the glossary check
    git add beat/ARCHITECTURE.md      # if the hub row was added
    git add <module>/README.md        # if the module README scaffold was accepted
    git commit
@@ -264,7 +265,7 @@ digraph distill {
    - proposal.md (or skipped)
    - design.md (or skipped)
 
-   Glossary: N terms added to beat/CONTEXT.md (or "no new terms")
+   Glossary: N terms added to GLOSSARY.md (or "no new terms")
    ADRs: N written to docs/adr/ (or "none qualified")
 
    Uncertainties: [list any ambiguous behaviors]

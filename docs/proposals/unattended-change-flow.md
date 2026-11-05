@@ -296,7 +296,7 @@ too-big 的形狀：
 
 | 檔案 | 決定 | 原因 |
 |---|---|---|
-| `GLOSSARY.md`（根目錄） | 導入，rhythm 放 symlink `GLOSSARY.md -> beat/CONTEXT.md` | `domain-modeling`、`pr`、`tdd`、`diagnosing-bugs` 寫死讀根目錄，路徑不可設；格式與 Beat 的 `context-format.md` 幾乎相同。design 叫完 `domain-modeling` 要跑一次既有的「新詞插進所屬 group」位置檢查 |
+| `GLOSSARY.md`（根目錄） | 導入，rhythm 放 symlink `GLOSSARY.md -> beat/CONTEXT.md`（0.6 改為直接搬到根目錄，見 docs/migrations/0.6-project-layout.md；symlink 方案作廢） | `domain-modeling`、`pr`、`tdd`、`diagnosing-bugs` 寫死讀根目錄，路徑不可設；格式與 Beat 的 `context-format.md` 幾乎相同。design 叫完 `domain-modeling` 要跑一次既有的「新詞插進所屬 group」位置檢查 |
 | `docs/adr/` | 已對齊 | glossary 交 `domain-modeling`，ADR 仍由 Beat 照 `adr-format.md` 寫（Matt 的沒有 front matter，rhythm `lint:docs` 會擋） |
 | `CODING_STANDARDS.md` | 導入，當索引 | 只放 navigation pointer 指向各 README 的 conventions 段；retro 寫這裡，cadence pr-review 已會找 |
 | `docs/agents/issue-tracker.md` | 導入（§7.3） | 多 tracker 後 skill 需要 |

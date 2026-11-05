@@ -4,6 +4,72 @@ All notable changes to Beat are documented in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and Beat adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-11-04
+
+### BREAKING
+
+- The glossary moves from `beat/CONTEXT.md` to `GLOSSARY.md` at the project
+  root, where mattpocock's `domain-modeling`, `pr` and `tdd` read it. Skills
+  no longer read the old path; `/beat:setup` refuses to migrate and points at
+  `docs/migrations/0.6-project-layout.md` (0261e3e refactor(skills): glossary
+  is GLOSSARY.md at the project root).
+- `/beat:to-issue` requires `docs/agents/issue-tracker.md`; projects that use
+  an orchestrator or cadence also need `CODING_STANDARDS.md` and the
+  `## Agent docs` block in `CLAUDE.md` / `AGENTS.md`. Run `/beat:setup` to
+  write them.
+- `/beat:explore` has a fifth exit, `drop`: the facts say not to build it, so
+  explore closes the issue (when there is one) and creates nothing. Callers
+  that matched on four exits must handle it (f9ca5ea, below).
+
+### Added
+
+- `references/project-layout.md`, the map of every project-level path Beat
+  writes, with format reference and lazy / required for each (4411575
+  feat(references): project-layout map; glossary moves to root GLOSSARY.md).
+- Issue-tracker templates for GitHub, GitLab and other trackers, plus the
+  `CODING_STANDARDS.md` template (adc7d8e feat(references): issue-tracker and
+  coding-standards templates).
+- Optional `issue` field on route nodes, written by `/beat:to-issue` (03d7c85
+  feat(routes): optional issue field on route nodes).
+- `validate-beat.mjs --layout` checks the 0.6 project layout (0240cfa
+  feat(validate-beat): --layout checks the 0.6 project layout).
+- `/beat:setup` writes `docs/agents/issue-tracker.md`, `CODING_STANDARDS.md`
+  and the `## Agent docs` block (d741946 feat(setup): write issue-tracker.md,
+  CODING_STANDARDS.md and the Agent docs block).
+- `/beat:to-issue` turns a settled exploration into one tracker issue, or an
+  epic with sub-issues for a too-big route (abc541c feat(to-issue):
+  /beat:to-issue turns an exploration into tracker issues).
+- `docs/migrations/0.6-project-layout.md`, a prompt an agent runs inside a
+  0.5 project to move it to the new layout (bc03b46 docs(migrations): 0.6
+  project layout migration prompt).
+
+### Changed
+
+- 6862e55 docs(proposals): unattended change flow — gates driven by
+  stage-result, human at explore and merge.
+- ee7964e feat(references): unattended mode, decision brief, stage-result
+  keys, sensitive config.
+- 89d5f2c feat(skills): unattended mode — defaults or decision briefs instead
+  of questions, sensitivity and diverging signals, ready PR from archive.
+- b042181 docs(research): mattpocock/skills workflow notes.
+- 6379670 docs(proposals): keep beat-supervise answering questions for
+  non-flow supervised tasks.
+- 0c485c3 docs(proposals): v3 — explore is the only intake, status/*
+  vocabulary, issue-tracker config, spec vs ticket scale, mattpocock repo
+  files.
+- 4163abe docs(proposals): v4 — 24 review findings resolved; PR stage leaves
+  the change flow; gate onReply.
+- f9ca5ea feat(skills): v4 review fixes — briefs before ADRs, multi-decision
+  stops, plan brief, scope exit, sensitive.md, drop exit, archive re-entry.
+- e2aa03d fix(references): tracker recipes version-safe, list limits, GitLab
+  sub-issue wording.
+- c689b8e fix(setup): new assertions check only the final answer; clarify
+  kept files and default label note.
+- 1d425e2 fix(to-issue): force yes/no in enforcement tests, keep Route line
+  first on rewrite.
+- Issue-tracker templates gain an edit-the-body recipe; `/beat:design` reads
+  the preset from an English `Exit:` line as well as `出口：`.
+
 ## [0.5.0] - 2026-10-29
 
 ### Added

@@ -98,6 +98,8 @@ When the run carries a stage-result nonce (see `references/handoff-report.md`), 
 
 ## Mid-Implementation Triggers (mandatory)
 
+Living-doc paths (glossary, ADRs, architecture hub) are listed in `references/project-layout.md`.
+
 - **ADR** — hard-to-reverse + surprising + real-trade-off decision not in `design.md` → write ADR (`references/adr-format.md`). Before writing: apply `rules.adr` from the `beat/config.yaml` you read in step 3, and use the project's `docs/adr/TEMPLATE.md` if it exists (otherwise Beat's front-matter template, `source: beat/changes/<name>`). Commit the ADR (and any project ADR index) in the same commit as the code that forced the decision.
 - **README** — module public-interface change → update module README (`references/architecture-format.md`)
 - **New module** — creating a new module (new top-level directory with its own concerns) → offer to scaffold its README (`references/architecture-format.md`)

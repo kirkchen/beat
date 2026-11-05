@@ -32,12 +32,20 @@ Beat pipeline: `/beat:explore` → `/beat:design` → `/beat:plan` → `/beat:ap
 - Every skill ends with a `## Beat Handoff` block (`references/handoff-report.md`). There is no supervisor or hook on Codex, so that block is how the next session knows where things stand.
 
 Beat maintains three project-level living-doc surfaces (all lazy — created on first use):
-- `beat/CONTEXT.md` — domain glossary maintained inline by design/archive
+- `GLOSSARY.md` (project root) — domain glossary maintained inline by design/archive
 - `docs/adr/` — ADRs gated by hard-to-reverse + surprising + real trade-off
 - `beat/ARCHITECTURE.md` + module `README.md` — structure & intent, updated when public interfaces change
 
 If the user asks to build, fix, or change something, guide them through the Beat workflow.
+
+## Agent docs
+
+- Glossary: `GLOSSARY.md` — canonical terms; use them in every artifact.
+- Coding standards: `CODING_STANDARDS.md` — judgement rules reviewers enforce; mechanical rules live in lint.
+- Issue tracker: `docs/agents/issue-tracker.md` — where issues live, labels, how work is dispatched.
 ```
+
+The `## Agent docs` block is the same pointer block `references/project-layout.md` defines; skip it if your `AGENTS.md` already has one.
 
 ## Why not auto-inject globally
 

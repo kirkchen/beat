@@ -170,7 +170,7 @@ Scenario 應該在**行為層級**：PM、QA、或新進團隊成員不需要看
 
 Gherkin scenario 描述**行為**。它不描述**詞彙**（這個專案的「Run」是什麼意思？）、**決策**（為什麼選 X 不選 Y？）或**結構**（哪個 module 擁有這件事？）。Beat 在 feature 之外維護三層 living doc，每層半衰期不同：
 
-- **Layer 1 — `beat/CONTEXT.md`**（詞彙）：每個概念只有一個正統詞，對同義詞 opinionated。半衰期：很長（domain 詞彙變化慢）。
+- **Layer 1 — 專案根目錄的 `GLOSSARY.md`**（詞彙）：每個概念只有一個正統詞，對同義詞 opinionated。半衰期：很長（domain 詞彙變化慢）。
 - **Layer 2 — `docs/adr/`**（決策）：1-3 句 ADR，需通過 hard-to-reverse + surprising + real trade-off 三條件 gate。半衰期：不確定（寫了就不太回頭）。
 - **Layer 3 — `beat/ARCHITECTURE.md` + module `README.md`**（結構與意圖）：hub + spokes、手寫。半衰期：短（必須跟著 code 動）。
 
@@ -185,7 +185,7 @@ Gherkin scenario 描述**行為**。它不描述**詞彙**（這個專案的「R
 
 ### 為什麼 Explore 要宣告出口
 
-最貴的探索是就這樣停掉的那種：下一個 session 得重探一次。所以 `/beat:explore` 結束時要宣告四個出口之一（`small`、`standard`、`too-big`、`blocked`），附上依據（哪些檔案、哪些 module、哪些決策還沒定）。使用者可以覆寫出口，skill 不能省略。
+最貴的探索是就這樣停掉的那種：下一個 session 得重探一次。所以 `/beat:explore` 結束時要宣告五個出口之一（`small`、`standard`、`too-big`、`blocked`、`drop`（不做）），附上依據（哪些檔案、哪些 module、哪些決策還沒定）。使用者可以覆寫出口，skill 不能省略。
 
 **我們捨棄了什麼：** 問使用者「這個多大」。brainstorming 已經把工作分成 Spike / Bounded / Architectural，explore 把它對應到出口，工作只被量一次。再問一次就是出口本來要消掉的那個重複提問。
 

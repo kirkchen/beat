@@ -36,7 +36,8 @@ Before archiving: you MUST check the top-level `verification` field in status.ya
 if absent or `issues-found`, confirm with the user — inform and confirm, never block.
 When gherkin status is `done`: you MUST sync features before archiving.
 Before sync: you MUST scan the features being synced for project-specific terms
-that are not yet defined in `beat/CONTEXT.md`, and prompt the user to add them.
+that are not yet defined in `GLOSSARY.md` at the project root (path:
+`references/project-layout.md`), and prompt the user to add them.
 Before moving to archive: you MUST run the last-mile ADR sweep — if zero ADRs
 were written for this change, prompt once before archiving. This applies whether
 or not features were synced.
@@ -89,7 +90,7 @@ When the run carries a stage-result nonce (see `references/handoff-report.md`), 
 - Skipping the sync step without checking if gherkin is done
 - Moving to archive without asking user about capability mapping (when features exist)
 - Completing archive while `.feature.orig` files remain in `beat/features/`
-- Syncing features without first scanning for project-specific terms missing from `beat/CONTEXT.md`
+- Syncing features without first scanning for project-specific terms missing from `GLOSSARY.md`
 - Archiving a change with zero ADRs without running the last-mile sweep prompt
 - Archiving a change with no `verification` record (or `status: issues-found`) without confirming with the user
 - Copying the change's `design.md` over an existing `beat/features/<capability>/design.md`
@@ -215,18 +216,18 @@ digraph archive {
 
    **Scan features for undefined terms** (Layer 1 living-doc enforcement):
 
-   Read `beat/CONTEXT.md` if it exists (schema: `references/context-format.md`). The glossary is lazy — it may not exist yet if this is the project's first synced change.
+   Read `GLOSSARY.md` if it exists (schema: `references/context-format.md`). The glossary is lazy — it may not exist yet if this is the project's first synced change.
 
    Scan the feature files being synced for **bolded** project-specific terms. For each term:
 
-   - If it exists in `beat/CONTEXT.md`: OK, continue.
+   - If it exists in `GLOSSARY.md`: OK, continue.
    - If it doesn't: use **AskUserQuestion tool**:
-     > "Term '<term>' appears in scenarios but isn't in beat/CONTEXT.md. Add it now?"
+     > "Term '<term>' appears in scenarios but isn't in GLOSSARY.md. Add it now?"
      > - Yes (recommended): provide a one-sentence definition; Beat appends it
      > - Skip this term
      > - Skip all remaining (record the count for the summary)
 
-   When the user adds a term, insert it into `beat/CONTEXT.md` where "Where a new entry goes" in `references/context-format.md` says — inside the `## <group>` section it belongs to (or `## Language` for a flat glossary), one-sentence definition, optional `_Avoid_` aliases. Never append it to the end of the file: that lands the term under `## Flagged ambiguities`. Create `beat/CONTEXT.md` lazily if it doesn't exist, writing the full skeleton first.
+   When the user adds a term, insert it into `GLOSSARY.md` where "Where a new entry goes" in `references/context-format.md` says — inside the `## <group>` section it belongs to (or `## Language` for a flat glossary), one-sentence definition, optional `_Avoid_` aliases. Never append it to the end of the file: that lands the term under `## Flagged ambiguities`. Create `GLOSSARY.md` lazily if it doesn't exist, writing the full skeleton first.
 
    If no project-specific bolded terms appear in the scanned features, skip this sub-step silently.
 
@@ -324,7 +325,7 @@ digraph archive {
    git add beat/changes/            # the moved directory (deletions + new archive path)
    git add beat/routes/             # only if step 5b2 archived the route
    git add beat/features/           # synced features, capability README/proposal/design.md
-   git add beat/CONTEXT.md          # glossary terms added in step 4
+   git add GLOSSARY.md          # glossary terms added in step 4
    git add docs/adr/                # ADRs from the last-mile sweep, plus any ADR index
    git add <files rewritten in 5b>  # references updated to the archived path
    git commit -m "archive(<name>): sync features and archive change"
@@ -342,7 +343,7 @@ digraph archive {
    **Verification:** passed / issues-found (N critical) / never run (user confirmed)
    **Features:** Synced to beat/features/ (or "Sync skipped" or "No features to sync")
    **Design doc:** merged into beat/features/<capability>/design.md (or "created" / "no design.md in change")
-   **Glossary:** N terms added to beat/CONTEXT.md (or "no changes" / "M terms skipped")
+   **Glossary:** N terms added to GLOSSARY.md (or "no changes" / "M terms skipped")
    **ADRs:** N written to docs/adr/ (or "none recorded — last-mile sweep declined")
    **References rewritten:** N files updated from beat/changes/<name> to the archived path (or "none found")
    **Commit:** <sha> archive(<name>): sync features and archive change

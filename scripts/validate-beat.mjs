@@ -19,6 +19,9 @@
 //   node validate-beat.mjs --stale-paths <change>         list files still referencing beat/changes/<change>
 //                                                         (run after the archive move; exit 1 when any remain)
 //   node validate-beat.mjs --handoff <file|->              check a "## Beat Handoff" block (file or stdin)
+//   node validate-beat.mjs [<project-root>] --layout      check the 0.6 project layout (references/project-layout.md):
+//                                                         required agent docs, no beat/CONTEXT.md, no tracked file
+//                                                         outside the records still referencing beat/CONTEXT.md
 //
 // Exit 1 on any error. Warnings never fail the run. Checks that need git are
 // skipped with a warning when the project is not a git checkout.
@@ -404,6 +407,39 @@ export function stalePaths(projectRoot, change) {
   return { errors: files.map(f => `${f}: still references beat/changes/${change}`), warnings: [] };
 }
 
+// Records describe what was true at a point in time and may keep old paths
+// forever (references/project-layout.md "Records").
+const RECORD_DIRS = ['beat/changes/archive/', 'docs/incidents/', 'docs/proposals/', 'docs/research/', 'docs/migrations/'];
+function isRecord(path) {
+  return RECORD_DIRS.some(d => path.startsWith(d)) || path === 'CHANGELOG.md' || /^\d{4}-\d{2}-\d{2}-/.test(basename(path));
+}
+
+export function checkLayout(projectRoot) {
+  const errors = [], warnings = [];
+  const has = p => existsSync(join(projectRoot, p));
+  for (const p of ['docs/agents/issue-tracker.md', 'CODING_STANDARDS.md']) if (!has(p)) errors.push(`${p}: missing (run /beat:setup)`);
+  const agentFiles = ['CLAUDE.md', 'AGENTS.md'].filter(has);
+  if (agentFiles.length === 0) errors.push('neither CLAUDE.md nor AGENTS.md exists; one of them needs the "## Agent docs" block');
+  else if (!agentFiles.some(f => /^## Agent docs\s*$/m.test(readFileSyncUtf8(join(projectRoot, f))))) errors.push(`no "## Agent docs" heading in ${agentFiles.join(' or ')}`);
+  for (const p of ['GLOSSARY.md', 'docs/adr']) if (!has(p)) warnings.push(`${p}: not present yet (lazy, created on first need)`);
+  if (has('beat/CONTEXT.md')) errors.push('beat/CONTEXT.md exists; run docs/migrations/0.6-project-layout.md');
+  const out = git(projectRoot, ['ls-files', '-z']);
+  if (out === null) warnings.push('not a git repository; legacy-reference check skipped');
+  else {
+    const files = out.split('\0').filter(Boolean);
+    // Vendored skill folders (npx skills add copies Beat's skills, references
+    // included) quote the old path in their own docs; they are not project text.
+    const skillDirs = files.filter(f => basename(f) === 'SKILL.md' && f.includes('/')).map(f => dirname(f) + '/');
+    for (const f of files) {
+      if (isRecord(f) || skillDirs.some(d => f.startsWith(d))) continue;
+      let text;
+      try { text = readFileSyncUtf8(join(projectRoot, f)); } catch { continue; }
+      if (text.includes('beat/CONTEXT.md')) errors.push(`${f}: still references beat/CONTEXT.md`);
+    }
+  }
+  return { errors, warnings };
+}
+
 export function preArchive(projectRoot, change) {
   const errors = [], warnings = [];
   const st = join(projectRoot, 'beat', 'changes', change, 'status.yaml');
@@ -439,7 +475,8 @@ export function validateRoute(doc, { file, projectRoot }) {
     const n = nodes[id] ?? {};
     const w = `${where} nodes.${id}`;
     if (!KEBAB.test(id)) errors.push(`${w}: node id must be kebab-case`);
-    checkKeys(n, ['type', 'title', 'blocked_by', 'change', 'result', 'question'], w, errors);
+    checkKeys(n, ['type', 'title', 'blocked_by', 'change', 'result', 'question', 'issue'], w, errors);
+    if (n.issue !== undefined && typeof n.issue !== 'string') errors.push(`${w}: issue must be a string like "#12" or "PROJ-1"`);
     if (!NODE_TYPES.includes(n.type)) errors.push(`${w}: type must be one of ${NODE_TYPES.join(', ')}`);
     if (!n.title) errors.push(`${w}: title is required`);
     const bb = n.blocked_by ?? [];
@@ -560,7 +597,8 @@ function report(results) {
 async function main() {
   const args = process.argv.slice(2);
   const takeOpt = name => { const i = args.indexOf(name); if (i < 0) return null; const v = args[i + 1]; args.splice(i, 2); return v; };
-  const all = (() => { const i = args.indexOf('--all'); if (i >= 0) { args.splice(i, 1); return true; } return false; })();
+  const takeFlag = name => { const i = args.indexOf(name); if (i >= 0) { args.splice(i, 1); return true; } return false; };
+  const all = takeFlag('--all'), layout = takeFlag('--layout');
   const file = takeOpt('--file'), pre = takeOpt('--pre-archive'), stale = takeOpt('--stale-paths'), handoff = takeOpt('--handoff'), change = takeOpt('--change');
   const projectRoot = resolve(args[0] ?? process.cwd());
 
@@ -570,6 +608,7 @@ async function main() {
     console.log(errors ? `handoff block: ${errors} error(s)` : 'handoff block ok');
     process.exit(errors ? 1 : 0);
   }
+  if (layout) { const { errors } = report([checkLayout(projectRoot)]); console.log(errors ? `layout: ${errors} error(s)` : 'layout ok'); process.exit(errors ? 1 : 0); }
   if (pre) { const { errors } = report([preArchive(projectRoot, pre)]); console.log(errors ? `${pre}: not ready to archive` : `${pre}: ready to archive`); process.exit(errors ? 1 : 0); }
   if (stale) { const { errors } = report([stalePaths(projectRoot, stale)]); console.log(errors ? `${errors} file(s) still reference beat/changes/${stale}` : `no stale references to beat/changes/${stale}`); process.exit(errors ? 1 : 0); }
 

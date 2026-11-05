@@ -125,7 +125,7 @@ Insert this step **before creating any artifact**:
 6. Check `testing` (if present) to determine test requirements for apply/verify
 7. If config doesn't exist, proceed normally — config is always optional
 
-"Any artifact" includes living documentation, not just the change's own spec files: an ADR written at a trigger point, a glossary term added to `beat/CONTEXT.md`, a module README. Every skill that can write one of these reads the config first — including `/beat:explore`, which creates no spec artifacts but can capture an ADR.
+"Any artifact" includes living documentation, not just the change's own spec files: an ADR written at a trigger point, a glossary term added to `GLOSSARY.md`, a module README. Every skill that can write one of these reads the config first — including `/beat:explore`, which creates no spec artifacts but can capture an ADR.
 
 ## Examples
 

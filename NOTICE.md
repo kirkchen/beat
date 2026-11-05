@@ -25,6 +25,7 @@ Files derived from this project:
 - `references/adr-format.md` — adapted from `skills/engineering/grill-with-docs/ADR-FORMAT.md`
 - `references/architecture-format.md` — references vocabulary from `skills/engineering/improve-codebase-architecture/LANGUAGE.md` as optional precision terminology
 - `references/route-schema.md` — the route map (destination / decisions so far / not yet specified / out of scope) and node types are adapted from `skills/engineering/wayfinder/SKILL.md`; Beat stores nodes in a repo file instead of tracker issues and derives node status rather than claiming by assignee
+- `references/issue-tracker-github.md`, `references/issue-tracker-gitlab.md` — command recipes adapted from `skills/engineering/setup-matt-pocock-skills/issue-tracker-github.md` and `issue-tracker-gitlab.md`
 
 Each derived file carries its own attribution header pointing back to the
 original.
