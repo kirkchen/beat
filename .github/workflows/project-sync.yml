@@ -4,58 +4,93 @@ name: Project sync
 # every issue is added to the Project, and the Status column mirrors the status/* label
 # (none → Backlog, ready|blocked → Todo, running → In Progress, waiting → Needs answer,
 # in-review → In review, closed → Done). Horizon is never touched: picking an issue for
-# the Pipeline board (Horizon=Now) stays a human decision. Needs the PROJECT_TOKEN secret
-# (classic PAT, scopes: project + repo). Rules: docs/backlog.md in kirkchen/rhythm.
+# the Pipeline board (Horizon=Now) stays a human decision.
+#
+# Every run reconciles from the issue's *live* state and labels, not from the event
+# payload: GitHub does not guarantee event order, and Rhythm's write-back removes the
+# old status/* label before adding the new one, so a stale snapshot could win. Status
+# option ids are resolved by name at run time so editing the options in the Project
+# does not desync the three copies of this file (rhythm / beat / cadence).
+#
+# Needs the PROJECT_TOKEN secret (classic PAT, scopes: project + repo).
+# Rules: docs/backlog.md §Pipeline in kirkchen/rhythm.
 
 on:
   issues:
     types: [opened, reopened, closed, labeled, unlabeled]
 
+# GITHUB_TOKEN only reads the issue; the Project is written with PROJECT_TOKEN.
+permissions:
+  issues: read
+
+# One run per issue at a time; a newer event supersedes a queued one because every run
+# reads live state, so the last run to execute always writes the current truth.
 concurrency:
   group: project-sync-${{ github.event.issue.number }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   sync:
-    # Label events matter only for status/* labels.
-    if: >-
-      github.event.action != 'labeled' && github.event.action != 'unlabeled'
-      || startsWith(github.event.label.name, 'status/')
     runs-on: ubuntu-latest
     steps:
       - name: Add issue to Project
         id: add
-        uses: actions/add-to-project@v2.0.0
+        uses: actions/add-to-project@5afcf98fcd03f1c2f92c3c83f58ae24323cc57fd # v2.0.0
         with:
           project-url: https://github.com/users/kirkchen/projects/2
           github-token: ${{ secrets.PROJECT_TOKEN }}
+
+      - name: Read live issue state
+        id: issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          gh api "repos/$REPO/issues/$NUMBER" \
+            --jq '"state=\(.state)\nlabels=\([.labels[].name] | join(" "))"' >> "$GITHUB_OUTPUT"
 
       - name: Set Status from status/* label
         env:
           GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
           ITEM_ID: ${{ steps.add.outputs.itemId }}
-          ISSUE_STATE: ${{ github.event.issue.state }}
-          LABELS: ${{ join(github.event.issue.labels.*.name, ' ') }}
-          PROJECT_ID: PVT_kwHOAAR8Hs4BW9wk
-          STATUS_FIELD_ID: PVTSSF_lAHOAAR8Hs4BW9wkzhSN9wA
+          ISSUE_STATE: ${{ steps.issue.outputs.state }}
+          LABELS: ${{ steps.issue.outputs.labels }}
+          PROJECT_OWNER: kirkchen
+          PROJECT_NUMBER: 2
         run: |
           set -euo pipefail
-          option=230ac08d  # Backlog
+          target="Backlog"
           if [ "$ISSUE_STATE" = "closed" ]; then
-            option=8c6fce71  # Done
+            target="Done"
           else
             for l in $LABELS; do
               case "$l" in
-                status/running)   option=d90a27ee ;;  # In Progress
-                status/waiting)   option=cfca3b38 ;;  # Needs answer
-                status/in-review) option=793f6724 ;;  # In review
-                status/ready|status/blocked) option=6bf58c6e ;;  # Todo
+                status/running)              target="In Progress" ;;
+                status/waiting)              target="Needs answer" ;;
+                status/in-review)            target="In review" ;;
+                status/ready|status/blocked) target="Todo" ;;
               esac
             done
           fi
-          echo "item=$ITEM_ID state=$ISSUE_STATE labels=[$LABELS] -> status option $option"
+          echo "item=$ITEM_ID state=$ISSUE_STATE labels=[$LABELS] -> Status \"$target\""
+
+          field=$(gh api graphql -F owner="$PROJECT_OWNER" -F number="$PROJECT_NUMBER" \
+            -f query='query($owner: String!, $number: Int!) {
+              user(login: $owner) { projectV2(number: $number) { id
+                field(name: "Status") { ... on ProjectV2SingleSelectField { id options { id name } } } } } }' \
+            --jq '.data.user.projectV2')
+          project_id=$(jq -r '.id' <<<"$field")
+          field_id=$(jq -r '.field.id' <<<"$field")
+          option_id=$(jq -r --arg n "$target" '.field.options[] | select(.name == $n) | .id' <<<"$field")
+          if [ -z "$option_id" ]; then
+            echo "::error::Status option \"$target\" not found in Project $PROJECT_OWNER/$PROJECT_NUMBER; see docs/backlog.md §Pipeline"
+            exit 1
+          fi
+
           gh api graphql \
-            -F projectId="$PROJECT_ID" -F itemId="$ITEM_ID" -F fieldId="$STATUS_FIELD_ID" -F optionId="$option" \
+            -F projectId="$project_id" -F itemId="$ITEM_ID" -F fieldId="$field_id" -F optionId="$option_id" \
             -f query='mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
               updateProjectV2ItemFieldValue(input: {
                 projectId: $projectId, itemId: $itemId, fieldId: $fieldId,
