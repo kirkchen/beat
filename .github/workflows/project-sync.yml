@@ -1,0 +1,64 @@
+name: Project sync
+
+# Keeps GitHub Project "Rhythm Backlog" (users/kirkchen/projects/2) in step with issues:
+# every issue is added to the Project, and the Status column mirrors the status/* label
+# (none → Backlog, ready|blocked → Todo, running → In Progress, waiting → Needs answer,
+# in-review → In review, closed → Done). Horizon is never touched: picking an issue for
+# the Pipeline board (Horizon=Now) stays a human decision. Needs the PROJECT_TOKEN secret
+# (classic PAT, scopes: project + repo). Rules: docs/backlog.md in kirkchen/rhythm.
+
+on:
+  issues:
+    types: [opened, reopened, closed, labeled, unlabeled]
+
+concurrency:
+  group: project-sync-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    # Label events matter only for status/* labels.
+    if: >-
+      github.event.action != 'labeled' && github.event.action != 'unlabeled'
+      || startsWith(github.event.label.name, 'status/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add issue to Project
+        id: add
+        uses: actions/add-to-project@v2.0.0
+        with:
+          project-url: https://github.com/users/kirkchen/projects/2
+          github-token: ${{ secrets.PROJECT_TOKEN }}
+
+      - name: Set Status from status/* label
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+          ITEM_ID: ${{ steps.add.outputs.itemId }}
+          ISSUE_STATE: ${{ github.event.issue.state }}
+          LABELS: ${{ join(github.event.issue.labels.*.name, ' ') }}
+          PROJECT_ID: PVT_kwHOAAR8Hs4BW9wk
+          STATUS_FIELD_ID: PVTSSF_lAHOAAR8Hs4BW9wkzhSN9wA
+        run: |
+          set -euo pipefail
+          option=230ac08d  # Backlog
+          if [ "$ISSUE_STATE" = "closed" ]; then
+            option=8c6fce71  # Done
+          else
+            for l in $LABELS; do
+              case "$l" in
+                status/running)   option=d90a27ee ;;  # In Progress
+                status/waiting)   option=cfca3b38 ;;  # Needs answer
+                status/in-review) option=793f6724 ;;  # In review
+                status/ready|status/blocked) option=6bf58c6e ;;  # Todo
+              esac
+            done
+          fi
+          echo "item=$ITEM_ID state=$ISSUE_STATE labels=[$LABELS] -> status option $option"
+          gh api graphql \
+            -F projectId="$PROJECT_ID" -F itemId="$ITEM_ID" -F fieldId="$STATUS_FIELD_ID" -F optionId="$option" \
+            -f query='mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+              updateProjectV2ItemFieldValue(input: {
+                projectId: $projectId, itemId: $itemId, fieldId: $fieldId,
+                value: { singleSelectOptionId: $optionId }
+              }) { projectV2Item { id } }
+            }' --jq '.data.updateProjectV2ItemFieldValue.projectV2Item.id'
