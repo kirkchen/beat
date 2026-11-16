@@ -52,11 +52,13 @@ assert_contains "$output" "git add docs/adr\|one unit of work\|same commit as th
 
 # Match only the final answer: the stream's init line lists every skill and MCP source,
 # so words like "verify" or "project" would match there regardless of the answer.
-output=$(run_claude "As beat:plan, when writing a task's verification step, which tests does it run, and when does the full suite run?" 60 5 | grep '"type":"result"')
-assert_contains "$output" "affected\|受影響\|影響到" "plan writes per-task verification as affected tests only"
-assert_contains "$output" "wrap-up\|wrap up\|once\|CI\|收尾" "plan leaves the full suite to change wrap-up and CI"
+# `|| true`: a timeout leaves no result line; record a FAIL instead of aborting the script.
+output=$(run_claude "As beat:plan, when writing a task's verification step, which tests does it run, and when does the full suite run?" 60 5 | grep '"type":"result"' || true)
+assert_contains "$output" "affected tests\|tests.\{0,20\}affect\|受影響的測試\|影響到的測試" "plan writes per-task verification as affected tests only"
+assert_contains "$output" "wrap-up\|wrap up\|beat:verify\|收尾" "plan leaves the full suite to change wrap-up"
+assert_contains "$output" "[^a-z]CI[^a-z]" "plan leaves the full suite to CI"
 
-output=$(run_claude "As beat:plan, the project's CLAUDE.md defines its own test layering. Whose layering do the task verification steps follow?" 60 5 | grep '"type":"result"')
-assert_contains "$output" "project\|專案" "plan lets the project's own test layering win"
+output=$(run_claude "As beat:plan, a target repo's CLAUDE.md defines test layering that differs from Beat's default. Which layering do the task verification steps follow?" 60 5 | grep '"type":"result"' || true)
+assert_contains "$output" "takes precedence\|override\|wins\|instead of\|優先\|取代\|為準" "plan lets the project's own test layering win"
 
 print_summary
