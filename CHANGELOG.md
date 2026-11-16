@@ -4,6 +4,34 @@ All notable changes to Beat are documented in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and Beat adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-11-16
+
+### Added
+
+- `references/check-layering.md`: Beat's default test layering — commit
+  hook runs no tests, a task runs only the tests it affects, `/beat:verify`
+  runs the full suite, the end of `/beat:apply` runs the full e2e suite when
+  the change has `@e2e` scenarios, and CI runs the full suite on every
+  PR/MR push — plus seven principles and when to turn a repeated mistake
+  into a check. A project overrides the layering in its `CLAUDE.md` /
+  `AGENTS.md`. Repos that do not use Beat can link to the file (bae6ec6,
+  #16).
+
+### Changed
+
+- `/beat:plan` writes each task's verification step as "affected tests
+  only", leaving the full suite to the wrap-up run and CI, unless the
+  project's `CLAUDE.md` / `AGENTS.md` defines its own layering. A project
+  whose tasks used to run the full suite per task gets lighter task-level
+  checks; apply and verify run the same tests as before (bae6ec6, #16).
+
+### Fixed
+
+- `tests/test-helpers.sh`: assertions no longer report a found pattern as
+  missing on large `claude -p` output. Under `set -euo pipefail`,
+  `echo | grep -q` let echo die of SIGPIPE, and the FAIL branch's
+  `echo | head` could abort the whole test script (bae6ec6, #16).
+
 ## [0.6.0] - 2026-11-04
 
 ### BREAKING
