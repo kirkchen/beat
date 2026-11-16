@@ -51,7 +51,7 @@ beat/
 │   ├── issue-tracker-other.md   # docs/agents/issue-tracker.md template — any other tracker
 │   ├── coding-standards-template.md  # CODING_STANDARDS.md template
 │   ├── lint-tools.md            # How and when skills run validate-beat.mjs / lint-features.mjs
-│   ├── check-layering.md        # Principles for which automated check runs at which point (commit / push / CI)
+│   ├── check-layering.md        # Default test layering (commit hook / task / change wrap-up / CI) + when to add a check
 │   ├── tool-mapping.md          # Cross-platform tool name mapping (root only)
 │   └── codex-agents-snippet.md  # Per-project AGENTS.md snippet for Codex (root only)
 ├── scripts/sync-references.mjs  # Syncs /references and /scripts into each skill's references/ and scripts/ (see header)

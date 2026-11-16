@@ -220,7 +220,7 @@ digraph plan {
    **Code:** No single new file exceeds ~300 lines. If it grows past that, split into focused sub-modules.
    ```
 
-   **Verification steps** — layer them per `references/check-layering.md`: inside a task run only the affected tests; leave the full suite to CI or one run at wrap-up. When the project has its own timing table (usually in its testing docs or CLAUDE.md), the project's table wins.
+   **Verification steps** — layer them per the default in `references/check-layering.md`: each task's verification runs only the tests that task affects; the full suite runs once at change wrap-up (end of `/beat:apply`, `/beat:verify`) and in CI, never per task. When the project's `CLAUDE.md` / `AGENTS.md` defines its own test layering, use the project's commands and layering instead.
 
    Save the initial tasks.md to `beat/changes/<name>/tasks.md`.
 
