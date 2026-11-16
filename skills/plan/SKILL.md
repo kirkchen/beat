@@ -220,6 +220,8 @@ digraph plan {
    **Code:** No single new file exceeds ~300 lines. If it grows past that, split into focused sub-modules.
    ```
 
+   **Verification steps** — layer them per `references/check-layering.md`: inside a task run only the affected tests; leave the full suite to CI or one run at wrap-up. When the project has its own timing table (usually in its testing docs or CLAUDE.md), the project's table wins.
+
    Save the initial tasks.md to `beat/changes/<name>/tasks.md`.
 
 6. **Dispatch review agents**
