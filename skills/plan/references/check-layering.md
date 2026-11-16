@@ -10,7 +10,8 @@ Put every check at the earliest point where its wait is affordable, and keep the
 | --- | --- | --- |
 | commit hook | format, commit message; no tests | block |
 | inside a task (`/beat:apply`) | only the tests the task affects | fix before the next task |
-| change wrap-up (end of `/beat:apply`, `/beat:verify`) | the full suite, once | block; do not advance the phase |
+| end of `/beat:apply` | the full e2e suite, when the change has `@e2e` scenarios | pause; do not advance to verify |
+| `/beat:verify` | the full suite (behavior and e2e), every run | reported in the verification report |
 | CI, every PR/MR push | the full suite | block merge |
 
 A project override names the real commands for each point (for example, the command that runs only affected tests).
@@ -19,7 +20,7 @@ A project override names the real commands for each point (for example, the comm
 
 1. Wait cost = check time × how often that point fires. Commits fire most, so only checks that finish in seconds belong there.
 2. Block by who is affected by a mistake that gets through. A local commit affects nobody yet, so keep its hook light. A push occupies CI and reviewers, so CI blocks.
-3. Never run the full suite per task. It runs once at change wrap-up and on every CI run. Exception: a task that changes test infrastructure (test config, dependencies) runs it inside the task.
+3. Never run the full suite per task. It runs at change wrap-up (`/beat:verify`; the e2e suite also at the end of `/beat:apply`) and on every CI run. Exception: a task that changes test infrastructure (test config, dependencies) runs it inside the task.
 4. "Run only the affected tests" is a speed-up, never the only gate. Selection relies on static analysis and misses things; the wrap-up run and CI run the full suite.
 5. Test time must buy something. A real database or a real subprocess buys "same as production", so keep it. Real timers, repeated identical work and repeated loading buy nothing, so remove them.
 6. Accept an optimization by the thing you changed, not by total time. CI total time moves with runner load; look at two runs at least.
