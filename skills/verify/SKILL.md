@@ -248,8 +248,6 @@ The one thing no rule below changes: **CRITICAL is never lowered, deferred or dr
 - WARNING: Should fix (partial coverage, possible divergence, non-executable test, Gherkin quality issues, code quality concerns, living-doc drift — Layer 1/2/3 sync gaps)
 - SUGGESTION: Nice to fix (pattern inconsistency, minor improvement, missing test in distill mode, module without README)
 
-**Repeat mistakes** — when a finding is the second occurrence of the same kind of mistake, suggest adding an automated check per "When to add a check" in `references/check-layering.md`. Record it as a SUGGESTION, never CRITICAL.
-
 **Dimension 5 is advisory** — its findings classify as WARNING or SUGGESTION only, never CRITICAL. The user decides whether to act before archiving; living-doc drift never blocks the archive.
 
 **Graceful Degradation**
