@@ -78,7 +78,7 @@ assert_contains() {
     local pattern="$2"
     local test_name="$3"
 
-    if echo "$output" | grep -qi "$pattern"; then
+    if grep -qi -- "$pattern" <<<"$output"; then
         echo -e "${GREEN}[PASS]${NC} $test_name"
         PASS_COUNT=$((PASS_COUNT + 1))
         return 0
@@ -86,7 +86,7 @@ assert_contains() {
         echo -e "${RED}[FAIL]${NC} $test_name"
         echo "  Expected to find: $pattern"
         echo "  In output (first 10 lines):"
-        echo "$output" | head -10 | sed 's/^/    /'
+        head -10 <<<"$output" | sed 's/^/    /'
         FAIL_COUNT=$((FAIL_COUNT + 1))
         return 1
     fi
@@ -97,7 +97,7 @@ assert_not_contains() {
     local pattern="$2"
     local test_name="$3"
 
-    if echo "$output" | grep -qi "$pattern"; then
+    if grep -qi -- "$pattern" <<<"$output"; then
         echo -e "${RED}[FAIL]${NC} $test_name"
         echo "  Expected NOT to find: $pattern"
         FAIL_COUNT=$((FAIL_COUNT + 1))
@@ -191,7 +191,7 @@ assert_no_bash_command() {
     local cmd_regex="$2"
     local test_name="${3:-No Bash command matching $cmd_regex}"
 
-    if grep -E '"type":"tool_use","id":"[^"]*","name":"Bash"' "$log_file" | grep -qE "\"command\":\"[^\"]*(${cmd_regex})"; then
+    if grep -qE "\"command\":\"[^\"]*(${cmd_regex})" < <(grep -E '"type":"tool_use","id":"[^"]*","name":"Bash"' "$log_file"); then
         echo -e "${RED}[FAIL]${NC} $test_name"
         echo "  A Bash tool_use matched: $cmd_regex"
         FAIL_COUNT=$((FAIL_COUNT + 1))
@@ -296,7 +296,7 @@ assert_output_matches() {
     local regex="$2"
     local test_name="${3:-Output matches: $regex}"
 
-    if grep '"type":"result"' "$log_file" | grep -qiE "$regex"; then
+    if grep -qiE -- "$regex" < <(grep '"type":"result"' "$log_file"); then
         echo -e "${GREEN}[PASS]${NC} $test_name"
         PASS_COUNT=$((PASS_COUNT + 1))
         return 0
