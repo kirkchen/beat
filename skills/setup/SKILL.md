@@ -47,12 +47,14 @@ Initialize Beat configuration in the current project.
    **If not available:**
    > "Beat works standalone, but is better with [superpowers](https://github.com/obra/superpowers) — it provides structured brainstorming, TDD discipline, task decomposition, and git worktree isolation.
    >
-   > Install with: `/plugin marketplace add obra/superpowers`
+   > Install it yourself (an agent cannot run plugin commands):
+   > - Claude Code: `/plugin install superpowers@claude-plugins-official`
+   > - Codex: open `/plugins`, search for `superpowers`, choose Install
    >
    > Without it, Beat falls back to simpler built-in flows."
 
    Use **AskUserQuestion tool**:
-   1. "Install now" -- run the install command
+   1. "I installed it" -- check the skill list again; if `superpowers:*` is still missing, say a restart may be needed and continue
    2. "Continue without it"
 
    **If available:** proceed silently.
