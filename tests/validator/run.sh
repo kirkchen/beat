@@ -75,6 +75,11 @@ if node "$VALIDATOR" "$tmp" --stale-paths slack-thread-dedupe >/dev/null 2>&1; t
 echo "see beat/changes/slack-thread-dedupe/design.md" >> "$tmp/note.md"
 out=$(node "$VALIDATOR" "$tmp" --stale-paths slack-thread-dedupe 2>&1)
 if echo "$out" | grep -q "note.md: still references"; then echo "PASS stale-paths finds untracked reference"; else echo "FAIL stale-paths missed untracked reference"; echo "$out"; fail=1; fi
+mkdir -p "$tmp/docs/research" && echo "written while beat/changes/slack-thread-dedupe/ was active" > "$tmp/docs/research/old.md"
+echo "see beat/changes/slack-thread-dedupe/design.md" > "$tmp/beat/changes/archive/2026-06-12-slack-thread-dedupe/tasks-note.md"
+out=$(node "$VALIDATOR" "$tmp" --stale-paths slack-thread-dedupe 2>&1)
+if echo "$out" | grep -q "docs/research/old.md"; then echo "FAIL stale-paths flagged a record"; echo "$out"; fail=1; else echo "PASS stale-paths leaves records alone"; fi
+if echo "$out" | grep -q "tasks-note.md: still references"; then echo "PASS stale-paths still checks the just-archived directory"; else echo "FAIL stale-paths skipped the just-archived directory"; echo "$out"; fail=1; fi
 
 echo "== layout (temp git repo)"
 tmp=$(mktemp -d "${TMPDIR:-/tmp}/beat-layout.XXXXXX")

@@ -41,8 +41,11 @@ When syncing `design.md` into a capability that already has one: you MUST merge
 the change's decisions into the existing document and rewrite it as the current
 state — NEVER overwrite it with the change's copy.
 After moving the change directory: you MUST rewrite every reference to the old
-`beat/changes/<name>` path (ADRs, features, glossary, READMEs, other changes)
-to the archived path. A moved directory with dangling links is not archived.
+`beat/changes/<name>` path (ADRs, features, glossary, READMEs, active changes,
+and the moved directory itself) to the archived path. Records keep the old path
+(`references/project-layout.md` "Records": other archived changes, incidents,
+proposals, research, migrations, CHANGELOG). A moved directory with dangling
+links is not archived.
 Before invoking finishing-a-development-branch: you MUST commit the archive result
 on the current branch (never create or switch one) — archive runs before the
 PR/merge, never after it.
