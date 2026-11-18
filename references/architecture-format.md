@@ -159,10 +159,10 @@ that fit the codebase:
   framework's own structure terms.
 
 If precision around testability or refactor seams matters, mattpocock's
-LANGUAGE.md (in `mattpocock-skills/skills/engineering/improve-codebase-
-architecture/`) defines **Module / Interface / Implementation / Depth /
-Seam / Adapter / Leverage / Locality**. These are optional — pull them in
-when discussing refactors where precision pays off, not as a baseline.
+`codebase-design` skill defines **Module / Interface / Implementation /
+Depth / Seam / Adapter / Leverage / Locality**. These are optional — pull
+them in when discussing refactors where precision pays off, not as a
+baseline. Without that skill, keep the codebase's native terms.
 
 ### Rules for module READMEs
 

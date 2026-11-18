@@ -174,8 +174,8 @@ see the distill skill for the adapted wording.
 
 ## Optional grilling
 
-If `grill-with-docs` (from `mattpocock-skills`) is installed and the
-ambiguity is complex enough that a full grilling session is warranted,
-`/beat:design` may offer to invoke it. The choice is the user's — if they
-decline, or the skill is not installed, proceed with the four challenges
-inline. Beat never hard-requires grill-with-docs.
+When inline resolution is not enough, call `grilling` and `domain-modeling`
+(from `mattpocock-skills`) directly; both are model-invoked. If they are not
+installed, continue with the four challenges inline. `grill-with-docs` is
+user-invoked and cannot be called from a skill: do not offer to run it, but
+tell the user they can start it themselves for a longer session.
