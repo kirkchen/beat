@@ -30,7 +30,7 @@ When the dispatcher hands you lint output, those results are settled: report eac
 
 ## Incremental runs
 
-When run mode is incremental, scope every dimension to the diff: verify the scenarios, goals and decisions the dispatcher listed, and any file in the diff. For each previous open finding, re-check it at its `file` and report it as **still open** (same id) or **resolved** (same id). Do not re-verify untouched scenarios — say in the report which ones you did not read. If the diff touches a shared file (a schema, a base class, a fixture) that many scenarios depend on, say so and recommend a full run.
+When run mode is incremental, scope every dimension to the diff: verify the scenarios, goals and decisions the dispatcher listed, and any file in the diff. For each previous open finding, re-check it at its `file` and report it as **still open** (same id) or **fixed** (same id). Do not re-verify untouched scenarios — say in the report which ones you did not read. If the diff touches a shared file (a schema, a base class, a fixture) that many scenarios depend on, say so and recommend a full run.
 
 ## Dimension 1: Gherkin Coverage & Quality
 
@@ -236,7 +236,7 @@ yet, and Beat shouldn't pretend it has.
 ### Findings (machine-readable)
 One line per finding, in the format of `references/verify-findings.md`, ids continuing from the previous run's when incremental:
 - { id: F1, severity: CRITICAL, dimension: 1B, scenario: "<name>", file: "<path:line>", fix: "<one sentence>", status: open }
-- { id: F3, severity: WARNING, dimension: 2, scenario: "", file: "<path>", fix: "<one sentence>", status: resolved }
+- { id: F3, severity: WARNING, dimension: 2, scenario: "", file: "<path>", fix: "<one sentence>", status: fixed }
 ```
 
 The dispatcher copies the `Findings` block into `verify.md` front matter; it must contain every finding listed above it, nothing more.
