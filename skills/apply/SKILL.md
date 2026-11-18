@@ -280,7 +280,7 @@ digraph apply {
 
    f. **Scenario completion check** (before moving to the next scenario):
 
-      Run `node <skill-dir>/scripts/lint-features.mjs --require-covered-by beat/changes/<name>/features/*.feature` (see `references/lint-tools.md`). It checks the `@covered-by` annotation, its position, that the test file exists and carries the `@scenario:` annotation, and the layer tag. Fix every error it lists; rerun until it exits 0. In no-test mode run it without `--require-covered-by`.
+      Run `node <skill-dir>/scripts/lint-features.mjs beat/changes/<name>/features/*.feature` (see `references/lint-tools.md`). It checks the `@covered-by` annotations that exist, their position, that each test file exists and carries the `@scenario:` annotation, and the layer tag; scenarios not yet implemented have no annotation and do not fail it. Confirm the scenario you just finished has its `@covered-by`. Fix every error it lists; rerun until it exits 0. After the last scenario, run it once more with `--require-covered-by` so every scenario is covered (skip that run in no-test mode).
 
       Then confirm by hand what lint cannot see:
       - [ ] The test is executable, not a skeleton (run it)
