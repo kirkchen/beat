@@ -4,6 +4,53 @@ All notable changes to Beat are documented in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and Beat adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-11-18
+
+### Changed
+
+- `/beat:verify`: a `@behavior` scenario with no test at all is CRITICAL;
+  a test that exists but lacks `@covered-by` stays WARNING. A change that
+  used to pass verify can now report a CRITICAL. No-test and distill modes
+  no longer require `@covered-by` (4176bb1, #18).
+- `/beat:verify` incremental runs keep the whole findings ledger: open and
+  fixed findings are re-checked, wontfix is kept (328f003, #18).
+- `/beat:verify` and `/beat:plan` dispatch reviewers as `general-purpose`
+  with a read-only instruction instead of the `Explore` search agent
+  (9471c64, #18).
+- `/beat:apply` per-scenario lint checks only existing links; every
+  scenario must have a test only after the last one is built. Preset
+  upgrade and sensitive-path checks count uncommitted work (4314dfe,
+  cfb8bf4, #18).
+- `/beat:archive`: `--stale-paths` leaves records (archived changes,
+  research, proposals, CHANGELOG, …) alone and only rewrites links inside
+  the directory just archived (07d03dd, #18).
+- `/beat:design` in unattended mode stops with a decision brief for a Key
+  Decision that meets the ADR gate, and writes the ADR only from the
+  reply; only the orchestrator edits the issue (9f803af, #18).
+- `/beat:setup` writes the Agent docs block into both `CLAUDE.md` and
+  `AGENTS.md` when both exist, and gives the Superpowers install command
+  for the current platform (81fd63e, b73b66f, #18).
+- Scenarios may state user-visible business thresholds ("locked after 5
+  attempts"); internal tuning values stay out (e66c3ee, #18).
+- fix-from-verify takes open CRITICALs and reachable WARNINGs by default;
+  the session hook, Codex snippet and `CLAUDE.md` now say so (59d96bc, #18).
+- Issue tracker templates carry an assignee recipe; existing projects'
+  `docs/agents/issue-tracker.md` is not updated, and `/beat:to-issue` asks
+  when the recipe is missing (938166c, #18).
+
+### Fixed
+
+- `/beat:plan` advances phase forward only and writes it before the commit
+  (07250b3, #18).
+- `/beat:explore` blocked nodes use the route schema's `type` field, not
+  `kind` (9388261, #18).
+- The verify subagent example reports re-checked findings as `fixed`, the
+  only status the schema accepts (64a6579, #18).
+- Codex: `references/codex-agents-snippet.md` and `tool-mapping.md` map
+  AskUserQuestion, Skill, Agent and TodoWrite; `AGENTS.md` is a symlink to
+  `CLAUDE.md`; stale facts in `CLAUDE.md`, the READMEs and
+  `docs/INSTALL-CODEX.md` are corrected (53c9b90, 02f897d, 604b9d8, #18).
+
 ## [0.7.0] - 2026-11-16
 
 ### Added
