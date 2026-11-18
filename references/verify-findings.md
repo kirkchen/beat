@@ -38,7 +38,7 @@ After the front matter, the combined report exactly as `/beat:verify` presents i
 
 ## Who reads and writes
 
-- **verify** writes the whole file on every run. On an incremental run it carries forward findings still `open` from the previous file, re-checks them, and marks any it can no longer reproduce as `fixed`.
+- **verify** writes the whole file on every run. On an incremental run it carries forward every finding from the previous file under its id: it re-checks the `open` ones and the ones apply marked `fixed`, writing `fixed` for those it can no longer reproduce and `open` for those it can, and keeps `wontfix` lines as written and never re-raises them under a new id. New findings go in only when the convergence rules admit them.
 - **apply** (`fix-from-verify`) reads the open CRITICALs and the open WARNINGs with `reach: reachable` by default (explicit ids or `all` widen it), treats each as a task in severity order, and rewrites `status: fixed` on the ones it addressed. It never deletes findings.
 - **archive** reads the counts via `status.yaml`; it does not parse this file.
 

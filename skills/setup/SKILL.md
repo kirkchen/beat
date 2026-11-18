@@ -18,10 +18,6 @@ Initialize Beat configuration in the current project.
 - Configuring non-Beat tools or project settings
 - Creating changes or writing feature files (use `/beat:design`)
 
-**Trigger examples:**
-- "Set up Beat" / "Initialize Beat" / "Configure Beat for this project" / "Update Beat config"
-- Should NOT trigger: "edit config.yaml" / "design a feature" / "create a change"
-
 </decision_boundary>
 
 **Input**: None required. The skill gathers information interactively.
@@ -51,12 +47,14 @@ Initialize Beat configuration in the current project.
    **If not available:**
    > "Beat works standalone, but is better with [superpowers](https://github.com/obra/superpowers) — it provides structured brainstorming, TDD discipline, task decomposition, and git worktree isolation.
    >
-   > Install with: `/plugin marketplace add obra/superpowers`
+   > Install it yourself (an agent cannot run plugin commands):
+   > - Claude Code: `/plugin install superpowers@claude-plugins-official`
+   > - Codex: open `/plugins`, search for `superpowers`, choose Install
    >
    > Without it, Beat falls back to simpler built-in flows."
 
    Use **AskUserQuestion tool**:
-   1. "Install now" -- run the install command
+   1. "I installed it" -- check the skill list again; if `superpowers:*` is still missing, say a restart may be needed and continue
    2. "Continue without it"
 
    **If available:** proceed silently.
@@ -229,7 +227,7 @@ Steps 9–11 write the project-layout files from `references/project-layout.md`.
 
 11. **Agent docs block** (`CLAUDE.md` or `AGENTS.md`)
 
-    Pick the file: `CLAUDE.md` if it exists, else `AGENTS.md` if it exists, else ask with **AskUserQuestion tool** which one to create (`CLAUDE.md` for Claude Code, `AGENTS.md` for Codex and other agents).
+    Pick the file: when both `CLAUDE.md` and `AGENTS.md` exist, write the block into both (Claude Code reads one, Codex the other), once if one is a symlink to the other. Otherwise use whichever exists, or ask with **AskUserQuestion tool** which one to create (`CLAUDE.md` for Claude Code, `AGENTS.md` for Codex and other agents).
 
     Insert the `## Agent docs` block from `references/project-layout.md` (the heading plus its three pointer lines). If the file already has a `## Agent docs` heading, replace Beat's three pointer lines in that section in place; keep any other lines the user added. Never add a second block.
 
@@ -246,7 +244,7 @@ Steps 9–11 write the project-layout files from `references/project-layout.md`.
     **Testing:** {behavior framework} + {e2e framework} (or "not required")
     **Issue tracker:** docs/agents/issue-tracker.md ({GitHub | GitLab | other}) — written / completed / kept
     **Coding standards:** CODING_STANDARDS.md — written ({n} sources) / kept
-    **Agent docs:** {CLAUDE.md | AGENTS.md} — block added / updated / kept
+    **Agent docs:** {CLAUDE.md | AGENTS.md | both} — block added / updated / kept
 
     Your config will be used when creating artifacts.
     Edit beat/config.yaml anytime to update preferences.

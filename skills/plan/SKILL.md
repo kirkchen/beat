@@ -18,10 +18,6 @@ Plan the execution — read spec artifacts, review from multiple perspectives, t
 - Implementing code (use `/beat:apply`)
 - Verifying implementation (use `/beat:verify`)
 
-**Trigger examples:**
-- "Break down the tasks" / "Create execution plan" / "Plan the implementation" / "Review and generate tasks"
-- Should NOT trigger: "design a new feature" / "write gherkin for X" / "implement the change"
-
 </decision_boundary>
 
 <HARD-GATE>
@@ -96,7 +92,7 @@ digraph plan {
     "Single review agent\n(all roles)" [shape=box, style=bold];
     "Parallel review agents\n(1 per role)" [shape=box, style=bold];
     "Merge findings +\nupdate tasks.md" [shape=box];
-    "Advance to implement" [shape=box];
+    "Advance to implement" [shape=box, label="Advance to implement\n(forward only)"];
     "Show summary" [shape=doublecircle];
 
     "Select change" -> "Invoke using-git-worktrees";
@@ -116,10 +112,10 @@ digraph plan {
     "Role count?" -> "Parallel review agents\n(1 per role)" [label="3+ roles"];
     "Single review agent\n(all roles)" -> "Merge findings +\nupdate tasks.md";
     "Parallel review agents\n(1 per role)" -> "Merge findings +\nupdate tasks.md";
-    "Merge findings +\nupdate tasks.md" -> "Commit tasks";
+    "Merge findings +\nupdate tasks.md" -> "Advance to implement";
+    "Advance to implement" -> "Commit tasks";
     "Commit tasks" [shape=box];
-    "Commit tasks" -> "Advance to implement";
-    "Advance to implement" -> "Show summary";
+    "Commit tasks" -> "Show summary";
 }
 ```
 
@@ -230,8 +226,8 @@ digraph plan {
 
    **Dispatch strategy based on confirmed role count:**
 
-   - **1–2 roles**: Single **Agent** (subagent_type: `Explore`) with all confirmed roles. Build one prompt containing all roles and their focus areas.
-   - **3+ roles**: One **Agent** (subagent_type: `Explore`) **per role**, dispatched in parallel. Each agent receives ONLY its own role and focus area — no knowledge of other roles.
+   - **1–2 roles**: Single **Agent** (subagent_type: `general-purpose`, told to edit nothing) with all confirmed roles. Build one prompt containing all roles and their focus areas.
+   - **3+ roles**: One **Agent** (subagent_type: `general-purpose`, told to edit nothing) **per role**, dispatched in parallel. Each agent receives ONLY its own role and focus area — no knowledge of other roles.
 
    Every agent receives:
    - All spec artifacts (proposal, gherkin, design)
@@ -276,9 +272,9 @@ digraph plan {
    ...
    ```
 
-   Update `status.yaml`: set `tasks` to `{ status: done }` and phase to `tasks`.
+   Update `status.yaml`: set `tasks` to `{ status: done }`, and set phase to `implement` when it is earlier than that. Phase only moves forward: a re-run on a change already in `implement` or later leaves phase where it is. Then run `node <skill-dir>/scripts/validate-beat.mjs --file beat/changes/<name>/status.yaml` (see `references/lint-tools.md`) and fix anything it reports.
 
-8. **Commit and advance phase**
+8. **Commit**
 
    Commit tasks.md, updated status.yaml, **and every living-documentation file this run wrote** — an ADR recorded at the review's ADR gate (plus any ADR index the project keeps under `docs/adr/`) belongs in the same commit as the tasks it came from:
 
@@ -292,8 +288,6 @@ digraph plan {
    Stage files by name, never `docs/adr/` as a directory: a path is staged when `git status` shows it and this run wrote it; a path modified by the user outside this run stays unstaged.
 
    Use a descriptive message, e.g. "plan(<name>): add task breakdown".
-
-   Update phase to `implement` in `status.yaml` (advancing from `tasks` → `implement`), then run `node <skill-dir>/scripts/validate-beat.mjs --file beat/changes/<name>/status.yaml` (see `references/lint-tools.md`) and fix anything it reports.
 
    ```
    ## Plan Complete: <change-name>

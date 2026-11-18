@@ -20,10 +20,6 @@ Use this to bring existing codebases into the Beat workflow. The output is draft
 - Greenfield projects with no existing code to distill
 - Exploring ideas or thinking through a problem (use `/beat:explore`)
 
-**Trigger examples:**
-- "Distill the auth module into feature files" / "Extract specs from existing code" / "Bring this codebase into Beat"
-- Should NOT trigger: "design a new feature" / "write specs for something we want to build" / "explore this idea"
-
 </decision_boundary>
 
 <HARD-GATE>
@@ -80,7 +76,7 @@ If a superpower is unavailable (skill not installed), skip and continue.
 - Skipping the existing feature scan
 - Claiming verification passed without running `/beat:verify`
 - Finishing without committing artifacts
-- Writing Gherkin scenarios that contain internal method names, numeric thresholds, or implementation constants
+- Writing Gherkin scenarios that contain internal method names, internal tuning numbers (scores, weights, timeouts), or implementation constants
 - Writing scenarios that use project-specific domain terms not defined in `GLOSSARY.md`
 - Writing a Key Decision in `design.md` without running the three-condition ADR gate
 - Inventing rationale for a recovered decision instead of marking it unverified or asking

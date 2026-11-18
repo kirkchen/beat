@@ -5,10 +5,11 @@ Issues for this repo live in `<owner>/<repo>` on GitHub. Use the `gh` CLI for al
 ## Conventions
 
 - **Create an issue**: `gh issue create --title "..." --body-file <file>`. Write the body to a file first; do not pass a multi-line body inline.
-- **Read an issue**: `gh issue view <number> --json number,title,body,labels,comments`.
+- **Read an issue**: `gh issue view <number> --json number,title,body,labels,assignees,comments`.
 - **List issues by label**: `gh issue list --state open -L <n> --label "<label>" --json number,title,body,labels,comments --jq '[.[] | {number, title, body, labels: [.labels[].name], comments: [.comments[].body]}]'`. The default limit is 30, which truncates large epics; set `-L` to at least the expected count.
 - **Edit the body**: `gh issue edit <number> --body-file <file>` (add `--title "..."` to change the title). Write the new body to a file first.
 - **Edit labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`.
+- **Set the assignee**: `--assignee <assignee>` on `gh issue create`, or `gh issue edit <number> --add-assignee <assignee>` on an existing issue.
 - **Comment on an issue**: `gh issue comment <number> --body-file <file>`.
 - **Close**: post the explanation with `gh issue comment <number> --body-file <file>`, then `gh issue close <number>`. On an already-closed issue, `gh issue close --comment` drops the comment and still exits 0.
 - **Make an issue a sub-issue of a parent**: `gh issue create --parent <parent> ...`, or `gh issue edit <parent> --add-sub-issue <child>` afterwards (`gh` 2.94+). Older `gh`: `gh api --method POST repos/<owner>/<repo>/issues/<parent>/sub_issues -F sub_issue_id=<child-db-id>` (database id, see **Add a blocked-by edge**). Without sub-issues, put `Part of #<parent>` at the top of the child body.

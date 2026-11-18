@@ -85,7 +85,7 @@ Skills that consume `testing`:
 
 ### `prototype`
 
-Tells `/beat:explore` where a prototype node is built when exploration ends in `blocked` with `kind: prototype` (see `references/route-schema.md`). `surface` names the medium — `storybook` for UI states, `cli` for command-line behaviour, `html` for a single throwaway page. `command` is what a human runs to look at it. When absent, explore falls back to `mattpocock-skills:prototype` if installed, otherwise asks the user where the prototype should live.
+Tells `/beat:explore` where a prototype node is built when exploration ends in `blocked` with a node of `type: prototype` (see `references/route-schema.md`). `surface` names the medium — `storybook` for UI states, `cli` for command-line behaviour, `html` for a single throwaway page. `command` is what a human runs to look at it. When absent, explore falls back to `mattpocock-skills:prototype` if installed, otherwise asks the user where the prototype should live.
 
 ### `preset_upgrade`
 
@@ -125,7 +125,7 @@ Insert this step **before creating any artifact**:
 6. Check `testing` (if present) to determine test requirements for apply/verify
 7. If config doesn't exist, proceed normally — config is always optional
 
-"Any artifact" includes living documentation, not just the change's own spec files: an ADR written at a trigger point, a glossary term added to `GLOSSARY.md`, a module README. Every skill that can write one of these reads the config first — including `/beat:explore`, which creates no spec artifacts but can capture an ADR.
+"Any artifact" includes living documentation, not just the change's own spec files: an ADR written at a trigger point, a glossary term added to `GLOSSARY.md`, a module README. Every skill that can write one of these reads the config first — including `/beat:explore`, which writes spec artifacts only when the user asks but can capture an ADR at any time.
 
 ## Examples
 

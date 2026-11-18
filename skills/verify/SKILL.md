@@ -20,10 +20,6 @@ Verify implementation against change artifacts across five dimensions. Uses inde
 - Running implementation or fixing findings (use `/beat:apply`)
 - Archiving the change (use `/beat:archive`)
 
-**Trigger examples:**
-- "Verify the change" / "Check implementation against spec" / "Run verification" / "Re-verify after the fixes"
-- Should NOT trigger: "design a feature" / "implement the change" / "archive it"
-
 </decision_boundary>
 
 <HARD-GATE>
@@ -155,18 +151,18 @@ digraph verify {
 
 2b. **Run the lint tools first**
 
-   Run `node <skill-dir>/scripts/validate-beat.mjs --change <name>` and `node <skill-dir>/scripts/lint-features.mjs --require-covered-by beat/changes/<name>/features/*.feature` (see `references/lint-tools.md`); add a whole-project `lint-features.mjs` run when the change modified existing features. Keep both outputs; they go to the subagents as pre-computed findings so the subagents do not re-derive what a script already settled (annotation targets, layer tags, user story, schema). A lint error is a finding at WARNING, or CRITICAL when it is a missing test file.
+   Run `node <skill-dir>/scripts/validate-beat.mjs --change <name>` and `node <skill-dir>/scripts/lint-features.mjs --require-covered-by beat/changes/<name>/features/*.feature` (see `references/lint-tools.md`); add a whole-project `lint-features.mjs` run when the change modified existing features. Use `--no-require-covered-by` instead, on both runs, when `testing.required` is `false` or the change has `source: distill` — tests are not expected there. Skip the feature lint when gherkin is skipped. Keep both outputs; they go to the subagents as pre-computed findings so the subagents do not re-derive what a script already settled (annotation targets, layer tags, user story, schema). A lint error is a finding at WARNING, or CRITICAL when it is a missing test file.
 
 3. **Dispatch the subagent(s)**
 
-   **Agent A — Verification subagent** (subagent_type: `Explore`):
+   **Agent A — Verification subagent** (subagent_type: `general-purpose`; tell it to read files in full and edit nothing):
    Read `verification-subagent-prompt.md` for the complete subagent prompt.
 
    Provide ONLY:
    - All artifact contents (features, proposal, design, tasks)
    - Testing context (drive mode, testing config, source flag, tag counts)
    - Modified files list from `gherkin.modified` with their `.feature.orig` backup paths (if any)
-   - Run mode; for incremental: `base`, the diff stat, the related scenarios/goals/decisions, and the previous findings still `open`
+   - Run mode; for incremental: `base`, the diff stat, the related scenarios/goals/decisions, and the previous dimension 1-3 and 5 findings with `status: open` or `fixed` (apply's `fixed` is a claim to confirm)
    - The lint output from step 2b
    - Do NOT pass conversation history or session context.
 
@@ -178,6 +174,7 @@ digraph verify {
    - List of files created/modified during apply (incremental: since `base`)
    - The planning document (tasks.md or proposal.md) as the "original plan"
    - The git range (base..head SHAs) so the reviewer can read the diff
+   - Incremental: the previous dimension 4 findings with `status: open` or `fixed`, to re-check under the same ids
 
    This reviews: code quality, architecture, naming, error handling, test quality, security, and plan alignment. Its output is Dimension 4, classified in Beat's CRITICAL/WARNING/SUGGESTION vocabulary.
 
@@ -208,7 +205,7 @@ digraph verify {
 
 6. **Write `verify.md` and record the outcome in status.yaml**
 
-   Write `beat/changes/<name>/verify.md` per `references/verify-findings.md` (front matter fields, one line per finding, how ids carry across incremental runs), with the combined report as the body. Every finding from every subagent and every failing automated test becomes one `findings` line.
+   Write `beat/changes/<name>/verify.md` per `references/verify-findings.md` (front matter fields, one line per finding, how ids carry across incremental runs), with the combined report as the body. The `findings` list is: every previous finding carried forward under its id (re-checked ones updated to `open` or `fixed`, `wontfix` kept as written), the new findings the convergence rules admitted, and every failing automated test. New findings a rule did not admit are counted in the report, not written.
 
    Then read `status.yaml` (read before write — preserve existing fields) and set, per `references/status-schema.md`:
 

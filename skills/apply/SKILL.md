@@ -23,10 +23,6 @@ Implement code based on the change artifacts. Supports three modes:
 - Verifying implementation completeness (use `/beat:verify`)
 - Exploring ideas or investigating a problem (use `/beat:explore`)
 
-**Trigger examples:**
-- "Implement the change" / "Start coding" / "Apply the plan" / "TDD the scenarios"
-- Should NOT trigger: "design a feature" / "break down tasks" / "verify the implementation"
-
 </decision_boundary>
 
 <HARD-GATE>
@@ -57,7 +53,7 @@ It existed to let a human judge a variant. Rewrite the behaviour from the gherki
 | systematic-debugging | When stuck (3 failed attempts) | SHOULD |
 | subagent-driven-development | When tasks.md has multiple independent tasks | SHOULD |
 
-Invoke in order: worktrees first (verify isolation), then TDD (discipline). Debugging and subagent are conditional — only invoke when triggered. If a superpower is unavailable (skill not installed), skip and continue.
+Debugging and subagent-driven development are conditional — invoke them only when their trigger occurs.
 
 ## Unattended mode
 
@@ -101,7 +97,7 @@ When the run carries a stage-result nonce (see `references/handoff-report.md`), 
 Living-doc paths (glossary, ADRs, architecture hub) are listed in `references/project-layout.md`.
 
 - **ADR** — hard-to-reverse + surprising + real-trade-off decision not in `design.md` → write ADR (`references/adr-format.md`). Before writing: apply `rules.adr` from the `beat/config.yaml` you read in step 3, and use the project's `docs/adr/TEMPLATE.md` if it exists (otherwise Beat's front-matter template, `source: beat/changes/<name>`). Commit the ADR (and any project ADR index) in the same commit as the code that forced the decision.
-- **README** — module public-interface change → update module README (`references/architecture-format.md`)
+- **README** — module public-interface change → prompt the user to update that module's README (they may decline) (`references/architecture-format.md`)
 - **New module** — creating a new module (new top-level directory with its own concerns) → offer to scaffold its README (`references/architecture-format.md`)
 
 Run inline as conditions arise. Don't batch.
@@ -276,15 +272,15 @@ digraph apply {
 
    d. **If using tasks.md**: Mark task complete `- [ ]` -> `- [x]`. In fix-from-verify mode: mark the finding `status: fixed` in `verify.md`.
 
-   d2. **Preset upgrade check** (only when `preset` is `minimal` or `technical`): run `git diff --stat <base>..HEAD` and count, tests excluded, the source files touched, the net lines added, and the top-level modules touched (directories under `src/`, `packages/`, `apps/`, or the repo root). Compare against `preset_upgrade` in `beat/config.yaml` (thresholds and defaults: `references/config-schema.md`). If any threshold is exceeded: set `preset: standard` and write `preset_upgrade: { from: <old>, by: /beat:apply, date: <today>, reason: "<which threshold, with numbers>" }` in `status.yaml`, announce it in one line, and continue — the next `/beat:verify` runs at standard strength. Do this check once per task, not once at the end.
+   d2. **Preset upgrade check** (only when `preset` is `minimal` or `technical`): run `git diff --stat <base>` (base to the working tree, so uncommitted task work counts) plus the untracked files this run created, and count, tests excluded, the source files touched, the net lines added, and the top-level modules touched (directories under `src/`, `packages/`, `apps/`, or the repo root). Compare against `preset_upgrade` in `beat/config.yaml` (thresholds and defaults: `references/config-schema.md`). If any threshold is exceeded: set `preset: standard` and write `preset_upgrade: { from: <old>, by: /beat:apply, date: <today>, reason: "<which threshold, with numbers>" }` in `status.yaml`, announce it in one line, and continue — the next `/beat:verify` runs at standard strength. Do this check once per task, not once at the end.
 
-   d3. **Sensitivity check** (unattended mode only, once after the last task): run `git diff --name-only <base>..HEAD` and compare the touched paths and what they implement against `sensitive` in `beat/config.yaml` (schema: `references/config-schema.md`). Read `beat/changes/<name>/decisions/sensitive.md`: if it already says `yes`, repeat it. If it says `no` and the diff now matches, update the file (`yes`, what matched, `apply`) and report `sensitive=yes` — this does not stop the run; archive lists it in the PR body. If the diff shows the change needs a second PR (a second module, a migration that must land first), stop with a `scope` brief per `references/unattended-mode.md` instead of continuing.
+   d3. **Sensitivity check** (unattended mode only, once after the last task): run `git diff --name-only <base>` plus the untracked files this run created, and compare the touched paths and what they implement against `sensitive` in `beat/config.yaml` (schema: `references/config-schema.md`). Read `beat/changes/<name>/decisions/sensitive.md`: if it already says `yes`, repeat it. If it says `no` and the diff now matches, update the file (`yes`, what matched, `apply`) and report `sensitive=yes` — this does not stop the run; archive lists it in the PR body. If the diff shows the change needs a second PR (a second module, a migration that must land first), stop with a `scope` brief per `references/unattended-mode.md` instead of continuing.
 
    e. **Continue to next**
 
    f. **Scenario completion check** (before moving to the next scenario):
 
-      Run `node <skill-dir>/scripts/lint-features.mjs --require-covered-by beat/changes/<name>/features/*.feature` (see `references/lint-tools.md`). It checks the `@covered-by` annotation, its position, that the test file exists and carries the `@scenario:` annotation, and the layer tag. Fix every error it lists; rerun until it exits 0. In no-test mode run it without `--require-covered-by`.
+      Run `node <skill-dir>/scripts/lint-features.mjs beat/changes/<name>/features/*.feature` (see `references/lint-tools.md`). It checks the `@covered-by` annotations that exist, their position, that each test file exists and carries the `@scenario:` annotation, and the layer tag; scenarios not yet implemented have no annotation and do not fail it. Confirm the scenario you just finished has its `@covered-by`. Fix every error it lists; rerun until it exits 0. After the last scenario, run it once more with `--require-covered-by` so every scenario is covered (skip that run in no-test mode).
 
       Then confirm by hand what lint cannot see:
       - [ ] The test is executable, not a skeleton (run it)

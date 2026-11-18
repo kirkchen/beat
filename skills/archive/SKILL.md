@@ -20,10 +20,6 @@ Archive a completed change. Checks completion, syncs features to living document
 - Creating or modifying spec artifacts (use `/beat:design`)
 - Waiting for the PR to be merged first — archive is the last commit on the branch, before the PR, and it invokes the merge/PR step itself
 
-**Trigger examples:**
-- "Archive the change" / "The change is done, wrap it up" / "Sync the features"
-- Should NOT trigger: "verify the implementation" / "implement the change" / "design a feature"
-
 </decision_boundary>
 
 <HARD-GATE>
@@ -45,8 +41,11 @@ When syncing `design.md` into a capability that already has one: you MUST merge
 the change's decisions into the existing document and rewrite it as the current
 state — NEVER overwrite it with the change's copy.
 After moving the change directory: you MUST rewrite every reference to the old
-`beat/changes/<name>` path (ADRs, features, glossary, READMEs, other changes)
-to the archived path. A moved directory with dangling links is not archived.
+`beat/changes/<name>` path (ADRs, features, glossary, READMEs, active changes,
+and the moved directory itself) to the archived path. Records keep the old path
+(`references/project-layout.md` "Records": other archived changes, incidents,
+proposals, research, migrations, CHANGELOG). A moved directory with dangling
+links is not archived.
 Before invoking finishing-a-development-branch: you MUST commit the archive result
 on the current branch (never create or switch one) — archive runs before the
 PR/merge, never after it.
@@ -261,7 +260,7 @@ digraph archive {
    2. Delete the `.feature.orig` backup from `beat/features/`
    3. If the project uses pytest-bdd: update `@scenario` decorator paths in test files (from `beat/changes/.../x.feature` → `beat/features/<capability>/x.feature`)
 
-   Run `node <skill-dir>/scripts/validate-beat.mjs --change <name>` — it reports any `.feature.orig` left in `beat/features/` that no active change claims. Then run `node <skill-dir>/scripts/lint-features.mjs` so the synced features and the README index are clean.
+   Run `node <skill-dir>/scripts/validate-beat.mjs --change <name>` — it reports any `.feature.orig` left in `beat/features/` that no active change claims. Then run `node <skill-dir>/scripts/lint-features.mjs` so the synced features and the README index are clean; add `--no-require-covered-by` when `testing.required` is `false` or the change has `source: distill`, since files under `beat/features/` otherwise require `@covered-by`.
 
    Create `beat/features/<capability>/README.md` if it doesn't exist (placeholder description).
    Create or update `beat/features/README.md` with global navigation.

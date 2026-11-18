@@ -18,10 +18,6 @@ Design a change — create a change container (if needed) and generate spec arti
 - Implementing code (use `/beat:apply`)
 - Reviewing or verifying implementation (use `/beat:verify`)
 
-**Trigger examples:**
-- "Design a user authentication feature" / "Create a change for login" / "Generate specs for X"
-- Should NOT trigger: "break down the tasks" / "let me think about this" / "implement the change"
-
 </decision_boundary>
 
 <HARD-GATE>
@@ -61,7 +57,7 @@ If a prerequisite skill is unavailable (skill not installed), skip and continue.
 
 ## Unattended mode
 
-When the run carries a stage-result nonce (see `references/handoff-report.md`), nobody is watching: follow `references/unattended-mode.md`. Every **AskUserQuestion** in this skill becomes a default (recorded in `beat/changes/<name>/decisions/assumed.md`), a decision brief (`references/decision-brief.md`, `blocked-on: decision`), or an environmental stop (`blocked-on: env`). The per-skill table in that reference says which. For design specifically: the preset defaults to what explore declared or `standard`; a Key Decision that meets the ADR gate is written as an ADR without asking; one that is not covered by the issue's locked decisions and still needs the human becomes a brief.
+When the run carries a stage-result nonce (see `references/handoff-report.md`), nobody is watching: follow `references/unattended-mode.md`. Every **AskUserQuestion** in this skill becomes a default (recorded in `beat/changes/<name>/decisions/assumed.md`), a decision brief (`references/decision-brief.md`, `blocked-on: decision`), or an environmental stop (`blocked-on: env`). The per-skill table in that reference says which. For design specifically: the preset defaults to what explore declared or `standard`; a Key Decision copied from the issue's locked decisions skips the ADR gate; any other Key Decision that meets the gate is one the human has not made, so it becomes a brief, and the ADR is written only from the reply.
 
 ## Rationalization Prevention
 
@@ -83,7 +79,7 @@ When the run carries a stage-result nonce (see `references/handoff-report.md`), 
 - Writing any file before invoking using-git-worktrees
 - Generating proposal sections without having invoked brainstorming
 - Creating design.md without invoking brainstorming first
-- Writing gherkin scenarios that contain internal method names, numeric thresholds, or implementation constants
+- Writing gherkin scenarios that contain internal method names, internal tuning numbers (scores, weights, timeouts), or implementation constants
 - Writing gherkin scenarios that use project-specific domain terms not defined in `GLOSSARY.md`
 - Modifying an existing feature in `beat/features/` without creating a `.orig` backup first
 - Writing tasks.md or `- [ ]` checkboxes — tasks belong in `/beat:plan`
@@ -237,7 +233,7 @@ digraph design {
      - Feature description carries PRD essence (must include: As a / I want / So that)
      - Every scenario MUST have a testing layer tag: `@e2e` (user journeys needing a running app) or `@behavior` (business logic testable without a full app; default `@behavior`)
      - Write at behavior level — describe what the system does ("Monthly billing adjusts for short months"), not how a function works ("calculateNextTransactionDate clamps to last day")
-     - Use business language — no concrete numeric thresholds, code method names, or internal constants (API contract constants are OK as shared vocabulary)
+     - Use business language — no internal tuning numbers, code method names, or internal constants. Business-rule thresholds the user can observe ("locked after 5 attempts") and API contract constants are behavior: keep them.
      - Repeated Given steps use `Background:`
      - Tags must serve a filtering purpose — no decorative tags
      - BDD focuses on high-level acceptance; boundary values and algorithm details belong in unit tests

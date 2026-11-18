@@ -19,10 +19,6 @@ Turn the conclusion of a `/beat:explore` session into tracker issues. The issue 
 - Creating spec artifacts (use `/beat:design`)
 - Writing a PR body (follow the project's PR template)
 
-**Trigger examples:**
-- "開成 issue" / "把結論開票" / "交給 Rhythm" / "open an issue for what we just decided" / "split this route into issues"
-- Should NOT trigger: "let me think about X first" / "design this feature" / "write the PR description"
-
 </decision_boundary>
 
 <HARD-GATE>
@@ -131,7 +127,7 @@ digraph to_issue {
 
 Read `docs/agents/issue-tracker.md`. Absent → print `No docs/agents/issue-tracker.md. Run /beat:setup to create it.` and end with the handoff block (`next: /beat:setup`, `blocked-on: no docs/agents/issue-tracker.md`).
 
-Take from it: the tracker and its CLI, every command recipe under Conventions, the assignee, the dispatch label and the five status labels (`status/ready`, `status/running`, `status/waiting`, `status/blocked`, `status/in-review`) from Vocabulary, and the epic rules from Epics. Use the recipes as written, substituting only numbers, titles and file paths.
+Take from it: the tracker and its CLI, every command recipe under Conventions, the assignee, the dispatch label and the five status labels (`status/ready`, `status/running`, `status/waiting`, `status/blocked`, `status/in-review`) from Vocabulary, and the epic rules from Epics. Use the recipes as written, substituting only numbers, titles, file paths and the Vocabulary values (assignee, labels).
 
 ### 2. Read the exit
 

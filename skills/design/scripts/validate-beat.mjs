@@ -404,7 +404,10 @@ export function stalePaths(projectRoot, change) {
   const exclude = found?.archived ? relative(projectRoot, join(found.dir, 'status.yaml')) : `beat/changes/archive/*${change}/status.yaml`;
   const out = git(projectRoot, ['grep', '-lE', '--untracked', pattern, '--', '.', `:!${exclude}`]);
   if (out === null) return { errors: [], warnings: ['not a git checkout — cannot grep for stale paths'] };
-  const files = out.split('\n').filter(Boolean);
+  // Records keep old paths; the directory this archive just moved is the one
+  // record still being finalised, so its self-references are fixed too.
+  const ownDir = found?.archived ? relative(projectRoot, found.dir) + '/' : null;
+  const files = out.split('\n').filter(Boolean).filter(f => !isRecord(f) || (ownDir && f.startsWith(ownDir)));
   return { errors: files.map(f => `${f}: still references beat/changes/${change}`), warnings: [] };
 }
 

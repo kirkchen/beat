@@ -33,7 +33,7 @@ Every point where a skill would use `AskUserQuestion` becomes one of three thing
 
 When the change was dispatched from an issue, the issue body is the specification. A section titled `## 已定案（不要重新討論）` (or `## Decided (do not reopen)`) lists decisions the human already made. `/beat:design` treats every line there as settled: it does not re-ask, re-argue or run the ADR gate on it. Its own Key Decisions that are **not** covered by that section go through the gate as usual and, in unattended mode, become briefs.
 
-After a gate reply the skill writes the answer back: one line under the issue's locked section (when the skill can reach the issue) and into `design.md`'s Key Decisions; an answer that meets the ADR gate becomes an ADR.
+After a gate reply the skill writes the answer into `design.md`'s Key Decisions; an answer that meets the ADR gate becomes an ADR. The issue is the orchestrator's to update (`references/decision-brief.md` "After the answer"); the skill never edits the issue body.
 
 ## Sensitivity
 

@@ -15,7 +15,7 @@ The dispatcher provides:
 
 ## Lint output
 
-When the dispatcher hands you lint output, those results are settled: report each lint error as a finding verbatim (missing test file → CRITICAL, everything else → WARNING) and do not re-check the rules the linter covers — `@covered-by` targets and annotations, layer tags, user story, known tags, placeholders, status.yaml schema. Spend your reading on what the linter cannot judge: behavior-level wording, test quality, proposal and design alignment, living docs.
+When the dispatcher hands you lint output, those results are settled: report each lint error as a finding verbatim (missing test file → CRITICAL, everything else → WARNING) and do not re-check the rules the linter covers — `@covered-by` targets and annotation format, layer tags, user story, known tags, placeholders, status.yaml schema. Whether a scenario without `@covered-by` has a test at all is not something the linter checks; that stays yours (Dimension 1B). Spend your reading on what the linter cannot judge: behavior-level wording, test quality, proposal and design alignment, living docs.
 
 ## Testing Context (provided by dispatcher)
 
@@ -30,7 +30,7 @@ When the dispatcher hands you lint output, those results are settled: report eac
 
 ## Incremental runs
 
-When run mode is incremental, scope every dimension to the diff: verify the scenarios, goals and decisions the dispatcher listed, and any file in the diff. For each previous open finding, re-check it at its `file` and report it as **still open** (same id) or **resolved** (same id). Do not re-verify untouched scenarios — say in the report which ones you did not read. If the diff touches a shared file (a schema, a base class, a fixture) that many scenarios depend on, say so and recommend a full run.
+When run mode is incremental, scope every dimension to the diff: verify the scenarios, goals and decisions the dispatcher listed, and any file in the diff. For each previous finding the dispatcher lists (`open`, or `fixed` by apply), re-check it at its `file` and report it as **open** (same id — including a `fixed` one that still reproduces) or **fixed** (same id). Do not re-verify untouched scenarios — say in the report which ones you did not read. If the diff touches a shared file (a schema, a base class, a fixture) that many scenarios depend on, say so and recommend a full run.
 
 ## Dimension 1: Gherkin Coverage & Quality
 
@@ -56,7 +56,7 @@ For each .feature file:
   - `@behavior` should be testable without a running app (business logic, calculation, validation)
   - Misclassified → SUGGESTION
 - Do scenarios leak implementation details?
-  - Concrete numeric thresholds (0.85, 1.0) instead of business concepts → WARNING
+  - Internal tuning numbers (a 0.85 confidence score, a retry backoff) instead of business concepts → WARNING. Business-rule thresholds the user can observe ("locked after 5 attempts") are behavior, not a finding.
   - Code method names (detect_pii) instead of business verbs → WARNING
   - Internal constants (context window, checksum weights) → WARNING
   - Exception: API contract constants (entity type names, HTTP status codes) are shared vocabulary and OK
@@ -88,7 +88,7 @@ For each Scenario in .feature files:
 - Does the scenario have a `# @covered-by: <path>` annotation (between tag and scenario line)?
 - Does the referenced test file exist?
 - Does the test file contain a matching `// @scenario:` comment?
-- Missing `@covered-by` → WARNING.
+- Missing `@covered-by`: search the test suite for a test that exercises the scenario. A test exists but is not linked → WARNING. No test exists → CRITICAL.
 - `@covered-by` pointing to nonexistent file → CRITICAL.
 - File exists but no matching `@scenario` comment → WARNING.
 
@@ -132,7 +132,7 @@ If proposal.md exists:
 - For each goal in the proposal: is there implementation evidence?
 - Are there goals mentioned but not implemented?
 
-When proposal-driven: strengthen this dimension — check that every risk point and success criterion has corresponding test coverage. Missing coverage for a risk point → CRITICAL (elevated from WARNING).
+When proposal-driven: strengthen this dimension — check that every risk point and success criterion has corresponding test coverage. Missing coverage for a risk point → CRITICAL (elevated from WARNING), unless testing.required is false — then skip test checks as in no-test mode.
 
 ## Dimension 3: Design Adherence
 
@@ -236,7 +236,7 @@ yet, and Beat shouldn't pretend it has.
 ### Findings (machine-readable)
 One line per finding, in the format of `references/verify-findings.md`, ids continuing from the previous run's when incremental:
 - { id: F1, severity: CRITICAL, dimension: 1B, scenario: "<name>", file: "<path:line>", fix: "<one sentence>", status: open }
-- { id: F3, severity: WARNING, dimension: 2, scenario: "", file: "<path>", fix: "<one sentence>", status: resolved }
+- { id: F3, severity: WARNING, dimension: 2, scenario: "", file: "<path>", fix: "<one sentence>", status: fixed }
 ```
 
 The dispatcher copies the `Findings` block into `verify.md` front matter; it must contain every finding listed above it, nothing more.

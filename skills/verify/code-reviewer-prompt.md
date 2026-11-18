@@ -18,6 +18,7 @@ The dispatcher provides:
 - **Files created/modified during apply** — the surface to review
 - **Original plan** — tasks.md or proposal.md, as the requirements to check against
 - **Git range** (if available) — base and head SHAs
+- **Previous findings** (incremental runs) — dimension 4 findings marked `open` or `fixed`; re-check each and report it under its id as **open** or **fixed**
 
 If a git range is provided, start by reading the diff:
 

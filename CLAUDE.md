@@ -37,6 +37,7 @@ beat/
 │   ├── status-schema.md         # status.yaml format
 │   ├── config-schema.md         # config.yaml format
 │   ├── testing-conventions.md   # Annotation format and e2e test style reference
+│   ├── feature-writing.md       # Feature-file conventions: description blocks, scenario organization, review checklist
 │   ├── project-layout.md        # Map of every project-level path Beat writes (authority for paths)
 │   ├── context-format.md        # GLOSSARY.md glossary format (Layer 1 living docs)
 │   ├── adr-format.md            # docs/adr/ ADR format + three-condition gate (Layer 2 living docs)
@@ -127,7 +128,7 @@ explore ──exit──► [to-issue ──label──►] design → plan → 
 
 For purely technical changes (tooling, deps, refactor): gherkin can be skipped, proposal becomes the driver.
 
-Explore ends by declaring one exit (`small`, `standard`, `too-big`, `blocked`, `drop`) with the facts behind it. `/beat:to-issue` is optional: it writes the conclusion into a tracker issue (an epic with sub-issues for a route) so an orchestrator or a person can run design later without the conversation; the dispatch label is added only when the user asks. The preset chosen in design sets the strength of later phases: `minimal`/`technical` get a test-coverage-only plan review and a single verify subagent, and `/beat:apply` upgrades them to `standard` when the diff crosses `config.yaml` `preset_upgrade` thresholds. Verify writes `verify.md`; `apply fix-from-verify` fixes the open CRITICALs (explicit ids for anything else); re-runs are incremental from `verification.sha` and bounded by convergence rules (severity floor, prose ceiling, iteration ramp, round cap — see `skills/verify/SKILL.md` "Convergence"). A full re-run is the user's choice; archive never requires it. Apply never pushes — pushing comes after archive. Every skill ends with the `## Beat Handoff` block.
+Explore ends by declaring one exit (`small`, `standard`, `too-big`, `blocked`, `drop`) with the facts behind it. `/beat:to-issue` is optional: it writes the conclusion into a tracker issue (an epic with sub-issues for a route) so an orchestrator or a person can run design later without the conversation; the dispatch label is added only when the user asks. The preset chosen in design sets the strength of later phases: `minimal`/`technical` get a test-coverage-only plan review and a single verify subagent, and `/beat:apply` upgrades them to `standard` when the diff crosses `config.yaml` `preset_upgrade` thresholds. Verify writes `verify.md`; `apply fix-from-verify` fixes the open CRITICALs and reachable WARNINGs by default (explicit ids for anything else); re-runs are incremental from `verification.sha` and bounded by convergence rules (severity floor, prose ceiling, iteration ramp, round cap — see `skills/verify/SKILL.md` "Convergence"). A full re-run is the user's choice; archive never requires it. Apply never pushes — pushing comes after archive. Every skill ends with the `## Beat Handoff` block.
 
 - **design**: Creates worktree + change container + generates spec artifacts (proposal, gherkin, design.md) + commits
 - **plan**: Creates execution plan (tasks.md) with multi-role review against spec artifacts + commits
@@ -143,7 +144,7 @@ Explore ends by declaring one exit (`small`, `standard`, `too-big`, `blocked`, `
 - **config.yaml** is optional project config — schema in `references/config-schema.md`. Controls artifact language, injects project context, and adds per-artifact rules (`proposal`, `gherkin`, `design`, `tasks`, `adr`). `rules.adr` applies at every ADR trigger point, so every skill that can write an ADR (including `/beat:explore`) reads the config; a project `docs/adr/TEMPLATE.md` takes precedence over Beat's built-in ADR template.
 - **Unattended mode** (`references/unattended-mode.md`) is on only when the run carries a stage-result nonce (Rhythm). Questions take defaults recorded in `beat/changes/<name>/decisions/assumed.md`; a decision that meets the ADR gate or matches `config.yaml` `sensitive` becomes a brief (`references/decision-brief.md`) and the run stops with `blocked-on: decision`; the handoff suffix carries `blocked-on` / `decision` / `sensitive` / `diverging`. Archive pushes and opens a ready PR with a "決定與影響" section instead of invoking finishing-a-development-branch. Explore is never unattended.
 - **Gherkin is mandatory by default** but can be skipped for purely technical changes (tooling, deps, refactoring without behavior change). When skipped, proposal drives plan, apply, and verify.
-- **verify** uses independent subagents (Agent tool: `Explore` for spec verification, `general-purpose` for code review) to avoid context bias. When verifying distilled specs (`source: distill`), it switches to accuracy mode.
+- **verify** uses independent subagents (Agent tool, `general-purpose`, told to edit nothing — `Explore` is a search agent and starts without CLAUDE.md) to avoid context bias. When verifying distilled specs (`source: distill`), it switches to accuracy mode.
 - **distill** works in reverse (code → spec), marks features with `@distilled` tag, and relies on `/beat:verify` for independent accuracy verification. A distill change sets `tasks: skipped` (nothing to implement) and flows distill → verify → archive; future changes to the distilled area use the normal flow in their own change containers.
 
 ### Living Documentation (three layers)
@@ -186,7 +187,7 @@ In test files (use the project language's comment syntax):
 @scenario: Monthly billing adjusts for short months
 ```
 
-**Granularity guidance** — Scenarios should describe behavior (what the system does), not function specs (how a function works). See `design/SKILL.md` for Gherkin creation guidelines.
+**Granularity guidance** — Scenarios should describe behavior (what the system does), not function specs (how a function works). See `skills/design/SKILL.md` for Gherkin creation guidelines.
 
 **Proposal-driven testing** — When gherkin is skipped (technical changes), testing is driven by proposal.md risk points and success criteria. Tests use the project's test framework without feature file annotations.
 
@@ -226,7 +227,7 @@ Two scripts carry the checks that are deterministic (`references/lint-tools.md`)
 
 ### Testing Changes
 
-Beat has a four-layer automated test suite using `claude -p` headless mode. Tests are in `tests/`.
+Beat has a five-layer automated test suite using `claude -p` headless mode. Tests are in `tests/`.
 
 **Run fast tests (~20 min):**
 ```bash
@@ -238,7 +239,7 @@ cd tests && ./run-all.sh
 cd tests && ./run-all.sh --integration
 ```
 
-**Four test layers:**
+**Five test layers:**
 
 | Layer | What it tests | Scripts |
 |-------|--------------|---------|
@@ -273,10 +274,10 @@ Beat is installable on Codex directly from this GitHub repo — no separate mark
 
 `source.path: "./"` (root as plugin) was tried first but Codex's plugin scanner does not pick up content when marketplace and plugin overlap at the same path — the subdirectory layout matches the convention in `openai/plugins` and other working marketplaces.
 
-End-user install (two steps because the Codex CLI has no plugin-install subcommand — only marketplace add/upgrade/remove):
+End-user install:
 
 1. `codex plugin marketplace add https://github.com/kirkchen/beat`
-2. Inside Codex UI plugins panel, install Beat.
+2. `codex plugin add beat@kirkchen-beat` (or install Beat from the plugins panel in the Codex UI).
 
 See `docs/INSTALL-CODEX.md` for the full user-facing flow.
 

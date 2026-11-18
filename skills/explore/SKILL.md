@@ -3,7 +3,7 @@ name: explore
 description: Use when thinking through ideas, problems, or requirements before a Beat change, or asking what's next on a Beat route
 ---
 
-Enter explore mode. Think deeply. Visualize freely. Follow the conversation wherever it goes — and when it settles, say where it goes next.
+Enter explore mode. Visualize freely. Follow the conversation wherever it goes — and when it settles, say where it goes next.
 
 <decision_boundary>
 
@@ -19,13 +19,9 @@ Enter explore mode. Think deeply. Visualize freely. Follow the conversation wher
 - Implementing code (use `/beat:apply`)
 - Extracting specs from existing code (use `/beat:distill`)
 
-**Trigger examples:**
-- "Let me think through X" / "Investigate why Y happens" / "What are our options for Z?" / "What's next on the slack-ingress route?"
-- Should NOT trigger: "design a feature" / "implement this" / "break down the tasks"
-
 </decision_boundary>
 
-**IMPORTANT: Explore mode is for thinking, not implementing.** You may read files, search code, and investigate the codebase, but you must NEVER write code or implement features. If the user asks you to implement something, remind them to exit explore mode first (e.g., `/beat:design`). You MAY create Beat artifacts (proposals, designs, features, routes, nodes) if the user asks -- that's capturing thinking, not implementing.
+**Explore mode is for thinking, not implementing.** Read files, search code and investigate the codebase, but do not write code or implement features: anything built here skips the spec and the tests that design and apply require. If the user asks you to implement something, remind them to exit explore mode first (e.g., `/beat:design`). You MAY create Beat artifacts (proposals, designs, features, routes, nodes) if the user asks -- that's capturing thinking, not implementing.
 
 **This is a stance, not a workflow.** No fixed steps, no required sequence. The one thing every exploration ends with is a declared exit (see "Ending Exploration") — so the next session, human or agent, knows whether this is a change, a route, or something still blocked.
 
@@ -46,8 +42,8 @@ observable facts that justify it. The user can override the exit; you cannot omi
 | Skill | When | Priority |
 |-------|------|----------|
 | superpowers:brainstorming | At the start of explore, before any response | MUST |
-| mattpocock-skills:research | A `blocked` exit with `kind: research`, when the user wants it run now | OPTIONAL |
-| mattpocock-skills:prototype | A `blocked` exit with `kind: prototype`, when `config.yaml` has no `prototype.surface` | OPTIONAL |
+| mattpocock-skills:research | A `blocked` exit whose node has `type: research`, when the user wants it run now | OPTIONAL |
+| mattpocock-skills:prototype | A `blocked` exit whose node has `type: prototype`, when `config.yaml` has no `prototype.surface` | OPTIONAL |
 | grilling + domain-modeling (mattpocock/skills, model-invoked) | When a domain term is ambiguous enough that the conversation keeps circling it | OPTIONAL |
 
 If a MUST skill is unavailable (not installed), proceed directly into the thinking stance. Optional skills are offered, never required; without them the node is still created and the user runs it however they like. `grilling` and `domain-modeling` are called directly (they are model-invoked); `grill-with-docs` is user-invoked and cannot be reached from a skill — mention that the user can run it themselves, never offer to invoke it.
@@ -104,7 +100,7 @@ Explore is never unattended: it is the one phase where the human spends time. Wh
 **Visualize**
 ```
 ┌─────────────────────────────────────────┐
-│     Use ASCII diagrams liberally        │
+│  Use ASCII diagrams when they clarify   │
 ├─────────────────────────────────────────┤
 │   ┌────────┐         ┌────────┐        │
 │   │ State  │────────▶│ State  │        │
@@ -150,7 +146,7 @@ If the user mentions a change or one is relevant:
 
    When capturing a design decision, run the three-condition ADR gate from `references/adr-format.md` (hard-to-reverse + surprising + real trade-off). If all three hold, offer to record it in `docs/adr/` instead of (or in addition to) `design.md`.
 
-   **Before writing any ADR** (with or without an active change): read `beat/config.yaml` if it exists and apply `rules.adr`; use the project's `docs/adr/TEMPLATE.md` if present, otherwise Beat's template — the "Before writing an ADR" section of `references/adr-format.md` spells this out. Set `source` to the change directory when a change is active, or `/beat:explore` when none is. Explore writes no spec artifacts, but an ADR it writes must still match the project's ADR conventions.
+   **Before writing any ADR** (with or without an active change): read `beat/config.yaml` if it exists and apply `rules.adr`; use the project's `docs/adr/TEMPLATE.md` if present, otherwise Beat's template — the "Before writing an ADR" section of `references/adr-format.md` spells this out. Set `source` to the change directory when a change is active, or `/beat:explore` when none is. Explore writes spec artifacts only when the user asks, and an ADR it writes must still match the project's ADR conventions.
 
 4. The user decides -- offer and move on. Don't pressure. Don't auto-capture.
 
@@ -166,7 +162,7 @@ Exploration ends when the user is done or the shape is clear. Before ending, **d
 | `standard` | the affected area fits one change, but one or more decisions are still to be made in design | "Ready for `/beat:design <name>`" — design asks for the preset as usual. |
 | `too-big` | more than one module, or decisions that depend on each other, or more than one PR | Create `beat/routes/<name>/` (schema: `references/route-schema.md`): `route.md` from the brainstorming output, `status.yaml` with the nodes you can already name. Next: `/beat:explore <route>` to pick the first frontier node. In a project that has `docs/agents/issue-tracker.md`, next is `/beat:to-issue` (the epic plus one sub-issue per change node), and `/beat:explore <route>` follows it. |
 | `drop` | the facts say this should not be built: already covered, out of scope for the project, or the cost is not worth it | Say so, close the issue when there is one (with the one-line reason), create nothing. |
-| `blocked` | the one thing that must exist before any of the above can be chosen | Create a node (in the active route, or a one-node route when there is none) with `kind` = `research` (an agent can answer it unattended), `prototype` (a human must look at something — see below), or `decision` (only a human can decide). Next: whoever resolves it, then `/beat:explore` again. |
+| `blocked` | the one thing that must exist before any of the above can be chosen | Create a node (in the active route, or a one-node route when there is none) with `type` = `research` (an agent can answer it unattended), `prototype` (a human must look at something — see below), or `decision` (only a human can decide). Next: whoever resolves it, then `/beat:explore` again. |
 
 In a project that has `docs/agents/issue-tracker.md`, `small` and `standard` hand off to the tracker instead: `next: /beat:to-issue`, which writes the conclusion into an issue that design later runs from. Without that file, `next` is `/beat:design <name>` as in the table.
 
