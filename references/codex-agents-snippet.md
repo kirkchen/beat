@@ -24,19 +24,21 @@ After brainstorming or exploration is complete, transition to Beat instead of `w
 - Beat's plan skill invokes `writing-plans` internally when creating tasks.
 - Do NOT invoke `writing-plans` directly — Beat orchestrates the full pipeline.
 
-Beat pipeline: `/beat:explore` → `/beat:design` → `/beat:plan` → `/beat:apply` → `/beat:verify` → `/beat:archive`.
+Beat pipeline: `/beat:explore` → `/beat:to-issue` (optional, tracker projects) → `/beat:design` → `/beat:plan` → `/beat:apply` → `/beat:verify` → `/beat:archive`.
 
-- `/beat:explore` ends by declaring an exit: `small` / `standard` (one change), `too-big` (creates a route under `beat/routes/`), or `blocked` (a research / prototype / decision node).
+- `/beat:explore` ends by declaring one of five exits: `small` / `standard` (one change), `too-big` (creates a route under `beat/routes/`), `blocked` (a research / prototype / decision node), or `drop` (not worth building; nothing is created).
 - `/beat:verify` writes findings to `verify.md`; `/beat:apply fix-from-verify` fixes the open CRITICALs and reachable WARNINGs by default (explicit ids for anything else). Zero open CRITICAL is converged; re-runs are incremental and bounded by the iteration ramp.
 - `/beat:apply` never pushes. Pushing happens after `/beat:archive`, via `finishing-a-development-branch`.
 - Every skill ends with a `## Beat Handoff` block (`references/handoff-report.md`). There is no supervisor or hook on Codex, so that block is how the next session knows where things stand.
 
 Beat maintains three project-level living-doc surfaces (all lazy — created on first use):
-- `GLOSSARY.md` (project root) — domain glossary maintained inline by design/archive
+- `GLOSSARY.md` (project root) — domain glossary maintained inline by design/distill/archive
 - `docs/adr/` — ADRs gated by hard-to-reverse + surprising + real trade-off
 - `beat/ARCHITECTURE.md` + module `README.md` — structure & intent, updated when public interfaces change
 
 If the user asks to build, fix, or change something, guide them through the Beat workflow.
+
+Beat skills name Claude Code tools. On Codex: for `AskUserQuestion`, use the user-input tool if the session exposes one, otherwise ask in the reply; for `Skill`, read that skill's `SKILL.md` in full; for `Agent`, use your subagent tool without the conversation history (`fork_turns: "none"` where that parameter exists), pass only the inputs the skill lists, ignore `subagent_type`, and put the role and "edit nothing" in the prompt; for `TodoWrite`, use `update_plan` if exposed, otherwise a short checklist.
 
 ## Agent docs
 

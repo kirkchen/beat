@@ -6,7 +6,7 @@ Beat skills are written using Claude Code tool names as the canonical reference.
 
 | Skill references | Claude Code | Gemini CLI | Codex | GitHub Copilot |
 |-----------------|-------------|------------|-------|----------------|
-| Ask user a question | `AskUserQuestion` | `ask_user` | prompt user directly | prompt user directly |
+| Ask user a question | `AskUserQuestion` | `ask_user` | the user-input tool if the session exposes one, otherwise ask in the reply | prompt user directly |
 | Read a file | `Read` | `read_file` | native file tools | native file tools |
 | Write a file | `Write` | `write_file` | native file tools | native file tools |
 | Edit a file | `Edit` | `replace` | native file tools | native file tools |
@@ -18,15 +18,15 @@ Beat skills are written using Claude Code tool names as the canonical reference.
 
 | Skill references | Claude Code | Gemini CLI | Codex | Notes |
 |-----------------|-------------|------------|-------|-------|
-| Invoke another skill | `Skill` tool | `activate_skill` | loads natively | Used for `superpowers:*` prerequisites |
-| Dispatch independent subagent | `Agent` tool (`subagent_type`) | no equivalent | `spawn_agent` | Used by `verify` and `distill` for unbiased verification |
-| Track tasks | `TodoWrite` | `write_todos` | `update_plan` | — |
+| Invoke another skill | `Skill` tool | `activate_skill` | read that skill's full `SKILL.md` | Used for `superpowers:*` prerequisites |
+| Dispatch independent subagent | `Agent` tool (`subagent_type`) | no equivalent | `spawn_agent` (no `subagent_type`; set `fork_turns: "none"` where the parameter exists) | Used by `plan` (role reviews) and `verify` (unbiased verification) |
+| Track tasks | `TodoWrite` | `write_todos` | `update_plan` if exposed, otherwise a short checklist in the reply | — |
 
 ## Platform-Specific Notes
 
 ### Subagent Fallback
 
-`verify` and `distill` use independent subagents (`Agent` tool with `subagent_type: Explore`) to avoid context bias during verification. On platforms without subagent support:
+`plan` and `verify` use independent subagents (`Agent` tool with `subagent_type: general-purpose`) to avoid context bias; `distill` leaves verification to `/beat:verify`. On Codex, `spawn_agent` takes no `subagent_type` and forks the whole conversation by default: pass `fork_turns: "none"` where the parameter exists (otherwise whatever isolation the tool offers), and put the reviewer role and "edit nothing" in the prompt. On platforms without subagent support:
 
 - **Run verification in a fresh session** — start a new conversation with only the artifacts and code as context, achieving the same bias isolation manually.
 - The key requirement is that the verifier has **no access to the implementation conversation history**.

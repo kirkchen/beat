@@ -37,7 +37,7 @@ Without superpowers, Beat falls back to internal checklists — still works, jus
 
 ## Tool name differences
 
-Beat skills are written using Claude Code tool names. On Codex they map to native equivalents — see [`references/tool-mapping.md`](../references/tool-mapping.md). Skills work without modification; the mapping is for human reference only.
+Beat skills are written using Claude Code tool names. The per-project `AGENTS.md` snippet below tells Codex how to translate them (`AskUserQuestion`, `Skill`, `Agent`, `TodoWrite`), so install it; the full table is in [`references/tool-mapping.md`](../references/tool-mapping.md).
 
 ## What Codex sees in this repo
 
