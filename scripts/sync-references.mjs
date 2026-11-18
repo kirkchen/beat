@@ -56,12 +56,32 @@ async function listMarkdownFiles(dir) {
   return out;
 }
 
+// A skill needs what its own Markdown mentions, plus whatever those
+// references mention in turn (a schema that points at another schema), so a
+// single-folder install never reaches for a file it was not given.
 async function collectNeeded(skillDir, kind) {
-  const mdFiles = await listMarkdownFiles(skillDir);
   const needed = new Set();
-  for (const f of mdFiles) {
-    const content = await readFile(f, 'utf8');
-    for (const match of content.matchAll(KINDS[kind].pattern)) needed.add(match[1]);
+  const seenRefs = new Set();
+  const queue = [];
+  const scan = (content, direct) => {
+    // Scripts come only from the skill's own text: a reference that names a
+    // maintainer script (sync-references.mjs) must not ship it in every skill.
+    if (direct || kind === 'references') {
+      for (const match of content.matchAll(KINDS[kind].pattern)) needed.add(match[1]);
+    }
+    for (const match of content.matchAll(KINDS.references.pattern)) {
+      if (!seenRefs.has(match[1])) { seenRefs.add(match[1]); queue.push(match[1]); }
+    }
+  };
+  for (const f of await listMarkdownFiles(skillDir)) scan(await readFile(f, 'utf8'), true);
+  if (kind === 'references') {
+    while (queue.length) {
+      const ref = queue.shift();
+      let content;
+      try { content = await readFile(join(KINDS.references.source, ref), 'utf8'); }
+      catch (err) { if (err.code === 'ENOENT') continue; throw err; }
+      scan(content, false);
+    }
   }
   return needed;
 }
