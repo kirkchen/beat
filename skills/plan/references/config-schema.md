@@ -85,7 +85,7 @@ Skills that consume `testing`:
 
 ### `prototype`
 
-Tells `/beat:explore` where a prototype node is built when exploration ends in `blocked` with `kind: prototype` (see `references/route-schema.md`). `surface` names the medium — `storybook` for UI states, `cli` for command-line behaviour, `html` for a single throwaway page. `command` is what a human runs to look at it. When absent, explore falls back to `mattpocock-skills:prototype` if installed, otherwise asks the user where the prototype should live.
+Tells `/beat:explore` where a prototype node is built when exploration ends in `blocked` with a node of `type: prototype` (see `references/route-schema.md`). `surface` names the medium — `storybook` for UI states, `cli` for command-line behaviour, `html` for a single throwaway page. `command` is what a human runs to look at it. When absent, explore falls back to `mattpocock-skills:prototype` if installed, otherwise asks the user where the prototype should live.
 
 ### `preset_upgrade`
 

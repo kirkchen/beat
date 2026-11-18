@@ -271,8 +271,8 @@ Beat 持有狀態（`status.yaml`、route、`verify.md`）和階段順序。另�
 | Beat 時機 | 呼叫 | 沒有時 |
 |----------|------|-------|
 | design 遇到真的有歧義的 domain 名詞 | `grill-with-docs`：一次一題的追問，寫進 glossary 與 ADR | 內建的四挑戰檢查 |
-| explore 以 `blocked`、`kind: research` 結束 | `research`：無人值守的調查，結果寫成 markdown 檔 | 自己查，把結果路徑記進節點 |
-| explore 以 `blocked`、`kind: prototype` 結束且 `config.yaml` 沒設 `prototype.surface` | `prototype`：丟棄式的原型，回答設計問題 | 在專案自己放原型的地方做（Storybook、CLI、單頁） |
+| explore 以 `blocked` 結束，節點 `type: research` | `research`：無人值守的調查，結果寫成 markdown 檔 | 自己查，把結果路徑記進節點 |
+| explore 以 `blocked` 結束，節點 `type: prototype`，且 `config.yaml` 沒設 `prototype.surface` | `prototype`：丟棄式的原型，回答設計問題 | 在專案自己放原型的地方做（Storybook、CLI、單頁） |
 | archive 之後 | `retro`：把這次 change 學到的變成 lint 規則、hook 或 steering 檔 | 手動改 `config.yaml` rules 與 CLAUDE.md |
 
 判斷方式：某個階段需要「更嚴謹」（想清楚、先寫測試、好好收尾 branch）就是 superpowers；某個階段需要「它自己產不出來的東西」（一個答案、一個原型、一份 glossary、一個教訓）就是 mattpocock。Beat 不會把狀態交給任何一方，只是呼叫它們、把結果拿回來。

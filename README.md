@@ -271,8 +271,8 @@ Beat owns the state (`status.yaml`, routes, `verify.md`) and the order of phases
 | Beat moment | Invokes | Without it |
 |-------------|---------|-----------|
 | explore / design, when a domain term is genuinely ambiguous | `grilling` + `domain-modeling` — sharpen the question, write the glossary entry and ADR (model-invoked; `grill-with-docs` is user-invoked and cannot be called from a skill) | The inline four-challenge check |
-| explore exits `blocked` with `kind: research` | `research` — unattended investigation written to a markdown file | Run the research yourself and record the result path |
-| explore exits `blocked` with `kind: prototype` and `config.yaml` has no `prototype.surface` | `prototype` — a throwaway build to settle a design question | Build it where the project keeps prototypes (Storybook, a CLI, a page) |
+| explore exits `blocked` with a `type: research` node | `research` — unattended investigation written to a markdown file | Run the research yourself and record the result path |
+| explore exits `blocked` with a `type: prototype` node and `config.yaml` has no `prototype.surface` | `prototype` — a throwaway build to settle a design question | Build it where the project keeps prototypes (Storybook, a CLI, a page) |
 | archive, unattended mode | `pr` — shapes the PR body; Beat adds the "決定與影響" section on top | Project PR template |
 | after archive | `retro` — turns what the change taught you into lint rules, hooks, or steering files | Edit `config.yaml` rules and CLAUDE.md by hand |
 

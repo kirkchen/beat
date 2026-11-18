@@ -46,8 +46,8 @@ observable facts that justify it. The user can override the exit; you cannot omi
 | Skill | When | Priority |
 |-------|------|----------|
 | superpowers:brainstorming | At the start of explore, before any response | MUST |
-| mattpocock-skills:research | A `blocked` exit with `kind: research`, when the user wants it run now | OPTIONAL |
-| mattpocock-skills:prototype | A `blocked` exit with `kind: prototype`, when `config.yaml` has no `prototype.surface` | OPTIONAL |
+| mattpocock-skills:research | A `blocked` exit whose node has `type: research`, when the user wants it run now | OPTIONAL |
+| mattpocock-skills:prototype | A `blocked` exit whose node has `type: prototype`, when `config.yaml` has no `prototype.surface` | OPTIONAL |
 | grilling + domain-modeling (mattpocock/skills, model-invoked) | When a domain term is ambiguous enough that the conversation keeps circling it | OPTIONAL |
 
 If a MUST skill is unavailable (not installed), proceed directly into the thinking stance. Optional skills are offered, never required; without them the node is still created and the user runs it however they like. `grilling` and `domain-modeling` are called directly (they are model-invoked); `grill-with-docs` is user-invoked and cannot be reached from a skill — mention that the user can run it themselves, never offer to invoke it.
@@ -166,7 +166,7 @@ Exploration ends when the user is done or the shape is clear. Before ending, **d
 | `standard` | the affected area fits one change, but one or more decisions are still to be made in design | "Ready for `/beat:design <name>`" — design asks for the preset as usual. |
 | `too-big` | more than one module, or decisions that depend on each other, or more than one PR | Create `beat/routes/<name>/` (schema: `references/route-schema.md`): `route.md` from the brainstorming output, `status.yaml` with the nodes you can already name. Next: `/beat:explore <route>` to pick the first frontier node. In a project that has `docs/agents/issue-tracker.md`, next is `/beat:to-issue` (the epic plus one sub-issue per change node), and `/beat:explore <route>` follows it. |
 | `drop` | the facts say this should not be built: already covered, out of scope for the project, or the cost is not worth it | Say so, close the issue when there is one (with the one-line reason), create nothing. |
-| `blocked` | the one thing that must exist before any of the above can be chosen | Create a node (in the active route, or a one-node route when there is none) with `kind` = `research` (an agent can answer it unattended), `prototype` (a human must look at something — see below), or `decision` (only a human can decide). Next: whoever resolves it, then `/beat:explore` again. |
+| `blocked` | the one thing that must exist before any of the above can be chosen | Create a node (in the active route, or a one-node route when there is none) with `type` = `research` (an agent can answer it unattended), `prototype` (a human must look at something — see below), or `decision` (only a human can decide). Next: whoever resolves it, then `/beat:explore` again. |
 
 In a project that has `docs/agents/issue-tracker.md`, `small` and `standard` hand off to the tracker instead: `next: /beat:to-issue`, which writes the conclusion into an issue that design later runs from. Without that file, `next` is `/beat:design <name>` as in the table.
 
