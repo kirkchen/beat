@@ -10,7 +10,13 @@ Step 1 — register this repo as a marketplace (CLI):
 codex plugin marketplace add https://github.com/kirkchen/beat
 ```
 
-Step 2 — install the `beat` plugin from the marketplace. The current Codex CLI does not have a plugin-install subcommand, so this step happens inside the interactive Codex UI:
+Step 2 — install the `beat` plugin from the marketplace:
+
+```bash
+codex plugin add beat@kirkchen-beat
+```
+
+On a Codex version without `codex plugin add`, install it from the interactive UI instead:
 
 1. Launch Codex (`codex`).
 2. Open the plugins panel (look for "Plugins" in the menu / palette).

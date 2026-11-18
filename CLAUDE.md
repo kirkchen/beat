@@ -37,6 +37,7 @@ beat/
 │   ├── status-schema.md         # status.yaml format
 │   ├── config-schema.md         # config.yaml format
 │   ├── testing-conventions.md   # Annotation format and e2e test style reference
+│   ├── feature-writing.md       # Feature-file conventions: description blocks, scenario organization, review checklist
 │   ├── project-layout.md        # Map of every project-level path Beat writes (authority for paths)
 │   ├── context-format.md        # GLOSSARY.md glossary format (Layer 1 living docs)
 │   ├── adr-format.md            # docs/adr/ ADR format + three-condition gate (Layer 2 living docs)
@@ -186,7 +187,7 @@ In test files (use the project language's comment syntax):
 @scenario: Monthly billing adjusts for short months
 ```
 
-**Granularity guidance** — Scenarios should describe behavior (what the system does), not function specs (how a function works). See `design/SKILL.md` for Gherkin creation guidelines.
+**Granularity guidance** — Scenarios should describe behavior (what the system does), not function specs (how a function works). See `skills/design/SKILL.md` for Gherkin creation guidelines.
 
 **Proposal-driven testing** — When gherkin is skipped (technical changes), testing is driven by proposal.md risk points and success criteria. Tests use the project's test framework without feature file annotations.
 
@@ -226,7 +227,7 @@ Two scripts carry the checks that are deterministic (`references/lint-tools.md`)
 
 ### Testing Changes
 
-Beat has a four-layer automated test suite using `claude -p` headless mode. Tests are in `tests/`.
+Beat has a five-layer automated test suite using `claude -p` headless mode. Tests are in `tests/`.
 
 **Run fast tests (~20 min):**
 ```bash
@@ -238,7 +239,7 @@ cd tests && ./run-all.sh
 cd tests && ./run-all.sh --integration
 ```
 
-**Four test layers:**
+**Five test layers:**
 
 | Layer | What it tests | Scripts |
 |-------|--------------|---------|
@@ -273,10 +274,10 @@ Beat is installable on Codex directly from this GitHub repo — no separate mark
 
 `source.path: "./"` (root as plugin) was tried first but Codex's plugin scanner does not pick up content when marketplace and plugin overlap at the same path — the subdirectory layout matches the convention in `openai/plugins` and other working marketplaces.
 
-End-user install (two steps because the Codex CLI has no plugin-install subcommand — only marketplace add/upgrade/remove):
+End-user install:
 
 1. `codex plugin marketplace add https://github.com/kirkchen/beat`
-2. Inside Codex UI plugins panel, install Beat.
+2. `codex plugin add beat@kirkchen-beat` (or install Beat from the plugins panel in the Codex UI).
 
 See `docs/INSTALL-CODEX.md` for the full user-facing flow.
 
