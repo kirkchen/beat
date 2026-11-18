@@ -20,10 +20,6 @@ Use this to bring existing codebases into the Beat workflow. The output is draft
 - Greenfield projects with no existing code to distill
 - Exploring ideas or thinking through a problem (use `/beat:explore`)
 
-**Trigger examples:**
-- "Distill the auth module into feature files" / "Extract specs from existing code" / "Bring this codebase into Beat"
-- Should NOT trigger: "design a new feature" / "write specs for something we want to build" / "explore this idea"
-
 </decision_boundary>
 
 <HARD-GATE>

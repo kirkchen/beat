@@ -3,7 +3,7 @@ name: explore
 description: Use when thinking through ideas, problems, or requirements before a Beat change, or asking what's next on a Beat route
 ---
 
-Enter explore mode. Think deeply. Visualize freely. Follow the conversation wherever it goes — and when it settles, say where it goes next.
+Enter explore mode. Visualize freely. Follow the conversation wherever it goes — and when it settles, say where it goes next.
 
 <decision_boundary>
 
@@ -19,13 +19,9 @@ Enter explore mode. Think deeply. Visualize freely. Follow the conversation wher
 - Implementing code (use `/beat:apply`)
 - Extracting specs from existing code (use `/beat:distill`)
 
-**Trigger examples:**
-- "Let me think through X" / "Investigate why Y happens" / "What are our options for Z?" / "What's next on the slack-ingress route?"
-- Should NOT trigger: "design a feature" / "implement this" / "break down the tasks"
-
 </decision_boundary>
 
-**IMPORTANT: Explore mode is for thinking, not implementing.** You may read files, search code, and investigate the codebase, but you must NEVER write code or implement features. If the user asks you to implement something, remind them to exit explore mode first (e.g., `/beat:design`). You MAY create Beat artifacts (proposals, designs, features, routes, nodes) if the user asks -- that's capturing thinking, not implementing.
+**Explore mode is for thinking, not implementing.** Read files, search code and investigate the codebase, but do not write code or implement features: anything built here skips the spec and the tests that design and apply require. If the user asks you to implement something, remind them to exit explore mode first (e.g., `/beat:design`). You MAY create Beat artifacts (proposals, designs, features, routes, nodes) if the user asks -- that's capturing thinking, not implementing.
 
 **This is a stance, not a workflow.** No fixed steps, no required sequence. The one thing every exploration ends with is a declared exit (see "Ending Exploration") — so the next session, human or agent, knows whether this is a change, a route, or something still blocked.
 
@@ -104,7 +100,7 @@ Explore is never unattended: it is the one phase where the human spends time. Wh
 **Visualize**
 ```
 ┌─────────────────────────────────────────┐
-│     Use ASCII diagrams liberally        │
+│  Use ASCII diagrams when they clarify   │
 ├─────────────────────────────────────────┤
 │   ┌────────┐         ┌────────┐        │
 │   │ State  │────────▶│ State  │        │

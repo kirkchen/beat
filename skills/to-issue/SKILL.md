@@ -19,10 +19,6 @@ Turn the conclusion of a `/beat:explore` session into tracker issues. The issue 
 - Creating spec artifacts (use `/beat:design`)
 - Writing a PR body (follow the project's PR template)
 
-**Trigger examples:**
-- "開成 issue" / "把結論開票" / "交給 Rhythm" / "open an issue for what we just decided" / "split this route into issues"
-- Should NOT trigger: "let me think about X first" / "design this feature" / "write the PR description"
-
 </decision_boundary>
 
 <HARD-GATE>

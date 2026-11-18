@@ -18,10 +18,6 @@ Initialize Beat configuration in the current project.
 - Configuring non-Beat tools or project settings
 - Creating changes or writing feature files (use `/beat:design`)
 
-**Trigger examples:**
-- "Set up Beat" / "Initialize Beat" / "Configure Beat for this project" / "Update Beat config"
-- Should NOT trigger: "edit config.yaml" / "design a feature" / "create a change"
-
 </decision_boundary>
 
 **Input**: None required. The skill gathers information interactively.

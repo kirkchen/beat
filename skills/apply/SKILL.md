@@ -23,10 +23,6 @@ Implement code based on the change artifacts. Supports three modes:
 - Verifying implementation completeness (use `/beat:verify`)
 - Exploring ideas or investigating a problem (use `/beat:explore`)
 
-**Trigger examples:**
-- "Implement the change" / "Start coding" / "Apply the plan" / "TDD the scenarios"
-- Should NOT trigger: "design a feature" / "break down tasks" / "verify the implementation"
-
 </decision_boundary>
 
 <HARD-GATE>
@@ -57,7 +53,7 @@ It existed to let a human judge a variant. Rewrite the behaviour from the gherki
 | systematic-debugging | When stuck (3 failed attempts) | SHOULD |
 | subagent-driven-development | When tasks.md has multiple independent tasks | SHOULD |
 
-Invoke in order: worktrees first (verify isolation), then TDD (discipline). Debugging and subagent are conditional — only invoke when triggered. If a superpower is unavailable (skill not installed), skip and continue.
+Debugging and subagent-driven development are conditional — invoke them only when their trigger occurs.
 
 ## Unattended mode
 

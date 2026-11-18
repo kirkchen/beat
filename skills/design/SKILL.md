@@ -18,10 +18,6 @@ Design a change — create a change container (if needed) and generate spec arti
 - Implementing code (use `/beat:apply`)
 - Reviewing or verifying implementation (use `/beat:verify`)
 
-**Trigger examples:**
-- "Design a user authentication feature" / "Create a change for login" / "Generate specs for X"
-- Should NOT trigger: "break down the tasks" / "let me think about this" / "implement the change"
-
 </decision_boundary>
 
 <HARD-GATE>

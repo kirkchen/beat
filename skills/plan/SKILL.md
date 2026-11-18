@@ -18,10 +18,6 @@ Plan the execution — read spec artifacts, review from multiple perspectives, t
 - Implementing code (use `/beat:apply`)
 - Verifying implementation (use `/beat:verify`)
 
-**Trigger examples:**
-- "Break down the tasks" / "Create execution plan" / "Plan the implementation" / "Review and generate tasks"
-- Should NOT trigger: "design a new feature" / "write gherkin for X" / "implement the change"
-
 </decision_boundary>
 
 <HARD-GATE>

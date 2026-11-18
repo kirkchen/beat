@@ -20,10 +20,6 @@ Archive a completed change. Checks completion, syncs features to living document
 - Creating or modifying spec artifacts (use `/beat:design`)
 - Waiting for the PR to be merged first — archive is the last commit on the branch, before the PR, and it invokes the merge/PR step itself
 
-**Trigger examples:**
-- "Archive the change" / "The change is done, wrap it up" / "Sync the features"
-- Should NOT trigger: "verify the implementation" / "implement the change" / "design a feature"
-
 </decision_boundary>
 
 <HARD-GATE>

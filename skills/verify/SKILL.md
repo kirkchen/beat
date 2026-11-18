@@ -20,10 +20,6 @@ Verify implementation against change artifacts across five dimensions. Uses inde
 - Running implementation or fixing findings (use `/beat:apply`)
 - Archiving the change (use `/beat:archive`)
 
-**Trigger examples:**
-- "Verify the change" / "Check implementation against spec" / "Run verification" / "Re-verify after the fixes"
-- Should NOT trigger: "design a feature" / "implement the change" / "archive it"
-
 </decision_boundary>
 
 <HARD-GATE>
