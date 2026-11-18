@@ -226,8 +226,8 @@ digraph plan {
 
    **Dispatch strategy based on confirmed role count:**
 
-   - **1–2 roles**: Single **Agent** (subagent_type: `Explore`) with all confirmed roles. Build one prompt containing all roles and their focus areas.
-   - **3+ roles**: One **Agent** (subagent_type: `Explore`) **per role**, dispatched in parallel. Each agent receives ONLY its own role and focus area — no knowledge of other roles.
+   - **1–2 roles**: Single **Agent** (subagent_type: `general-purpose`, told to edit nothing) with all confirmed roles. Build one prompt containing all roles and their focus areas.
+   - **3+ roles**: One **Agent** (subagent_type: `general-purpose`, told to edit nothing) **per role**, dispatched in parallel. Each agent receives ONLY its own role and focus area — no knowledge of other roles.
 
    Every agent receives:
    - All spec artifacts (proposal, gherkin, design)

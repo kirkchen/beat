@@ -155,7 +155,7 @@ digraph verify {
 
 3. **Dispatch the subagent(s)**
 
-   **Agent A — Verification subagent** (subagent_type: `Explore`):
+   **Agent A — Verification subagent** (subagent_type: `general-purpose`; tell it to read files in full and edit nothing):
    Read `verification-subagent-prompt.md` for the complete subagent prompt.
 
    Provide ONLY:
