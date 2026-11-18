@@ -79,7 +79,7 @@ When the run carries a stage-result nonce (see `references/handoff-report.md`), 
 - Writing any file before invoking using-git-worktrees
 - Generating proposal sections without having invoked brainstorming
 - Creating design.md without invoking brainstorming first
-- Writing gherkin scenarios that contain internal method names, numeric thresholds, or implementation constants
+- Writing gherkin scenarios that contain internal method names, internal tuning numbers (scores, weights, timeouts), or implementation constants
 - Writing gherkin scenarios that use project-specific domain terms not defined in `GLOSSARY.md`
 - Modifying an existing feature in `beat/features/` without creating a `.orig` backup first
 - Writing tasks.md or `- [ ]` checkboxes — tasks belong in `/beat:plan`
@@ -233,7 +233,7 @@ digraph design {
      - Feature description carries PRD essence (must include: As a / I want / So that)
      - Every scenario MUST have a testing layer tag: `@e2e` (user journeys needing a running app) or `@behavior` (business logic testable without a full app; default `@behavior`)
      - Write at behavior level — describe what the system does ("Monthly billing adjusts for short months"), not how a function works ("calculateNextTransactionDate clamps to last day")
-     - Use business language — no concrete numeric thresholds, code method names, or internal constants (API contract constants are OK as shared vocabulary)
+     - Use business language — no internal tuning numbers, code method names, or internal constants. Business-rule thresholds the user can observe ("locked after 5 attempts") and API contract constants are behavior: keep them.
      - Repeated Given steps use `Background:`
      - Tags must serve a filtering purpose — no decorative tags
      - BDD focuses on high-level acceptance; boundary values and algorithm details belong in unit tests

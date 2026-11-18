@@ -56,7 +56,7 @@ For each .feature file:
   - `@behavior` should be testable without a running app (business logic, calculation, validation)
   - Misclassified → SUGGESTION
 - Do scenarios leak implementation details?
-  - Concrete numeric thresholds (0.85, 1.0) instead of business concepts → WARNING
+  - Internal tuning numbers (a 0.85 confidence score, a retry backoff) instead of business concepts → WARNING. Business-rule thresholds the user can observe ("locked after 5 attempts") are behavior, not a finding.
   - Code method names (detect_pii) instead of business verbs → WARNING
   - Internal constants (context window, checksum weights) → WARNING
   - Exception: API contract constants (entity type names, HTTP status codes) are shared vocabulary and OK

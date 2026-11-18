@@ -76,7 +76,7 @@ If a superpower is unavailable (skill not installed), skip and continue.
 - Skipping the existing feature scan
 - Claiming verification passed without running `/beat:verify`
 - Finishing without committing artifacts
-- Writing Gherkin scenarios that contain internal method names, numeric thresholds, or implementation constants
+- Writing Gherkin scenarios that contain internal method names, internal tuning numbers (scores, weights, timeouts), or implementation constants
 - Writing scenarios that use project-specific domain terms not defined in `GLOSSARY.md`
 - Writing a Key Decision in `design.md` without running the three-condition ADR gate
 - Inventing rationale for a recovered decision instead of marking it unverified or asking
