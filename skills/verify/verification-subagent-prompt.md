@@ -30,7 +30,7 @@ When the dispatcher hands you lint output, those results are settled: report eac
 
 ## Incremental runs
 
-When run mode is incremental, scope every dimension to the diff: verify the scenarios, goals and decisions the dispatcher listed, and any file in the diff. For each previous open finding, re-check it at its `file` and report it as **still open** (same id) or **fixed** (same id). Do not re-verify untouched scenarios — say in the report which ones you did not read. If the diff touches a shared file (a schema, a base class, a fixture) that many scenarios depend on, say so and recommend a full run.
+When run mode is incremental, scope every dimension to the diff: verify the scenarios, goals and decisions the dispatcher listed, and any file in the diff. For each previous finding the dispatcher lists (`open`, or `fixed` by apply), re-check it at its `file` and report it as **open** (same id — including a `fixed` one that still reproduces) or **fixed** (same id). Do not re-verify untouched scenarios — say in the report which ones you did not read. If the diff touches a shared file (a schema, a base class, a fixture) that many scenarios depend on, say so and recommend a full run.
 
 ## Dimension 1: Gherkin Coverage & Quality
 
