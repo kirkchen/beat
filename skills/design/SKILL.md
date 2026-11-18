@@ -57,7 +57,7 @@ If a prerequisite skill is unavailable (skill not installed), skip and continue.
 
 ## Unattended mode
 
-When the run carries a stage-result nonce (see `references/handoff-report.md`), nobody is watching: follow `references/unattended-mode.md`. Every **AskUserQuestion** in this skill becomes a default (recorded in `beat/changes/<name>/decisions/assumed.md`), a decision brief (`references/decision-brief.md`, `blocked-on: decision`), or an environmental stop (`blocked-on: env`). The per-skill table in that reference says which. For design specifically: the preset defaults to what explore declared or `standard`; a Key Decision that meets the ADR gate is written as an ADR without asking; one that is not covered by the issue's locked decisions and still needs the human becomes a brief.
+When the run carries a stage-result nonce (see `references/handoff-report.md`), nobody is watching: follow `references/unattended-mode.md`. Every **AskUserQuestion** in this skill becomes a default (recorded in `beat/changes/<name>/decisions/assumed.md`), a decision brief (`references/decision-brief.md`, `blocked-on: decision`), or an environmental stop (`blocked-on: env`). The per-skill table in that reference says which. For design specifically: the preset defaults to what explore declared or `standard`; a Key Decision copied from the issue's locked decisions skips the ADR gate; any other Key Decision that meets the gate is one the human has not made, so it becomes a brief, and the ADR is written only from the reply.
 
 ## Rationalization Prevention
 
