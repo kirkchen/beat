@@ -9,6 +9,7 @@ Issues for this repo live in `<group>/<project>` on GitLab. Use the `glab` CLI f
 - **List issues by label**: `glab issue list --label "<label>" -P <n> -O json`. The default page size (20–30 depending on version) truncates large epics; set `-P` to at least the expected count.
 - **Edit the description**: `glab issue update <iid> --description "$(cat <file>)"` (add `--title "..."` to change the title). Write the new description to a file first.
 - **Edit labels**: `glab issue update <number> --label "..."` / `--unlabel "..."`. Multiple labels can be comma-separated or given by repeating the flag.
+- **Set the assignee**: `--assignee <assignee>` on `glab issue create`, or `glab issue update <number> --assignee <assignee>` on an existing issue. The `-F json` read shows `assignees`.
 - **Comment on an issue**: `glab issue note <number> --message "$(cat <file>)"`. GitLab calls comments "notes".
 - **Close**: `glab issue close <number>` does not accept a closing comment, so post the explanation first with `glab issue note <number> --message "..."`, then close.
 - **Make an issue a sub-issue of a parent**: on the free tier a sub-issue is a plain relation plus a first line: put `Part of #<parent>` at the top of the child description and link it with `glab issue create --linked-issues <parent> --link-type relates_to ...` (a relation, not a parent/child link). On Premium/Ultimate, `--epic <epic>` is the native parent.
