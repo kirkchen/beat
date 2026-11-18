@@ -227,7 +227,7 @@ Steps 9–11 write the project-layout files from `references/project-layout.md`.
 
 11. **Agent docs block** (`CLAUDE.md` or `AGENTS.md`)
 
-    Pick the file: `CLAUDE.md` if it exists, else `AGENTS.md` if it exists, else ask with **AskUserQuestion tool** which one to create (`CLAUDE.md` for Claude Code, `AGENTS.md` for Codex and other agents).
+    Pick the file: when both `CLAUDE.md` and `AGENTS.md` exist, write the block into both (Claude Code reads one, Codex the other), once if one is a symlink to the other. Otherwise use whichever exists, or ask with **AskUserQuestion tool** which one to create (`CLAUDE.md` for Claude Code, `AGENTS.md` for Codex and other agents).
 
     Insert the `## Agent docs` block from `references/project-layout.md` (the heading plus its three pointer lines). If the file already has a `## Agent docs` heading, replace Beat's three pointer lines in that section in place; keep any other lines the user added. Never add a second block.
 
@@ -244,7 +244,7 @@ Steps 9–11 write the project-layout files from `references/project-layout.md`.
     **Testing:** {behavior framework} + {e2e framework} (or "not required")
     **Issue tracker:** docs/agents/issue-tracker.md ({GitHub | GitLab | other}) — written / completed / kept
     **Coding standards:** CODING_STANDARDS.md — written ({n} sources) / kept
-    **Agent docs:** {CLAUDE.md | AGENTS.md} — block added / updated / kept
+    **Agent docs:** {CLAUDE.md | AGENTS.md | both} — block added / updated / kept
 
     Your config will be used when creating artifacts.
     Edit beat/config.yaml anytime to update preferences.
