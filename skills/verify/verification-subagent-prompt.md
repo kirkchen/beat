@@ -15,7 +15,7 @@ The dispatcher provides:
 
 ## Lint output
 
-When the dispatcher hands you lint output, those results are settled: report each lint error as a finding verbatim (missing test file → CRITICAL, everything else → WARNING) and do not re-check the rules the linter covers — `@covered-by` targets and annotations, layer tags, user story, known tags, placeholders, status.yaml schema. Spend your reading on what the linter cannot judge: behavior-level wording, test quality, proposal and design alignment, living docs.
+When the dispatcher hands you lint output, those results are settled: report each lint error as a finding verbatim (missing test file → CRITICAL, everything else → WARNING) and do not re-check the rules the linter covers — `@covered-by` targets and annotation format, layer tags, user story, known tags, placeholders, status.yaml schema. Whether a scenario without `@covered-by` has a test at all is not something the linter checks; that stays yours (Dimension 1B). Spend your reading on what the linter cannot judge: behavior-level wording, test quality, proposal and design alignment, living docs.
 
 ## Testing Context (provided by dispatcher)
 
@@ -88,7 +88,7 @@ For each Scenario in .feature files:
 - Does the scenario have a `# @covered-by: <path>` annotation (between tag and scenario line)?
 - Does the referenced test file exist?
 - Does the test file contain a matching `// @scenario:` comment?
-- Missing `@covered-by` → WARNING.
+- Missing `@covered-by`: search the test suite for a test that exercises the scenario. A test exists but is not linked → WARNING. No test exists → CRITICAL.
 - `@covered-by` pointing to nonexistent file → CRITICAL.
 - File exists but no matching `@scenario` comment → WARNING.
 
@@ -132,7 +132,7 @@ If proposal.md exists:
 - For each goal in the proposal: is there implementation evidence?
 - Are there goals mentioned but not implemented?
 
-When proposal-driven: strengthen this dimension — check that every risk point and success criterion has corresponding test coverage. Missing coverage for a risk point → CRITICAL (elevated from WARNING).
+When proposal-driven: strengthen this dimension — check that every risk point and success criterion has corresponding test coverage. Missing coverage for a risk point → CRITICAL (elevated from WARNING), unless testing.required is false — then skip test checks as in no-test mode.
 
 ## Dimension 3: Design Adherence
 

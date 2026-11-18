@@ -151,7 +151,7 @@ digraph verify {
 
 2b. **Run the lint tools first**
 
-   Run `node <skill-dir>/scripts/validate-beat.mjs --change <name>` and `node <skill-dir>/scripts/lint-features.mjs --require-covered-by beat/changes/<name>/features/*.feature` (see `references/lint-tools.md`); add a whole-project `lint-features.mjs` run when the change modified existing features. Keep both outputs; they go to the subagents as pre-computed findings so the subagents do not re-derive what a script already settled (annotation targets, layer tags, user story, schema). A lint error is a finding at WARNING, or CRITICAL when it is a missing test file.
+   Run `node <skill-dir>/scripts/validate-beat.mjs --change <name>` and `node <skill-dir>/scripts/lint-features.mjs --require-covered-by beat/changes/<name>/features/*.feature` (see `references/lint-tools.md`); add a whole-project `lint-features.mjs` run when the change modified existing features. Use `--no-require-covered-by` instead, on both runs, when `testing.required` is `false` or the change has `source: distill` — tests are not expected there. Skip the feature lint when gherkin is skipped. Keep both outputs; they go to the subagents as pre-computed findings so the subagents do not re-derive what a script already settled (annotation targets, layer tags, user story, schema). A lint error is a finding at WARNING, or CRITICAL when it is a missing test file.
 
 3. **Dispatch the subagent(s)**
 
