@@ -349,6 +349,7 @@ export function validateHandoff(text, { file }) {
   if (keys.next && (keys.next.includes('\n') || /\bor\b/.test(keys.next))) errors.push(`${file}: next must be exactly one command`);
   if (keys.commit && !/^[0-9a-f]{7,40}$/.test(keys.commit)) errors.push(`${file}: commit must be a git sha`);
   for (const k of ['critical', 'warning']) if (keys.findings && !new RegExp(`${k}=\\d+`).test(keys.findings)) errors.push(`${file}: findings must carry ${k}=<n>`);
+  for (const k of ['decision', 'sensitive', 'diverging']) if ('change' in keys && !(k in keys)) errors.push(`${file}: handoff block missing "${k}" (required whenever there is a change)`);
   const blocked = (keys['blocked-on'] ?? '').split(/\s+/)[0];
   if (keys['blocked-on'] && !['none', 'decision', 'env', 'scope'].includes(blocked)) errors.push(`${file}: blocked-on must start with none, decision, env or scope`);
   for (const k of ['sensitive', 'diverging']) if (k in keys && !['yes', 'no'].includes(keys[k])) errors.push(`${file}: ${k} must be yes or no`);
