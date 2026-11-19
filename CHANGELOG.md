@@ -4,6 +4,48 @@ All notable changes to Beat are documented in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and Beat adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed (breaking for callers that automate the pipeline)
+
+- Unattended mode is entered with `--unattended` in the skill's arguments
+  (`/beat:apply <name> --unattended`). The stage-result nonce no longer
+  switches it on, and nothing else does: a caller that used to rely on the
+  nonce gets an interactive run until it passes the flag (#22).
+- The machine-readable suffix line is gone. The `## Beat Handoff` block is
+  the whole output contract and gains `decision`, `sensitive` and
+  `diverging`; `blocked-on` now starts with one of `none`, `decision`,
+  `env`, `scope`, followed by an optional sentence. Field names and values
+  are the ones the suffix used; `sha` is the block's `commit`, and `next`
+  carries its arguments.
+- Decision briefs are read from `beat/changes/<name>/decisions/D<n>.md`
+  (ids in the handoff `decision` field). They are still printed above the
+  block, but no longer have to be the run's last action. `/beat:plan`
+  writes its plan brief to `decisions/P1.md`.
+- Beat prescribes no reply syntax. An answer to a brief arrives in the
+  prompt of the next invocation of the phase and is matched by brief id;
+  `/answer` and `/resume` are no longer part of Beat.
+- The sensitivity check in `/beat:design` and `/beat:apply` runs in every
+  mode, and Beat only reports the verdict; whether to stop on `sensitive:
+  yes` is the caller's decision.
+- Nothing is guaranteed to be the last line of a run any more. A caller
+  finds the block by its `## Beat Handoff` heading and compares `blocked-on`
+  by its first token (`references/handoff-report.md` "Reading the block").
+  `findings` is absent until verify has run; it is not `critical=0`.
+- A session started without `--unattended` is interactive, including one
+  opened to deliver a reply. `next` never carries the flag; the caller adds
+  it.
+- `/beat:archive --unattended` prints its handoff block after the push and
+  the pull request, with `next: none` on success and `blocked-on: env` when
+  either failed. `/beat:apply` ends with `next: /beat:apply <name>` while
+  tasks remain. `/beat:verify` ends with `blocked-on: env` when it could
+  not run.
+- `/beat:setup` asks for the dispatch label instead of defaulting to a
+  specific orchestrator's label; `none` means the project does not dispatch
+  issues and `/beat:to-issue` adds nothing.
+- `validate-beat.mjs --handoff` checks the new fields and rejects a
+  `blocked-on` that does not start with one of the four tokens.
+
 ## [0.9.0] - 2026-11-19
 
 ### Changed
