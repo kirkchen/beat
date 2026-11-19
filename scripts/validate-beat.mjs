@@ -349,28 +349,15 @@ export function validateHandoff(text, { file }) {
   if (keys.next && (keys.next.includes('\n') || /\bor\b/.test(keys.next))) errors.push(`${file}: next must be exactly one command`);
   if (keys.commit && !/^[0-9a-f]{7,40}$/.test(keys.commit)) errors.push(`${file}: commit must be a git sha`);
   for (const k of ['critical', 'warning']) if (keys.findings && !new RegExp(`${k}=\\d+`).test(keys.findings)) errors.push(`${file}: findings must carry ${k}=<n>`);
-  const sr = text.match(/^rhythm-stage-result\[([^\]\n]*)\]:[ \t]*(.*)$/m);
-  if (sr) {
-    if (!sr[1]) errors.push(`${file}: stage-result nonce is empty`);
-    const tail = text.slice(text.indexOf(sr[0]) + sr[0].length);
-    if (tail.trim()) errors.push(`${file}: stage-result must be the last non-empty line`);
-    const kv = {};
-    for (const tok of sr[2].trim().split(/\s+/).filter(Boolean)) { const i = tok.indexOf('='); if (i < 1) { errors.push(`${file}: stage-result token "${tok}" is not k=v`); continue; } kv[tok.slice(0, i)] = tok.slice(i + 1); }
-    for (const k of ['phase', 'sha', 'blocked-on', 'next']) if (!(k in kv)) errors.push(`${file}: stage-result missing "${k}"`);
-    const enums = { 'blocked-on': ['none', 'decision', 'env', 'scope'], sensitive: ['yes', 'no'], diverging: ['yes', 'no'] };
-    for (const [k, vals] of Object.entries(enums)) if (k in kv && !vals.includes(kv[k])) errors.push(`${file}: stage-result ${k} must be one of ${vals.join('|')}`);
-    for (const k of ['critical', 'warning']) if (k in kv && !/^\d+$/.test(kv[k])) errors.push(`${file}: stage-result ${k} must be an integer`);
-    if ('decision' in kv && !/^(D\d+(,D\d+)*|none)$/.test(kv.decision)) errors.push(`${file}: stage-result decision must be D<n>, D1,D2 or none`);
-    if (['decision', 'scope'].includes(kv['blocked-on']) && !/^D\d+(,D\d+)*$/.test(kv.decision ?? '')) errors.push(`${file}: stage-result blocked-on=${kv['blocked-on']} needs decision=D<n>`);
-    if (kv.next && !/^\/beat:[a-z-]+$/.test(kv.next)) errors.push(`${file}: stage-result next must be the bare command /beat:<phase>`);
-    if (kv.sha && !/^[0-9a-f]{7,40}$/.test(kv.sha)) errors.push(`${file}: stage-result sha must be a git sha`);
-    if (keys['blocked-on'] && kv['blocked-on']) {
-      const prose = keys['blocked-on'].trim();
-      const expect = prose === 'none' || prose.startsWith('none ') ? 'none' : null;
-      if (expect && kv['blocked-on'] !== 'none') errors.push(`${file}: block says blocked-on none but stage-result says ${kv['blocked-on']}`);
-      if (!expect && kv['blocked-on'] === 'none') errors.push(`${file}: block has a blocker but stage-result says blocked-on=none`);
-    }
+  for (const k of ['decision', 'sensitive', 'diverging']) if (keys.change && keys.change !== 'none' && !(k in keys)) errors.push(`${file}: handoff block missing "${k}" (required whenever there is a change)`);
+  const blocked = (keys['blocked-on'] ?? '').split(/\s+/)[0];
+  if (keys['blocked-on'] && !['none', 'decision', 'env', 'scope'].includes(blocked)) errors.push(`${file}: blocked-on must start with none, decision, env or scope`);
+  for (const k of ['sensitive', 'diverging']) if (k in keys && !['yes', 'no'].includes(keys[k])) errors.push(`${file}: ${k} must be yes or no`);
+  if ('decision' in keys) {
+    if (!/^(D\d+(,D\d+)*|none)$/.test(keys.decision)) errors.push(`${file}: decision must be D<n>, D1,D2 or none`);
+    else if (keys.decision !== 'none' && !['decision', 'scope'].includes(blocked)) errors.push(`${file}: decision lists a brief but blocked-on is ${blocked || 'missing'}`);
   }
+  if (blocked === 'scope' && !/^D\d+(,D\d+)*$/.test(keys.decision ?? '')) errors.push(`${file}: blocked-on scope needs decision: D<n>`);
   return { errors, warnings };
 }
 

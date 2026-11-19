@@ -82,7 +82,7 @@ A change node is linked both ways: the node has `change: <name>`, the change's `
 1. Node ids are stable once referenced from a change's `route` field — rename by adding a new node, never by editing the id.
 2. `blocked_by` must not form a cycle; the validator rejects cycles.
 3. A route lives in `beat/routes/`, never inside `beat/changes/`. Archiving a change does not move or edit the route; when every node is `done`, `/beat:archive` offers to move the route to `beat/routes/archive/YYYY-MM-DD-<route-name>/`.
-4. If Rhythm or another dispatcher ever reads the route to start work in parallel, `status.yaml` is edited only on the main branch by one writer; changes in worktrees only report through their own `status.yaml`.
+4. If a dispatcher ever reads the route to start work in parallel, `status.yaml` is edited only on the main branch by one writer; changes in worktrees only report through their own `status.yaml`.
 
 ## Example
 

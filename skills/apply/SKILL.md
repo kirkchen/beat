@@ -57,7 +57,7 @@ Debugging and subagent-driven development are conditional — invoke them only w
 
 ## Unattended mode
 
-When the run carries a stage-result nonce (see `references/handoff-report.md`), nobody is watching: follow `references/unattended-mode.md`. Every **AskUserQuestion** in this skill becomes a default (recorded in `beat/changes/<name>/decisions/assumed.md`), a decision brief (`references/decision-brief.md`, `blocked-on: decision`), or an environmental stop (`blocked-on: env`). The per-skill table in that reference says which. For apply specifically: an unclear scenario takes the reading the gherkin most plainly supports (assumed) unless the ambiguity changes behaviour (brief); a design issue that reverses a Key Decision is a brief, anything smaller updates `design.md` and is noted; e2e failures and blockers are `env`. TDD and the no-push rule do not change.
+When the invocation carries `--unattended`, nobody can answer during the run: follow `references/unattended-mode.md`. Without it this skill is interactive, whatever the environment looks like. Every **AskUserQuestion** in this skill becomes a default (recorded in `beat/changes/<name>/decisions/assumed.md`), a decision brief (`references/decision-brief.md`, `blocked-on: decision`), or an environmental stop (`blocked-on: env`). The per-skill table in that reference says which. For apply specifically: an unclear scenario takes the reading the gherkin most plainly supports (assumed) unless the ambiguity changes behaviour (brief); a design issue that reverses a Key Decision is a brief, anything smaller updates `design.md` and is noted; e2e failures and blockers are `env`. TDD and the no-push rule do not change.
 
 ## Rationalization Prevention
 
@@ -154,7 +154,7 @@ digraph apply {
 }
 ```
 
-**Input**: Optionally specify a change name. If omitted, infer from context or prompt. If the input contains `fix-from-verify`, or the user asks to fix the findings of the last verify run, enter **fix-from-verify mode** (step 4).
+**Input**: Optionally specify a change name. If omitted, infer from context or prompt. If the input contains `fix-from-verify`, or the user asks to fix the findings of the last verify run, enter **fix-from-verify mode** (step 4). `--unattended` switches on unattended mode (above).
 
 **Steps**
 
@@ -274,7 +274,7 @@ digraph apply {
 
    d2. **Preset upgrade check** (only when `preset` is `minimal` or `technical`): run `git diff --stat <base>` (base to the working tree, so uncommitted task work counts) plus the untracked files this run created, and count, tests excluded, the source files touched, the net lines added, and the top-level modules touched (directories under `src/`, `packages/`, `apps/`, or the repo root). Compare against `preset_upgrade` in `beat/config.yaml` (thresholds and defaults: `references/config-schema.md`). If any threshold is exceeded: set `preset: standard` and write `preset_upgrade: { from: <old>, by: /beat:apply, date: <today>, reason: "<which threshold, with numbers>" }` in `status.yaml`, announce it in one line, and continue — the next `/beat:verify` runs at standard strength. Do this check once per task, not once at the end.
 
-   d3. **Sensitivity check** (unattended mode only, once after the last task): run `git diff --name-only <base>` plus the untracked files this run created, and compare the touched paths and what they implement against `sensitive` in `beat/config.yaml` (schema: `references/config-schema.md`). Read `beat/changes/<name>/decisions/sensitive.md`: if it already says `yes`, repeat it. If it says `no` and the diff now matches, update the file (`yes`, what matched, `apply`) and report `sensitive=yes` — this does not stop the run; archive lists it in the PR body. If the diff shows the change needs a second PR (a second module, a migration that must land first), stop with a `scope` brief per `references/unattended-mode.md` instead of continuing.
+   d3. **Sensitivity check** (once after the last task): run `git diff --name-only <base>` plus the untracked files this run created, and compare the touched paths and what they implement against `sensitive` in `beat/config.yaml` (schema: `references/config-schema.md`). Read `beat/changes/<name>/decisions/sensitive.md`: if it already says `yes`, repeat it. If it says `no` and the diff now matches, update the file (`yes`, what matched, `apply`) and report `sensitive: yes` — this does not stop the run; archive lists it in the PR body. If the diff shows the change needs a second PR (a second module, a migration that must land first), do not continue: in unattended mode stop with a `scope` brief per `references/unattended-mode.md`; in an interactive run tell the user and ask whether to shrink this change or re-explore it as a route.
 
    e. **Continue to next**
 
@@ -320,7 +320,7 @@ digraph apply {
 
    In fix-from-verify mode, report `fixed`/`open` counts instead of scenarios and suggest `/beat:verify <name>` (verify decides between incremental and full, and the round it is on).
 
-   Then end with the handoff block from `references/handoff-report.md` (`next: /beat:verify <name>`, or the blocker that paused the run). The suffix carries `sensitive` from step d3 and `blocked-on` as `none`, `decision` (brief printed above the block) or `env`. Do not push.
+   Then end with the handoff block from `references/handoff-report.md` (`next: /beat:verify <name>` when every task is done; `/beat:apply <name>` when the run ended with tasks left, whether or not something blocked it). The block carries `sensitive` from step d3 and `blocked-on` as `none`, `decision` (brief printed above the block, its id in `decision`), `env` or `scope`. Do not push.
 
 **Testing Rule: Conditional TDD**
 

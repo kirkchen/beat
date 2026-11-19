@@ -10,7 +10,6 @@
 ## Beat Handoff
 change: slack-thread-dedupe   phase: design   preset: standard
 commit: 3f9c1a2   branch: feat/dedupe   dirty: no
+decision: D1   sensitive: yes   diverging: no
 next: /beat:design slack-thread-dedupe
-blocked-on: decision D1 — model binding layer
-
-rhythm-stage-result[abc123]: phase=design sha=3f9c1a2 blocked-on=decision decision=D1 sensitive=yes critical=0 warning=0 diverging=no next=/beat:design
+blocked-on: decision — model binding layer

@@ -30,7 +30,7 @@ sensitive:                           # optional, map — what a human wants to s
   situations:                        # optional, array of strings — one-line descriptions, judged like the ADR gate
     - 改到費用計算、預算門檻，或任何會變成帳單數字的邏輯
     - 改到誰可以派工、核准，或代表別人執行的判定
-    - 改到對外契約：label 語意、webhook payload、stage-result 格式
+    - 改到對外契約：label 語意、webhook payload、API 回應格式
   paths:                             # optional, array of globs — any touch counts, no judgement
     - packages/domain/src/schema.ts
 
@@ -93,13 +93,13 @@ Thresholds `/beat:apply` checks after each task on a `minimal` or `technical` ch
 
 ### `sensitive`
 
-Read only in unattended mode (`references/unattended-mode.md`). Names the changes a human wants to look at after `/beat:plan` and before `/beat:apply`, when no interactive checkpoint exists.
+Read in every mode (`references/unattended-mode.md` "Sensitivity"). Names the changes a human wants to look at after `/beat:plan` and before `/beat:apply`. Beat reports the verdict; stopping on a yes is the caller's decision.
 
 **`situations`** is the primary mechanism: one-line descriptions of what makes a change sensitive, written in the same register as the ADR three-condition gate. `/beat:design` reads each Key Decision and every path the design names against the list; `/beat:apply` reads the diff against it. The judgement is the agent's, the same way the ADR gate is, so the list can be generous: a missed match still meets the PR review, a false match costs one ten-line brief.
 
 **`paths`** is the backstop: globs that count as sensitive on any touch, no judgement. Keep it to the few files where "whatever changed, look at it" is literally true.
 
-Either list may be empty or absent. The result is the `sensitive=yes|no` token in the handoff suffix (`references/handoff-report.md`). `/retro` adds a line to `situations` when a change should have stopped and did not.
+Either list may be empty or absent. The result is the `sensitive: yes|no` field of the handoff block (`references/handoff-report.md`). `/retro` adds a line to `situations` when a change should have stopped and did not.
 
 ### `lint`
 

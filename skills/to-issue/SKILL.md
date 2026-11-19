@@ -1,6 +1,6 @@
 ---
 name: to-issue
-description: Use when a finished Beat exploration should become a tracker issue (or an epic with sub-issues for a too-big route) that an orchestrator or a person can pick up — 開 issue、開票、交給 Rhythm; not for exploring an idea (use /beat:explore) or writing PR bodies
+description: Use when a finished Beat exploration should become a tracker issue (or an epic with sub-issues for a too-big route) that an orchestrator or a person can pick up — 開 issue、開票、派工; not for exploring an idea (use /beat:explore) or writing PR bodies
 ---
 
 Turn the conclusion of a `/beat:explore` session into tracker issues. The issue body is the specification: whoever picks the issue up (an orchestrator running `/beat:design` unattended, or a person next week) never sees this conversation, so a decision that is not in the body was never made.
@@ -26,7 +26,7 @@ Before anything else: read `docs/agents/issue-tracker.md` (its place in the proj
 `No docs/agents/issue-tracker.md. Run /beat:setup to create it.`
 Never fall back to a default tracker, CLI, owner, assignee or label.
 
-Never add the dispatch label unless the user asked for dispatch in words ("走 ticket flow", "打 `<dispatch-label>`（例如 rhythm-change）", "交給 Rhythm", "dispatch it"). Otherwise name it as the next step.
+Never add the dispatch label unless the user asked for dispatch in words ("走 ticket flow", "打 `<dispatch-label>`", "派工", "dispatch it"). Otherwise name it as the next step.
 </HARD-GATE>
 
 **Prerequisites** (check before proceeding)
@@ -52,7 +52,7 @@ When a recipe this skill needs is missing from Conventions (for example no comma
 
 | Thought | Reality |
 |---------|---------|
-| "The user clearly wants this dispatched, I'll add the dispatch label" | Dispatch starts an unattended run under someone's account. Only words from the user add it ("交給 Rhythm", "打 `<dispatch-label>`（例如 rhythm-change）"). Otherwise list it as the next step. |
+| "The user clearly wants this dispatched, I'll add the dispatch label" | Dispatch starts an unattended run under someone's account. Only words from the user add it ("派工", "打 `<dispatch-label>`"). Otherwise list it as the next step. |
 | "No issue-tracker.md, but it's obviously GitHub — I'll just use `gh`" | The owner, assignee and labels are project facts you do not have. Stop and name `/beat:setup`; it writes the file in one step. |
 | "The exploration didn't declare an exit, but it's obviously small" | The exit decides how many issues, which labels, and whether a route is needed. Guessing it here re-sizes the work without the person who explored it. Send them back to `/beat:explore`. |
 | "This decision follows from what we agreed, so it goes under 已定案" | The locked heading tells design never to reopen a line. An inferred decision locked there can never be questioned. Only what the user agreed to goes there; inferences go under 留給 design 決定. |
@@ -125,7 +125,7 @@ digraph to_issue {
 
 ### 1. Read the tracker configuration
 
-Read `docs/agents/issue-tracker.md`. Absent → print `No docs/agents/issue-tracker.md. Run /beat:setup to create it.` and end with the handoff block (`next: /beat:setup`, `blocked-on: no docs/agents/issue-tracker.md`).
+Read `docs/agents/issue-tracker.md`. Absent → print `No docs/agents/issue-tracker.md. Run /beat:setup to create it.` and end with the handoff block (`next: /beat:setup`, `blocked-on: env — no docs/agents/issue-tracker.md`).
 
 Take from it: the tracker and its CLI, every command recipe under Conventions, the assignee, the dispatch label and the five status labels (`status/ready`, `status/running`, `status/waiting`, `status/blocked`, `status/in-review`) from Vocabulary, and the epic rules from Epics. Use the recipes as written, substituting only numbers, titles, file paths and the Vocabulary values (assignee, labels).
 
@@ -193,7 +193,7 @@ Title: conventional-commit form, `type(scope): one line`. Write the body to a te
 
 ### 5. Dispatch label (only on request)
 
-Add the dispatch label only to a `small` / `standard` issue that has `status/ready`, and only when the user asked for dispatch in words. Otherwise list "add `<dispatch-label>`" as the next step in the report and stop here.
+Add the dispatch label only to a `small` / `standard` issue that has `status/ready`, and only when the user asked for dispatch in words. Otherwise list "add `<dispatch-label>`" as the next step in the report and stop here. When the Vocabulary says the dispatch label is `none`, the project does not dispatch: say so and add nothing, whatever the user asked.
 
 When added, poll with the read recipe for up to one minute (roughly every ten seconds) until `status/running` (dispatched) or `status/blocked` (refused) appears. Neither after a minute → report "the orchestrator has not responded yet".
 
@@ -218,7 +218,7 @@ End with the block from `references/handoff-report.md`. There is no change:
 change: none              phase: to-issue
 commit: <short sha>       branch: <branch>                  dirty: <yes|no>
 next: <command>
-blocked-on: none | <why the issue could not be created>
+blocked-on: none | env — <why the issue could not be created>
 ```
 
 `commit`, `branch`, `dirty` come from git, run now. `next`:
@@ -229,7 +229,7 @@ blocked-on: none | <why the issue could not be created>
 | `too-big` | `/beat:explore <route>` — pick the first frontier node |
 | `blocked` / `drop` | `none` |
 
-When the run stopped (no tracker file, no exit, no route), `blocked-on` says which, and `next` is the command that resolves it (`/beat:setup` or `/beat:explore`).
+When the run stopped (no tracker file, no exit, no route), `blocked-on` is `env — <which>`, and `next` is the command that resolves it (`/beat:setup` or `/beat:explore`).
 
 ---
 

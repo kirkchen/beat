@@ -22,7 +22,7 @@ Infer the repo from `git remote -v`; `gh` does this automatically inside a clone
 
 | Term | Value | Meaning | Set / cleared by |
 |------|-------|---------|------------------|
-| Dispatch label | `<dispatch-label>` (default `rhythm-change`) | A command: adding it dispatches the issue, the orchestrator removes it. | Added by a human (or `/beat:to-issue` when the user asks in words); removed by the orchestrator |
+| Dispatch label | `<dispatch-label>` | A command: adding it dispatches the issue, the orchestrator removes it. `none` when the project does not dispatch issues. | Added by a human (or `/beat:to-issue` when the user asks in words); removed by the orchestrator |
 | Assignee | `<assignee>` | The account the orchestrator runs as. Required: a missing assignee is rejected. | Set when the issue is created |
 | `status/ready` | label | Specified and waiting for dispatch. | Set by `/beat:to-issue`; cleared by the orchestrator on dispatch |
 | `status/running` | label | A run is working on the issue. | Set and cleared by the orchestrator |
@@ -38,7 +38,7 @@ A too-big exploration is an epic issue whose body comes from `beat/routes/<route
 
 ## Gate replies
 
-A stopped run posts its question as an issue comment and sets `status/waiting`. The human answers with a comment that starts with `D<n>:` (one line per decision), `/answer <text>` or `/resume`. Other comments are ignored.
+A stopped run posts its question as an issue comment and sets `status/waiting`. The human answers in a comment, naming each decision by its id (`D1: A`). Any stricter reply syntax is the orchestrator's own: write it here when the project's orchestrator has one.
 
 ## When a skill says "publish to the issue tracker"
 
