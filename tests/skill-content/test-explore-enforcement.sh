@@ -23,4 +23,8 @@ assert_contains "$output" "exit\|small\|standard\|too-big\|blocked" "explore kno
 output=$(run_claude "As beat:explore, when the work spans several modules with decisions that depend on each other, what do you create and where?" 30)
 assert_contains "$output" "route\|beat/routes" "explore knows too-big creates a route"
 
+output=$(run_claude "As beat:explore, the project has docs/agents/issue-tracker.md and the exploration just ended small. List every command you name to the user as a way on, one per line, and for each say in one sentence what you tell the user about it. Then say which one goes on the next: line of the handoff block." 60)
+assert_contains "$output" 'session ends\|before the session\|only in this conversation\|session 結束\|這段對話' "explore names /beat:design as a second way on and says it must start in this session"
+assert_contains "$output" 'next[^"]\{0,80\}/beat:to-issue\|/beat:to-issue[^"]\{0,80\}next' "explore keeps /beat:to-issue as next in a tracker project"
+
 print_summary
