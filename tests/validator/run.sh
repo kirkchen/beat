@@ -54,8 +54,12 @@ echo "== modes"
 if node "$VALIDATOR" good --pre-archive slack-thread-dedupe >/dev/null 2>&1; then echo "FAIL pre-archive should reject issues-found"; fail=1; else echo "PASS pre-archive rejects issues-found"; fi
 if node "$VALIDATOR" --handoff good/handoff.md >/dev/null 2>&1; then echo "PASS handoff good"; else echo "FAIL handoff good"; fail=1; fi
 if node "$VALIDATOR" --handoff good/handoff-decision.md >/dev/null 2>&1; then echo "PASS handoff decision good"; else echo "FAIL handoff decision good"; node "$VALIDATOR" --handoff good/handoff-decision.md; fail=1; fi
-out=$(node "$VALIDATOR" --handoff bad/handoff-stage.md 2>&1); rc=$?
-if [ $rc -ne 0 ] && echo "$out" | grep -q 'nonce is empty' && echo "$out" | grep -q 'must be the last non-empty line' && echo "$out" | grep -q 'blocked-on=decision needs' && echo "$out" | grep -q 'sensitive must be one of' && echo "$out" | grep -q 'critical must be an integer' && echo "$out" | grep -q 'block says blocked-on none'; then echo "PASS handoff stage bad"; else echo "FAIL handoff stage bad"; echo "$out"; fail=1; fi
+out=$(node "$VALIDATOR" --handoff bad/handoff-fields.md 2>&1); rc=$?
+if [ $rc -ne 0 ] && echo "$out" | grep -q 'blocked-on must start with' && echo "$out" | grep -q 'decision must be D<n>' && echo "$out" | grep -q 'sensitive must be yes or no' && echo "$out" | grep -q 'diverging must be yes or no'; then echo "PASS handoff fields bad"; else echo "FAIL handoff fields bad"; echo "$out"; fail=1; fi
+out=$(node "$VALIDATOR" --handoff bad/handoff-brief-unblocked.md 2>&1); rc=$?
+if [ $rc -ne 0 ] && echo "$out" | grep -q 'decision lists a brief but blocked-on is none'; then echo "PASS handoff brief unblocked bad"; else echo "FAIL handoff brief unblocked bad"; echo "$out"; fail=1; fi
+out=$(node "$VALIDATOR" --handoff bad/handoff-scope.md 2>&1); rc=$?
+if [ $rc -ne 0 ] && echo "$out" | grep -q 'blocked-on scope needs decision'; then echo "PASS handoff scope bad"; else echo "FAIL handoff scope bad"; echo "$out"; fail=1; fi
 out=$(node "$VALIDATOR" --handoff bad/handoff.md 2>&1); rc=$?
 if [ $rc -ne 0 ] && echo "$out" | grep -q 'missing "branch"' && echo "$out" | grep -q 'exactly one command' && echo "$out" | grep -q 'commit must be'; then echo "PASS handoff bad"; else echo "FAIL handoff bad"; echo "$out"; fail=1; fi
 echo "== lint-features"
