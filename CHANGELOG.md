@@ -11,7 +11,9 @@ All notable changes to Beat are documented in this file. The format follows
 - Unattended mode is entered with `--unattended` in the skill's arguments
   (`/beat:apply <name> --unattended`). The stage-result nonce no longer
   switches it on, and nothing else does: a caller that used to rely on the
-  nonce gets an interactive run until it passes the flag (#22).
+  nonce gets an interactive run until it passes the flag (#22). There is no
+  transition period in which both are honoured: a caller changes its
+  prompts and raises its Beat version in the same release.
 - The machine-readable suffix line is gone. The `## Beat Handoff` block is
   the whole output contract and gains `decision`, `sensitive` and
   `diverging`; `blocked-on` now starts with one of `none`, `decision`,
@@ -44,7 +46,9 @@ All notable changes to Beat are documented in this file. The format follows
   specific orchestrator's label; `none` means the project does not dispatch
   issues and `/beat:to-issue` adds nothing.
 - `validate-beat.mjs --handoff` checks the new fields and rejects a
-  `blocked-on` that does not start with one of the four tokens.
+  `blocked-on` that does not start with one of the four tokens, and a
+  block with a `change` that leaves out `decision`, `sensitive` or
+  `diverging`.
 
 ## [0.9.0] - 2026-11-19
 
