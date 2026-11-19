@@ -164,7 +164,12 @@ Exploration ends when the user is done or the shape is clear. Before ending, **d
 | `drop` | the facts say this should not be built: already covered, out of scope for the project, or the cost is not worth it | Say so, close the issue when there is one (with the one-line reason), create nothing. |
 | `blocked` | the one thing that must exist before any of the above can be chosen | Create a node (in the active route, or a one-node route when there is none) with `type` = `research` (an agent can answer it unattended), `prototype` (a human must look at something — see below), or `decision` (only a human can decide). Next: whoever resolves it, then `/beat:explore` again. |
 
-In a project that has `docs/agents/issue-tracker.md`, `small` and `standard` hand off to the tracker instead: `next: /beat:to-issue`, which writes the conclusion into an issue that design later runs from. Without that file, `next` is `/beat:design <name>` as in the table.
+In a project that has `docs/agents/issue-tracker.md`, `small` and `standard` have two ways on. Name both, one line each, above the `Exit:` line, and let the user pick by running one:
+
+- `/beat:to-issue` writes the conclusion into an issue that design later runs from, in any session, by a person or an orchestrator. This is `next` in the handoff block.
+- `/beat:design <name>` continues in this session without an issue. The decisions made here exist only in this conversation, so say that this path has to start before the session ends.
+
+Without that file, `next` is `/beat:design <name>` as in the table.
 
 Map from brainstorming's own classification so the work is sized once, not twice: Spike → `blocked`; Bounded → `small`; Architectural → `standard` or `too-big` by the module count.
 
