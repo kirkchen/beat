@@ -56,6 +56,7 @@ if node "$VALIDATOR" --handoff good/handoff.md >/dev/null 2>&1; then echo "PASS 
 if node "$VALIDATOR" --handoff good/handoff-decision.md >/dev/null 2>&1; then echo "PASS handoff decision good"; else echo "FAIL handoff decision good"; node "$VALIDATOR" --handoff good/handoff-decision.md; fail=1; fi
 if node "$VALIDATOR" --handoff good/handoff-scope.md >/dev/null 2>&1; then echo "PASS handoff scope good"; else echo "FAIL handoff scope good"; node "$VALIDATOR" --handoff good/handoff-scope.md; fail=1; fi
 if node "$VALIDATOR" --handoff good/handoff-env.md >/dev/null 2>&1; then echo "PASS handoff env good"; else echo "FAIL handoff env good"; node "$VALIDATOR" --handoff good/handoff-env.md; fail=1; fi
+if node "$VALIDATOR" --handoff good/handoff-no-change.md >/dev/null 2>&1; then echo "PASS handoff no-change good"; else echo "FAIL handoff no-change good"; node "$VALIDATOR" --handoff good/handoff-no-change.md; fail=1; fi
 out=$(node "$VALIDATOR" --handoff bad/handoff-nofields.md 2>&1); rc=$?
 if [ $rc -ne 0 ] && echo "$out" | grep -q 'missing "decision"' && echo "$out" | grep -q 'missing "sensitive"' && echo "$out" | grep -q 'missing "diverging"'; then echo "PASS handoff nofields bad"; else echo "FAIL handoff nofields bad"; echo "$out"; fail=1; fi
 out=$(node "$VALIDATOR" --handoff bad/handoff-fields.md 2>&1); rc=$?
