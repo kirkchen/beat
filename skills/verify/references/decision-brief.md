@@ -26,29 +26,31 @@ Write it in the project's `language` from `beat/config.yaml`; the labels above a
 - **State a leaning.** The skill has read everything; the human has read nothing. A brief without a leaning pushes the reading back onto the human.
 - **Name what it blocks.** The reader decides how urgently to answer from this line.
 - **No file paths or code.** They go stale and they are not what the decision turns on. If a type shape or schema is the decision, inline the minimum (three lines, not a listing).
-- **Print it last, before the handoff block.** The orchestrator takes the text between the first brief heading (`# D<n>:` or `# P1:`) and `## Beat Handoff` in the run's last message as the gate question. The brief is the phase's final action: no commit, lint or tool call after printing it, or it is no longer in the last message.
-- **Several decisions, one stop.** When a phase finds more than one, write one file each, print them all, and put every id in the suffix (`decision=D1,D2`). The human answers them in one reply.
+- **The file is the record.** The handoff block lists the ids in `decision` (`references/handoff-report.md`); a caller that needs the question text reads `decisions/D<n>.md`. Also print each brief in full above the handoff block so a person reading the run sees it.
+- **Several decisions, one stop.** When a phase finds more than one, write one file each, print them all, and put every id in the handoff block (`decision: D1,D2`). The human answers them in one reply.
 
 ## Plan brief
 
-When `/beat:plan` finds `decisions/sensitive.md` says `yes`, the orchestrator stops once before apply so the human can look at the plan. There is nothing to choose, so the one-option rule does not apply; the brief is a confirmation:
+When `/beat:plan` runs unattended and finds `decisions/sensitive.md` says `yes`, it writes a summary of the plan to `beat/changes/<name>/decisions/P1.md` and prints it above the handoff block, so that whoever reads `sensitive: yes` has something to show a human before apply. Whether to stop there is the caller's decision; the handoff stays `blocked-on: none`, `decision: none`. There is nothing to choose, so the one-option rule does not apply; the brief is a confirmation:
 
 ```
 # P1: <matched situation, one line>
 來源：design 對到 config.yaml sensitive.situations 第 <n> 條 / paths <glob>
 決定：<each Key Decision from design.md, one line each>
 工作：<each task from tasks.md, one line each>
-回覆：/answer continue，或 /answer <what to change>
+回覆：continue，或說明要改什麼
 ```
 
 Ten lines; trim tasks before decisions if it runs long.
 
+The plan brief is not a decision brief: it has no outcome line, it is never listed in the handoff `decision` field, and it does not count as an open brief when a reply is matched. Beat reads no reply to it. "continue" means the caller invokes `/beat:apply`. A change request is text the caller passes to whichever phase it invokes next: `/beat:plan` again to redo the tasks, or `/beat:apply`, which takes it as an instruction from the user.
+
 ## After the answer
 
-The reply arrives in the prompt of the resumed phase (same session), one line per decision: `D1: A`, `D2: B`, or `/answer <text>` for a plan or divergence brief. The skill:
+The reply arrives in the prompt the next time the same phase is invoked (a resumed session or a new one). Beat prescribes no reply syntax: the skill lists the open briefs (files without an outcome line) and matches the reply to them by id (`D1: A`, "D1 選 A，D2 選 B"); a reply that names no id answers the only open brief. A brief the reply does not settle stays open and the run stops on it again. The skill:
 
 1. Records the answer in the brief file under a `結論：` / `Outcome:` line.
-2. Writes it into `design.md` Key Decisions, and into `docs/adr/` when the ADR three-condition gate holds. The issue is the orchestrator's to write (it posts the answer as a comment and under the locked-decisions section); the skill never edits the issue body.
+2. Writes it into `design.md` Key Decisions, and into `docs/adr/` when the ADR three-condition gate holds. The skill never edits the issue body; recording the answer on the issue is up to whoever relayed it.
 3. Continues the phase from where it stopped. It does not re-ask, and it does not run the gate on the same decision again. An ADR for the decision is written now, from the answer, never before it.
 
 ## Example

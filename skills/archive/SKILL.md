@@ -65,7 +65,7 @@ If unavailable (skill not installed), skip and show archive summary only.
 
 ## Unattended mode
 
-When the run carries a stage-result nonce (see `references/handoff-report.md`), nobody is watching: follow `references/unattended-mode.md`. Every **AskUserQuestion** in this skill becomes a default (recorded in `beat/changes/<name>/decisions/assumed.md`), a decision brief (`references/decision-brief.md`, `blocked-on: decision`), or an environmental stop (`blocked-on: env`). The per-skill table in that reference says which. For archive specifically: the confirmations in steps 2, 3 and 3b should not arise in a flow (verify precedes archive) and are `env` if they do; capability mapping and glossary terms take the obvious answer and are recorded; the ADR sweep is skipped; the route is archived when complete. Step 7 changes shape: no finishing-a-development-branch, the branch is pushed and a ready PR opened with a decisions section.
+When the invocation carries `--unattended`, nobody can answer during the run: follow `references/unattended-mode.md`. Without it this skill is interactive, whatever the environment looks like. Every **AskUserQuestion** in this skill becomes a default (recorded in `beat/changes/<name>/decisions/assumed.md`), a decision brief (`references/decision-brief.md`, `blocked-on: decision`), or an environmental stop (`blocked-on: env`). The per-skill table in that reference says which. For archive specifically: the confirmations in steps 2, 3 and 3b should not arise in a flow (verify precedes archive) and are `env` if they do; capability mapping and glossary terms take the obvious answer and are recorded; the ADR sweep is skipped; the route is archived when complete. Step 7 changes shape: no finishing-a-development-branch, the branch is pushed and a ready PR opened with a decisions section.
 
 ## Rationalization Prevention
 
@@ -148,7 +148,7 @@ digraph archive {
 }
 ```
 
-**Input**: Optionally specify a change name. If omitted, infer from context or prompt.
+**Input**: Optionally specify a change name. If omitted, infer from context or prompt. `--unattended` switches on unattended mode (above).
 
 **Steps**
 
@@ -351,7 +351,7 @@ digraph archive {
    **Route:** <route> — N/M nodes done, frontier: [...] (or "route archived" / "standalone")
    ```
 
-   Then the handoff block from `references/handoff-report.md` (`next`: the finishing-a-development-branch step below, or `/beat:explore <route>` when a route still has frontier nodes).
+   Then the handoff block from `references/handoff-report.md` (`next`: the finishing-a-development-branch step below, or `/beat:explore <route>` when a route still has frontier nodes). In unattended mode run step 7 first and print the block after it, so that it reports what happened: `next: none` and `blocked-on: none` once the PR is open (the PR URL goes in the summary above the block); `blocked-on: env — <what failed>` and `next: /beat:archive <name>` when the push or the PR failed.
 
    One line after the block, not a step: "If this change taught you something about the environment (a lint rule, a config.yaml rule, a CLAUDE.md note), `/retro` from mattpocock-skills turns it into one — pass it `beat/changes/archive/YYYY-MM-DD-<name>/verify.md` and `status.yaml`." Only mention it when that skill is installed.
 
@@ -371,7 +371,7 @@ digraph archive {
    - preset 升級：<from → to and reason, or "無">
    ```
 
-   Use the English heading `## Decisions and impact` with the same bullets when the project's `language` is not zh-TW. The data comes from `decisions/`, `design.md`, `verify.md` and `status.yaml` in the archived directory — read them, do not recall. When `status.yaml` has `issue` (or the change otherwise came from an issue), the body ends with `Closes <issue>` (for example `Closes #454`) so the merge closes it. Report the PR URL in the summary and make the handoff `next` the PR URL's review step. Merge stays with the human.
+   Use the English heading `## Decisions and impact` with the same bullets when the project's `language` is not zh-TW. The data comes from `decisions/`, `design.md`, `verify.md` and `status.yaml` in the archived directory — read them, do not recall. When `status.yaml` has `issue` (or the change otherwise came from an issue), the body ends with `Closes <issue>` (for example `Closes #454`) so the merge closes it. Report the PR URL in the summary above the handoff block. Merge stays with the human.
 
    **Re-entry.** If an earlier unattended run stopped with `env` part-way, resume from what is on disk: the directory already under `beat/changes/archive/` means the move is done; a commit whose message starts with `archive(<name>)` means step 5c is done; `gh pr view` showing a PR for this branch means step 7 is done. Never redo a step whose result exists.
 

@@ -13,7 +13,7 @@ assert_output_matches "$log" '"result":"[^a-z]*no\b' "to-issue does not open an 
 assert_output_matches "$log" 'Run /beat:setup to create it' "to-issue prints the exact refusal line naming /beat:setup"
 
 log="$OUTPUT_BASE/to-issue-dispatch-label.jsonl"
-run_claude "As beat:to-issue, the exploration ended standard and the user said only 'open an issue for this'. Do you add the dispatch label (e.g. rhythm-change) to the new issue? Start your answer with Yes or No." 60 > "$log"
+run_claude "As beat:to-issue, the exploration ended standard and the user said only 'open an issue for this'. Do you add the dispatch label to the new issue? Start your answer with Yes or No." 60 > "$log"
 assert_output_matches "$log" '"result":"[^a-z]*no\b' "to-issue does not add the dispatch label unless asked"
 
 log="$OUTPUT_BASE/to-issue-too-big.jsonl"

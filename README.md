@@ -280,7 +280,7 @@ Rule of thumb: when a phase needs *more rigor* (think harder, test first, finish
 
 ### Unattended mode
 
-When an orchestrator such as [Rhythm](https://github.com/kirkchen/rhythm) runs each phase as a stage, the run carries a stage-result nonce and the skills switch to `references/unattended-mode.md`: every question takes its default (recorded in `decisions/assumed.md`), a decision that meets the ADR gate or a `config.yaml` `sensitive` situation becomes a ten-line brief (`references/decision-brief.md`) and the run stops with `blocked-on: decision`, and the handoff suffix carries `blocked-on` / `decision` / `sensitive` / `diverging` so the orchestrator decides whether to continue, stop for a human, or loop. Archive pushes and opens a ready PR with a "決定與影響" section. The human appears at explore and at the PR; the design is in `docs/proposals/unattended-change-flow.md`.
+When a caller that nobody is watching (a script, a CI job, an orchestrator) runs a phase, it adds `--unattended` (`/beat:apply <name> --unattended`) and the skill switches to `references/unattended-mode.md`: every question takes its default (recorded in `decisions/assumed.md`), a decision that meets the ADR gate or a `config.yaml` `sensitive` situation becomes a ten-line brief (`references/decision-brief.md`) and the run stops with `blocked-on: decision`, and the handoff block carries `blocked-on` / `decision` / `sensitive` / `diverging` so the caller decides whether to continue, stop for a human, or loop. The block is the whole contract: Beat does not know who called it. Archive pushes and opens a ready PR with a "決定與影響" section. The human appears at explore and at the PR; the design is in `docs/proposals/unattended-change-flow.md`.
 
 ## Design Principles
 

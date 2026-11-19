@@ -206,7 +206,7 @@ Steps 9–11 write the project-layout files from `references/project-layout.md`.
    Fill these setup placeholders, everywhere they appear in the template:
    - `<owner>/<repo>` (GitHub) or `<group>/<project>` (GitLab): from the remote URL. For `issue-tracker-other.md`, ask for `<tracker name>` and `<tracker location>` instead (e.g. "Jira", "project ABC").
    - `<assignee>`: ask "Which account does the orchestrator run as? (the GitHub / GitLab login that will own the PRs)".
-   - `<dispatch-label>`: `rhythm-change`. Say so ("Dispatch label: `rhythm-change`") and move on unless the user objects. When the filled value is `rhythm-change`, drop the "(default `rhythm-change`)" note after it in the Vocabulary row; keep the note when the user chose another label.
+   - `<dispatch-label>`: ask "Which label hands an issue to your orchestrator? (answer none if the project does not dispatch issues)". Beat has no default: the label belongs to whatever picks the issues up. Fill in `none` when there is none.
 
    Every other `<...>` in the template (`<number>`, `<file>`, `<parent>`, `<n>`, ...) is a command argument the skills fill at run time: leave it as written.
 

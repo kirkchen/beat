@@ -48,7 +48,7 @@ If a superpower is unavailable (skill not installed), skip and continue.
 
 ## Unattended mode
 
-When the run carries a stage-result nonce (see `references/handoff-report.md`), nobody is watching: follow `references/unattended-mode.md`. Every **AskUserQuestion** in this skill becomes a default (recorded in `beat/changes/<name>/decisions/assumed.md`), a decision brief (`references/decision-brief.md`, `blocked-on: decision`), or an environmental stop (`blocked-on: env`). The per-skill table in that reference says which. For plan specifically: use the suggested review roles; a review finding that changes what gets built becomes a brief, one that only reshapes tasks is applied and noted.
+When the invocation carries `--unattended`, nobody can answer during the run: follow `references/unattended-mode.md`. Without it this skill is interactive, whatever the environment looks like. Every **AskUserQuestion** in this skill becomes a default (recorded in `beat/changes/<name>/decisions/assumed.md`), a decision brief (`references/decision-brief.md`, `blocked-on: decision`), or an environmental stop (`blocked-on: env`). The per-skill table in that reference says which. For plan specifically: use the suggested review roles; a review finding that changes what gets built becomes a brief, one that only reshapes tasks is applied and noted.
 
 ## Rationalization Prevention
 
@@ -119,7 +119,7 @@ digraph plan {
 }
 ```
 
-**Input**: Optionally specify a change name. If omitted, infer from context or prompt.
+**Input**: Optionally specify a change name. If omitted, infer from context or prompt. `--unattended` switches on unattended mode (above).
 
 **Steps**
 
@@ -299,7 +299,7 @@ digraph plan {
    Ready for implementation! Run `/beat:apply` to start.
    ```
 
-   Then end with the handoff block from `references/handoff-report.md` (`next: /beat:apply <name>`). In unattended mode read `beat/changes/<name>/decisions/sensitive.md`: when it says `yes`, print the plan brief (`references/decision-brief.md` "Plan brief") as the last thing before the block and set `sensitive=yes` in the suffix — the orchestrator stops once here and, on `/answer continue`, moves to apply without re-running plan. Otherwise `sensitive=no`. A decision brief, when written, is likewise printed last with `blocked-on: decision` and `next` pointing back at this command.
+   Then end with the handoff block from `references/handoff-report.md` (`next: /beat:apply <name>`). Read `beat/changes/<name>/decisions/sensitive.md` and repeat its verdict as `sensitive: yes|no` in the block (`no` when the file is absent). In unattended mode, when it says `yes`, also write the plan brief (`references/decision-brief.md` "Plan brief") to `decisions/P1.md` and print it above the block; the handoff stays `blocked-on: none`, and whether to stop before apply is the caller's decision. A decision brief, when written, is printed above the block with `blocked-on: decision`, `decision: D<n>` and `next` pointing back at this command.
 
 **Guardrails**
 - NEVER proceed without at least one spec artifact (gherkin or proposal) being done
