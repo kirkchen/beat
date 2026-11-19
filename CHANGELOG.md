@@ -4,6 +4,16 @@ All notable changes to Beat are documented in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and Beat adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2026-11-19
+
+### Changed
+
+- `/beat:explore`: in a project that has `docs/agents/issue-tracker.md`, a
+  `small` or `standard` exit names two ways on instead of one.
+  `/beat:to-issue` stays `next` in the handoff block; `/beat:design <name>`
+  is the same-session path that opens no issue. `too-big` still goes to
+  `/beat:to-issue` only (3d08f2a, #20).
+
 ## [0.8.0] - 2026-11-18
 
 ### Changed
