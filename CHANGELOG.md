@@ -4,7 +4,7 @@ All notable changes to Beat are documented in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and Beat adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.10.0] - 2026-11-19
 
 ### Changed (breaking for callers that automate the pipeline)
 
@@ -47,8 +47,8 @@ All notable changes to Beat are documented in this file. The format follows
   issues and `/beat:to-issue` adds nothing.
 - `validate-beat.mjs --handoff` checks the new fields and rejects a
   `blocked-on` that does not start with one of the four tokens, and a
-  block with a `change` that leaves out `decision`, `sensitive` or
-  `diverging`.
+  block with a `change` other than `none` that leaves out `decision`,
+  `sensitive` or `diverging`.
 
 ## [0.9.0] - 2026-11-19
 
