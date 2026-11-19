@@ -276,6 +276,8 @@ digraph plan {
 
 8. **Commit**
 
+   In unattended mode, first read `beat/changes/<name>/decisions/sensitive.md`; when it says `yes`, write the plan brief (`references/decision-brief.md` "Plan brief") to `beat/changes/<name>/decisions/P1.md` now, so the commit below carries it and the handoff reports `dirty: no`.
+
    Commit tasks.md, updated status.yaml, **and every living-documentation file this run wrote** — an ADR recorded at the review's ADR gate (plus any ADR index the project keeps under `docs/adr/`) belongs in the same commit as the tasks it came from:
 
    ```bash
@@ -299,7 +301,7 @@ digraph plan {
    Ready for implementation! Run `/beat:apply` to start.
    ```
 
-   Then end with the handoff block from `references/handoff-report.md` (`next: /beat:apply <name>`). Read `beat/changes/<name>/decisions/sensitive.md` and repeat its verdict as `sensitive: yes|no` in the block (`no` when the file is absent). In unattended mode, when it says `yes`, also write the plan brief (`references/decision-brief.md` "Plan brief") to `decisions/P1.md` and print it above the block; the handoff stays `blocked-on: none`, and whether to stop before apply is the caller's decision. A decision brief, when written, is printed above the block with `blocked-on: decision`, `decision: D<n>` and `next` pointing back at this command.
+   Then end with the handoff block from `references/handoff-report.md` (`next: /beat:apply <name>`). Read `beat/changes/<name>/decisions/sensitive.md` and repeat its verdict as `sensitive: yes|no` in the block (`no` when the file is absent). In unattended mode, when it says `yes`, print the plan brief written to `decisions/P1.md` before the commit (step 8) above the block; the handoff stays `blocked-on: none`, and whether to stop before apply is the caller's decision. A decision brief, when written, is printed above the block with `blocked-on: decision`, `decision: D<n>` and `next` pointing back at this command.
 
 **Guardrails**
 - NEVER proceed without at least one spec artifact (gherkin or proposal) being done
