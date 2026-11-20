@@ -216,7 +216,7 @@ Beat 在固定的點呼叫其他 skill 組、把結果拿回來，從不把狀�
 
 ## Beat 回報，呼叫端決定
 
-一個階段可能在沒有人能回答的情況下執行（script、CI job、orchestrator）。呼叫端在呼叫時加上 `--unattended` 表明這件事；Beat 不從環境推斷，因為同一個模式會讓 `/beat:archive` push 並開 pull request。這個模式下，有預設值的問題直接採用預設並記在 `decisions/assumed.md`；符合 ADR 三條件或 `config.yaml` `sensitive` 情境的決定寫成十行以內的 brief，然後停下來。Hard gate（TDD、verify 的 subagent、worktree 隔離）不變，Beat 也不 merge。
+一個階段可能在沒有人能回答的情況下執行（script、CI job、orchestrator）。呼叫端在呼叫時加上 `--unattended` 表明這件事；Beat 不從環境推斷，因為同一個模式會讓 `/beat:archive` push 並開 pull request。這個模式下，有預設值的問題直接採用預設並記在 `decisions/assumed.md`；符合 ADR 三條件或 `config.yaml` `sensitive` 情境的決定，以及會改變行為、介面或拿掉檢查的選擇，寫成十行以內的 brief，然後停下來。呼叫端寫明的值不會被換掉。Hard gate（TDD、verify 的 subagent、worktree 隔離）不變，Beat 也不 merge。
 
 `## Beat Handoff` 區塊是唯一的輸出契約。裡面只放指令能產生的事實（`blocked-on`、`decision`、`sensitive`、`diverging`、`next`），拿這些事實做什麼由呼叫端決定：繼續、停下來等人、或再跑一輪。Beat 回報 `sensitive: yes`，但不因此停下。
 

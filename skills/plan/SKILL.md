@@ -48,7 +48,7 @@ If a superpower is unavailable (skill not installed), skip and continue.
 
 ## Unattended mode
 
-When the invocation carries `--unattended`, nobody can answer during the run: follow `references/unattended-mode.md`. Without it this skill is interactive, whatever the environment looks like. Every **AskUserQuestion** in this skill becomes a default (recorded in `beat/changes/<name>/decisions/assumed.md`), a decision brief (`references/decision-brief.md`, `blocked-on: decision`), or an environmental stop (`blocked-on: env`). The per-skill table in that reference says which. For plan specifically: use the suggested review roles; a review finding that changes what gets built becomes a brief, one that only reshapes tasks is applied and noted.
+When the invocation carries `--unattended`, nobody can answer during the run: follow `references/unattended-mode.md`. Without it this skill is interactive, whatever the environment looks like. Every **AskUserQuestion** in this skill becomes a default (recorded in `beat/changes/<name>/decisions/assumed.md`), a decision brief (`references/decision-brief.md`, `blocked-on: decision`), or an environmental stop (`blocked-on: env`). The per-skill table in that reference says which, and "What counts as a default" there says what may be assumed. For plan specifically: use the suggested review roles; a review finding that changes what gets built becomes a brief, one that only reshapes tasks is applied and noted.
 
 ## Rationalization Prevention
 

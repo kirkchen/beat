@@ -216,7 +216,7 @@ Beat invokes other skill sets at fixed points and takes their result back; it ne
 
 ## Beat Reports, the Caller Decides
 
-A phase can run with nobody there to answer (a script, a CI job, an orchestrator). The caller says so with `--unattended` on the invocation; Beat never infers it from the environment, because the same mode lets `/beat:archive` push and open a pull request. In that mode a question with a default takes the default and records it in `decisions/assumed.md`; a decision that meets the ADR gate or a `config.yaml` `sensitive` situation becomes a ten-line brief and the run stops. Hard gates (TDD, the verify subagent, worktree isolation) do not change, and Beat never merges.
+A phase can run with nobody there to answer (a script, a CI job, an orchestrator). The caller says so with `--unattended` on the invocation; Beat never infers it from the environment, because the same mode lets `/beat:archive` push and open a pull request. In that mode a question with a default takes the default and records it in `decisions/assumed.md`; a decision that meets the ADR gate or a `config.yaml` `sensitive` situation, or that changes behaviour, an interface or drops a check, becomes a ten-line brief and the run stops. A value the caller states is never replaced. Hard gates (TDD, the verify subagent, worktree isolation) do not change, and Beat never merges.
 
 The `## Beat Handoff` block is the whole output contract. It holds facts a command can produce (`blocked-on`, `decision`, `sensitive`, `diverging`, `next`), and the caller decides what to do with them: continue, stop for a human, or loop. Beat reports `sensitive: yes` and does not stop on it.
 
