@@ -1,7 +1,7 @@
 # Proposal: 無人值守的 change flow，人只在 explore 與 merge 出現
 
 日期：2026-11-04
-狀態：draft v4。v3 經兩輪獨立 review（設計對抗、六情境模擬）修訂，差異集中在 §8；v2 經一輪 builder check 修訂（gate question 來源、stage-result 值的文法、Stage session 模型、archive 停點對應、babysit 已有機器行）；v3 加 §7 票的入口、狀態字彙、tracker 設定與規模
+狀態：已落地（Beat 0.6.0），部分內容被 0.10.0 取代，本文留作設計紀錄，不再更新。現行行為以 `references/unattended-mode.md`、`references/handoff-report.md`、`references/decision-brief.md` 為準。0.10.0 改掉的部分：(1) unattended 由引數 `--unattended` 開啟，不再由環境的 nonce 觸發（§2.1）；(2) `rhythm-stage-result[nonce]` 機器行移除，`## Beat Handoff` 區塊是唯一的輸出契約，欄位名稱與值沿用（§1 的 judge 表、§2.4）；(3) Beat 不規定回覆語法，`/answer`、`/resume` 不屬於 Beat（§8 第 9、16 項）；(4) 敏感檢查在每個模式都跑，Beat 只回報 `sensitive`，要不要停由呼叫端決定（§2.4）；(5) decision brief 以 `decisions/D<n>.md` 為準，不必是 run 的最後輸出。Rhythm 端的設計（§1 gate surface、§6、§7）不受影響。以下為原文：draft v4。v3 經兩輪獨立 review（設計對抗、六情境模擬）修訂，差異集中在 §8；v2 經一輪 builder check 修訂（gate question 來源、stage-result 值的文法、Stage session 模型、archive 停點對應、babysit 已有機器行）；v3 加 §7 票的入口、狀態字彙、tracker 設定與規模
 範圍：Beat、cadence、rhythm 三個 repo 的 skill 與 flow 設定；搭配 mattpocock/skills（HEAD 4ae2317）
 前置：`beat-topology.md`（explore 出口、preset、fix-from-verify 迴圈）已落地，本文建立在它之上
 來源：本文的事實來自三份 recon：rhythm 的 Task Flow 與 label 協定（ADR-0077、ADR-0087、`packages/domain/src/flows/`）、Beat 與 cadence 每個 skill 的機器可讀輸出與停點、Claude Code 對 user-invoked skill 在 headless 模式的行為（`code.claude.com/docs/en/skills.md`、`headless.md`）

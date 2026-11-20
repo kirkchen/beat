@@ -1,7 +1,7 @@
 # Proposal: Beat 拓樸重構，從一條管子到兩層迴圈
 
 日期：2026-10-07
-狀態：draft v2，經三輪 subagent 審查（設計對抗、Rhythm 執行面、skill 可實作性）後修訂
+狀態：已落地（Beat 0.5.0），本文留作設計紀錄，不再更新；現行行為以 `references/` 與各 `skills/*/SKILL.md` 為準。§6 handoff 報告末段的 nonce 與 `rhythm-stage-result` 機器行已在 0.10.0 移除，區塊格式見 `references/handoff-report.md`。以下為原文：draft v2，經三輪 subagent 審查（設計對抗、Rhythm 執行面、skill 可實作性）後修訂
 來源：對 Beat skill 本體、superpowers 6.4.1、mattpocock/skills（HEAD 6fd9479）、cadence、rhythm 與 jkopay-agents 兩個 repo 的 Beat artifact、以及 Rhythm 兩個部署（homelab、jkopay）資料庫的分析。數字除非另註，皆來自 homelab 的 Rhythm 資料庫（2026-05 到 10 月，5528 runs / 1452 tasks，其中 170 個 task 用到 Beat）。
 
 ## Why
