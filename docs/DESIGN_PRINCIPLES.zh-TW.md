@@ -166,23 +166,6 @@ Scenario 應該在**行為層級**：PM、QA、或新進團隊成員不需要看
 
 ---
 
-## Living Documentation 分層
-
-Gherkin scenario 描述**行為**。它不描述**詞彙**（這個專案的「Run」是什麼意思？）、**決策**（為什麼選 X 不選 Y？）或**結構**（哪個 module 擁有這件事？）。Beat 在 feature 之外維護三層 living doc，每層半衰期不同：
-
-- **Layer 1 — 專案根目錄的 `GLOSSARY.md`**（詞彙）：每個概念只有一個正統詞，對同義詞 opinionated。半衰期：很長（domain 詞彙變化慢）。
-- **Layer 2 — `docs/adr/`**（決策）：1-3 句 ADR，需通過 hard-to-reverse + surprising + real trade-off 三條件 gate。半衰期：不確定（寫了就不太回頭）。
-- **Layer 3 — `beat/ARCHITECTURE.md` + module `README.md`**（結構與意圖）：hub + spokes、手寫。半衰期：短（必須跟著 code 動）。
-
-**我們捨棄了什麼：**
-
-- *單一巨型文件。* 一份 ARCHITECTURE-everything.md 腐爛最快、且把不同半衰期的內容混在一起。
-- *Day 1 強制建立。* 三層全部 lazy — 小專案如果只有一個 package、又沒有 surprising 決策，永遠不會需要這三個檔。
-- *Beat 擁有 ADR。* ADR 放在 `docs/adr/`（業界標準，自 Nygard 2011）而非 `beat/adr/`，因為這個格式早於 Beat 且被其他工具讀；Beat 只是 trigger 與 offer。
-- *從 code derive 意圖。* 結構可以 derive（Aider repo-map、DeepWiki）— 意圖不行。Beat 手寫意圖；結構快照交給使用者自己選工具產生。
-
-**Trade-off：** 三層 surface 在 design / apply / archive 多了摩擦。我們接受這個成本，因為光靠 Gherkin 會讓詞彙、決策、結構全部隱形，而事後 re-litigate 這些東西的代價遠高於一個 prompt。
-
 ### 為什麼 Explore 要宣告出口
 
 最貴的探索是就這樣停掉的那種：下一個 session 得重探一次。所以 `/beat:explore` 結束時要宣告五個出口之一（`small`、`standard`、`too-big`、`blocked`、`drop`（不做）），附上依據（哪些檔案、哪些 module、哪些決策還沒定）。使用者可以覆寫出口，skill 不能省略。
@@ -231,7 +214,34 @@ Beat 在固定的點呼叫其他 skill 組、把結果拿回來，從不把狀�
 
 **取捨：** 有些重複：brainstorming 與 design 各做一次 spec 自我審查，writing-plans 與 plan 各做一次 plan 審查。我們接受，因為另一個選項是同一份狀態有兩個擁有者。
 
+## Beat 回報，呼叫端決定
+
+一個階段可能在沒有人能回答的情況下執行（script、CI job、orchestrator）。呼叫端在呼叫時加上 `--unattended` 表明這件事；Beat 不從環境推斷，因為同一個模式會讓 `/beat:archive` push 並開 pull request。這個模式下，有預設值的問題直接採用預設並記在 `decisions/assumed.md`；符合 ADR 三條件或 `config.yaml` `sensitive` 情境的決定寫成十行以內的 brief，然後停下來。Hard gate（TDD、verify 的 subagent、worktree 隔離）不變，Beat 也不 merge。
+
+`## Beat Handoff` 區塊是唯一的輸出契約。裡面只放指令能產生的事實（`blocked-on`、`decision`、`sensitive`、`diverging`、`next`），拿這些事實做什麼由呼叫端決定：繼續、停下來等人、或再跑一輪。Beat 回報 `sensitive: yes`，但不因此停下。
+
+**我們捨棄了什麼：** 用呼叫端給的 nonce 開啟模式、照某個 orchestrator 的格式輸出機器可讀的尾行、規定回覆語法（`/answer`、`/resume`）。尾行在 0.5 出貨，另外兩樣在 0.6，三樣都在 0.10 移除：它們讓 Beat 認得是誰在呼叫，第二個呼叫端出現時每一樣都得再做一份。
+
+**取捨：** 每個開新 session 的呼叫都要由呼叫端加 flag，漏加就會得到一個停在問題上、沒有 handoff 區塊的互動執行。unattended 採用的預設值，要到 `assumed.md` 進了 PR body 才有人看到。兩者我們都接受：漏加 flag 會明顯地失敗，靜悄悄地 push 則不會。
+
 ---
+
+## Living Documentation 分層
+
+Gherkin scenario 描述**行為**。它不描述**詞彙**（這個專案的「Run」是什麼意思？）、**決策**（為什麼選 X 不選 Y？）或**結構**（哪個 module 擁有這件事？）。Beat 在 feature 之外維護三層 living doc，每層半衰期不同：
+
+- **Layer 1 — 專案根目錄的 `GLOSSARY.md`**（詞彙）：每個概念只有一個正統詞，對同義詞 opinionated。半衰期：很長（domain 詞彙變化慢）。
+- **Layer 2 — `docs/adr/`**（決策）：1-3 句 ADR，需通過 hard-to-reverse + surprising + real trade-off 三條件 gate。半衰期：不確定（寫了就不太回頭）。
+- **Layer 3 — `beat/ARCHITECTURE.md` + module `README.md`**（結構與意圖）：hub + spokes、手寫。半衰期：短（必須跟著 code 動）。
+
+**我們捨棄了什麼：**
+
+- *單一巨型文件。* 一份 ARCHITECTURE-everything.md 腐爛最快、且把不同半衰期的內容混在一起。
+- *Day 1 強制建立。* 三層全部 lazy — 小專案如果只有一個 package、又沒有 surprising 決策，永遠不會需要這三個檔。
+- *Beat 擁有 ADR。* ADR 放在 `docs/adr/`（業界標準，自 Nygard 2011）而非 `beat/adr/`，因為這個格式早於 Beat 且被其他工具讀；Beat 只是 trigger 與 offer。
+- *從 code derive 意圖。* 結構可以 derive（Aider repo-map、DeepWiki）— 意圖不行。Beat 手寫意圖；結構快照交給使用者自己選工具產生。
+
+**Trade-off：** 三層 surface 在 design / apply / archive 多了摩擦。我們接受這個成本，因為光靠 Gherkin 會讓詞彙、決策、結構全部隱形，而事後 re-litigate 這些東西的代價遠高於一個 prompt。
 
 ## Hard Prompt, Soft Action
 
