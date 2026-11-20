@@ -14,12 +14,28 @@ Every point where a skill would use `AskUserQuestion` becomes one of four things
 
 | Case | What the skill does | Handoff |
 |------|---------------------|---------|
-| A default exists | Take it. Append one line to `beat/changes/<name>/decisions/assumed.md` (`- <phase>: <what was assumed and why>`). | `blocked-on: none` |
-| No default, and the question is a decision that meets the ADR three-condition gate (`references/adr-format.md`) or matches a `sensitive.situations` entry in `beat/config.yaml` | Write a decision brief (`references/decision-brief.md`) to `beat/changes/<name>/decisions/D<n>.md` for **each** such decision found in this phase, then print every brief in full above the handoff block and stop. | `blocked-on: decision`, `decision: D<n>` or `decision: D1,D2` |
+| A default exists ("What counts as a default" below) | Take it. Append one line to `beat/changes/<name>/decisions/assumed.md` (`- <phase>: <what was assumed and why>`; a judgement call starts `- <phase>: judgement: …`). | `blocked-on: none` |
+| No default, and the question is a decision that meets the ADR three-condition gate (`references/adr-format.md`), matches a `sensitive.situations` entry in `beat/config.yaml`, or is on the brief list below | Write a decision brief (`references/decision-brief.md`) to `beat/changes/<name>/decisions/D<n>.md` for **each** such decision found in this phase, then print every brief in full above the handoff block and stop. | `blocked-on: decision`, `decision: D<n>` or `decision: D1,D2` |
 | No default, and the blocker is environmental (e2e setup missing, a tool failing, a merge conflict the skill cannot settle) | Stop and say what is blocked in one sentence. | `blocked-on: env — <the sentence>` |
 | The change turns out to need more than one PR (apply discovers a second module, a migration that must land first, a split the plan did not foresee) | Write a brief with two options (shrink this change and open a new issue for the rest / stop and re-explore as a route), stop. | `blocked-on: scope`, `decision: D<n>` |
 
-"A default exists" means the interactive prompt already names a recommended option, the schema names a default, or the skill text says "suggest a default". Anything the skill would decide by judgement in an interactive session with a nodding user is a default.
+### What counts as a default
+
+A default is an answer that something other than this run already names. Check in this order and stop at the first that applies:
+
+1. **The input states it.** The issue body or the prompt names the value: the preset on the `出口：` / `Exit:` line, a locked decision, an option the caller wrote out. Take it as given. It is the human's answer, not an assumption, so the value itself is not recorded in `assumed.md`.
+2. **Beat names it.** The interactive prompt marks a recommended option, the schema names a default, the skill text says "suggest a default", or the per-skill table below has a row for it. Take it and record it.
+3. **Nothing names it, and it is not on the brief list.** Take the plainest reading and record it as `judgement:`, so whoever reads the PR can tell a call this run made from a default Beat named.
+
+**The brief list.** A choice that nothing names is a brief, never a judgement, when it does any of these, whether or not it meets the ADR gate:
+
+- changes observable behaviour: a scenario's Then, an error a caller sees, a default value a user gets;
+- changes a public interface, a schema, a stored format or a dependency;
+- drops or relaxes a check: a skipped artifact, a weaker preset, a test left out, a review role removed.
+
+"A nodding user would agree" is not a test; the list is.
+
+**A stated value is never replaced.** When the facts seem to contradict a value the input states, the run does not substitute its own. If following the stated value does something on the brief list (the issue says `preset technical`, which skips gherkin, and the change has user-visible behaviour), write a brief with the stated value as option A. Otherwise follow it and add one line to `assumed.md` saying what the run would have chosen and why (`- <phase>: followed <value> from the issue; would have chosen <other> because …`). A human wrote that value; only a human changes it.
 
 **Companion skills ask too.** `superpowers:brainstorming` (design) asks questions and wants the description approved; TDD asks about test placement; `grilling` asks one question at a time. In unattended mode every one of these is answered from the issue body: the locked-decisions section **is** the approval, the user stories are the description, and an open question that the body does not answer is a decision brief, not a turn that ends on a question. A run that ends on a question has no handoff block, and the caller has nothing to act on.
 
@@ -46,7 +62,7 @@ What each interactive prompt becomes. Anything not listed follows the general ru
 | Skill | Prompt | Unattended |
 |-------|--------|------------|
 | design | "What do you want to build?" (no input) | `env` — a dispatched change always has an input |
-| design | Preset question | The preset named in the issue body (`出口：small（preset minimal）` from `/beat:to-issue`), else `standard`; assumed |
+| design | Preset question | The preset named in the issue body (`出口：small（preset minimal）` from `/beat:to-issue`): taken as given, never replaced by another preset ("A stated value is never replaced" above). No preset named: `standard`; assumed |
 | design | ADR gate on a Key Decision | Decision in the locked section: skip the gate, copy as given. Otherwise all three hold: it is a decision the human has not made — brief, stop. The ADR is written after the reply, from the answer. |
 | design | grilling offer | Call `grilling` and `domain-modeling` directly when a term fails the four-challenge check; they are model-invoked. Never offer `grill-with-docs` (user-invoked, unreachable). |
 | plan | Review roles | Use the suggested roles; assumed |

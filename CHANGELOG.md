@@ -4,6 +4,30 @@ All notable changes to Beat are documented in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and Beat adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Unattended mode: "a default exists" no longer covers anything a nodding
+  user would accept. A default is a value the input states, a default Beat
+  names, or a judgement call that is not on the brief list
+  (`references/unattended-mode.md` "What counts as a default"). A choice
+  that changes observable behaviour, a public interface or schema, or drops
+  a check is a decision brief even when it falls short of the ADR gate, so
+  a caller can see `blocked-on: decision` where a run used to assume.
+- A value the input states (the preset on the issue's `Exit:` line, a
+  locked decision) is never replaced. A run that disagrees follows it and
+  says so in `decisions/assumed.md`, or writes a brief when following it
+  drops a check the change needs.
+- Judgement calls in `decisions/assumed.md` start with `judgement:`.
+
+### Added
+
+- Pressure scenarios for unattended mode: no `--unattended` keeps archive
+  interactive, conflicting scenarios become a brief, a preset named in the
+  issue is kept. `tests/pressure/run-test.sh` gains `ASSERT_FILE_MATCH`
+  and `TIMEOUT`.
+
 ## [0.10.0] - 2026-11-19
 
 ### Changed (breaking for callers that automate the pipeline)
