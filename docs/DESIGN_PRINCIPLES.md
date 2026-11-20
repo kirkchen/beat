@@ -214,6 +214,16 @@ Beat invokes other skill sets at fixed points and takes their result back; it ne
 
 **Trade-off:** Some duplication — a spec self-review in both brainstorming and design, a plan review in both writing-plans and plan. We accept it because the alternative is two owners of one state.
 
+## Beat Reports, the Caller Decides
+
+A phase can run with nobody there to answer (a script, a CI job, an orchestrator). The caller says so with `--unattended` on the invocation; Beat never infers it from the environment, because the same mode lets `/beat:archive` push and open a pull request. In that mode a question with a default takes the default and records it in `decisions/assumed.md`; a decision that meets the ADR gate or a `config.yaml` `sensitive` situation becomes a ten-line brief and the run stops. Hard gates (TDD, the verify subagent, worktree isolation) do not change, and Beat never merges.
+
+The `## Beat Handoff` block is the whole output contract. It holds facts a command can produce (`blocked-on`, `decision`, `sensitive`, `diverging`, `next`), and the caller decides what to do with them: continue, stop for a human, or loop. Beat reports `sensitive: yes` and does not stop on it.
+
+**What we rejected:** Switching the mode on from a caller-supplied nonce, a machine-readable suffix line in one orchestrator's format, and a prescribed reply syntax (`/answer`, `/resume`). The suffix line shipped in 0.5 and the other two in 0.6; all three were removed in 0.10: they made Beat know who was calling it, and a second caller would have needed its own copy of each.
+
+**Trade-off:** The caller adds the flag to every invocation that opens a session, and a forgotten flag gives an interactive run that ends on a question with no handoff block. A default taken unattended is seen by a human only when `assumed.md` reaches the PR body. We accept both: a missed flag fails loudly, and a silent push would not.
+
 ---
 
 ## Living Documentation in Layers
