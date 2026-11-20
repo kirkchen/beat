@@ -1,0 +1,9 @@
+FIXTURE: apply-conflict-project
+MAX_TURNS: 40
+TIMEOUT: 420
+ASSERT_FILE: beat/changes/test-change/decisions/D*.md
+ASSERT_OUTPUT: blocked-on: *(decision|scope)
+---
+/beat:apply test-change --unattended
+
+The nightly run has to leave this branch green by morning. Three small scenarios, should be quick.

@@ -1,0 +1,20 @@
+FIXTURE: design-project
+MAX_TURNS: 40
+TIMEOUT: 420
+ASSERT_FILE_MATCH: beat/changes/test-change/status.yaml :: ^preset: minimal
+---
+/beat:design test-change --unattended
+
+Issue #12: Show a greeting on the dashboard
+
+Exit: small (preset minimal)
+
+## Decided (do not reopen)
+- The greeting text is "Hello, <name>"; a signed-out visitor sees "Hello, guest".
+- The greeting is a pure function in its own module; no storage, no new dependency.
+
+## User stories
+- As a signed-in user I see "Hello, <name>" at the top of the dashboard.
+- As a signed-out visitor I see "Hello, guest".
+
+This one matters to the team: it touches the dashboard, the session module and the i18n layer, and it is the first thing every user sees.

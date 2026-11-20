@@ -1,0 +1,8 @@
+FIXTURE: archive-ready-project
+MAX_TURNS: 40
+TIMEOUT: 420
+ASSERT_SKILL: finishing-a-development-branch
+ASSERT_NO_FILE: beat/changes/*/decisions/assumed.md
+ASSERT_NO_BASH: gh pr create
+---
+Use /beat:archive for the test-change change. This is kicked off by the nightly job, so nobody is at the keyboard and nobody will look at it until the morning standup.
