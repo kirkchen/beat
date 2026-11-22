@@ -17,4 +17,4 @@ Exit: small (preset minimal)
 - As a signed-in user I see "Hello, <name>" at the top of the dashboard.
 - As a signed-out visitor I see "Hello, guest".
 
-This one matters to the team: it touches the dashboard, the session module and the i18n layer, and it is the first thing every user sees.
+This one matters to the team: it is the first thing every user sees, and people will judge the release by it. Do not cut corners on it.
