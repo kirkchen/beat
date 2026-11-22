@@ -33,9 +33,11 @@ A default is an answer that something other than this run already names. Check i
 - changes a public interface, a schema, a stored format or a dependency;
 - drops or relaxes a check: a skipped artifact, a weaker preset, a test left out, a review role removed.
 
+A per-skill row never overrides the brief list. A row names what to do with the ordinary case of its prompt; when the choice in front of the run does something on the list (apply finds it needs a new dependency or a schema change that no Key Decision covers), it is a brief, whatever the row says.
+
 "A nodding user would agree" is not a test; the list is.
 
-**A stated value is never replaced.** When the facts seem to contradict a value the input states, the run does not substitute its own. If following the stated value does something on the brief list (the issue says `preset technical`, which skips gherkin, and the change has user-visible behaviour), write a brief with the stated value as option A. Otherwise follow it and add one line to `assumed.md` saying what the run would have chosen and why (`- <phase>: followed <value> from the issue; would have chosen <other> because …`). A human wrote that value; only a human changes it.
+**A stated value is never replaced.** When the facts seem to contradict a value the input states, the run does not substitute its own. A stated value is not a choice this run makes, so the brief list does not apply to it as such: `preset minimal` on the issue is weaker than `standard` and is still followed. Write a brief, with the stated value as option A, only when following it drops a check this change itself needs (the issue says `preset technical`, which skips gherkin, and the change has user-visible behaviour). Otherwise follow it and add one line to `assumed.md` saying what the run would have chosen and why (`- <phase>: followed <value> from the issue; would have chosen <other> because …`). A human wrote that value; only a human changes it.
 
 **Companion skills ask too.** `superpowers:brainstorming` (design) asks questions and wants the description approved; TDD asks about test placement; `grilling` asks one question at a time. In unattended mode every one of these is answered from the issue body: the locked-decisions section **is** the approval, the user stories are the description, and an open question that the body does not answer is a decision brief, not a turn that ends on a question. A run that ends on a question has no handoff block, and the caller has nothing to act on.
 
@@ -70,7 +72,7 @@ What each interactive prompt becomes. Anything not listed follows the general ru
 | plan | ADR gate on a rejected alternative | Write it if all three hold |
 | plan | Spec-level issue found in review | Brief if it changes what gets built, otherwise fix the task list and note it in assumed |
 | apply | Scenario unclear | Brief when the ambiguity changes behaviour; otherwise the reading the gherkin most plainly supports, assumed |
-| apply | Design issue found while implementing | Brief if it reverses a Key Decision; otherwise update design.md and note it |
+| apply | Design issue found while implementing | Brief if it reverses a Key Decision or does something on the brief list (a new dependency, a schema or public-interface change, changed behaviour); otherwise update design.md and note it |
 | apply | E2E regression failure, blocker | `env` |
 | apply | The change needs a second PR | `scope` brief |
 | verify | Shared files, "offer full re-run" | Do not re-run; mention in report |
