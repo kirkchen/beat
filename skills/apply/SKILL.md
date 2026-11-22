@@ -291,7 +291,7 @@ digraph apply {
 
    **Pause if:**
    - Task/scenario is unclear -> ask for clarification (unattended: brief if behaviour-changing, else assumed)
-   - Implementation reveals design issue -> suggest updating artifacts (unattended: brief if it reverses a Key Decision)
+   - Implementation reveals design issue -> suggest updating artifacts (unattended: brief if it reverses a Key Decision or does something on the brief list)
    - Error or blocker -> report and wait (unattended: `blocked-on: env`)
 
 7. **E2E regression check** (after all scenarios implemented)
