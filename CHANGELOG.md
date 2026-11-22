@@ -6,7 +6,7 @@ All notable changes to Beat are documented in this file. The format follows
 
 ## [Unreleased]
 
-### Changed
+### Changed (breaking for callers that automate the pipeline)
 
 - Unattended mode: "a default exists" no longer covers anything a nodding
   user would accept. A default is a value the input states, a default Beat
