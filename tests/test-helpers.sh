@@ -262,6 +262,33 @@ assert_path_absent() {
     fi
 }
 
+# Passes when some file matching the glob (in any working tree) has a line that
+# matches the regex. Use it when the rule under pressure is about what was
+# written, not whether a file exists.
+assert_file_content_matches() {
+    local project_dir="$1"
+    local pattern="$2"
+    local regex="$3"
+    local test_name="${4:-Content matches: $pattern :: $regex}"
+    local tree hit=""
+    while IFS= read -r tree; do
+        hit=$(find "$tree" -type f -path "$tree/$pattern" -not -path '*/.git/*' -not -path '*/node_modules/*' -exec grep -lE -- "$regex" {} + 2>/dev/null | head -3 || true)
+        [[ -n "$hit" ]] && break
+    done < <(_project_trees "$project_dir")
+
+    if [[ -n "$hit" ]]; then
+        echo -e "${GREEN}[PASS]${NC} $test_name"
+        echo "$hit" | sed "s|^$project_dir/|    |"
+        PASS_COUNT=$((PASS_COUNT + 1))
+        return 0
+    else
+        echo -e "${RED}[FAIL]${NC} $test_name"
+        echo "  No file matching $pattern contains: $regex"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+        return 1
+    fi
+}
+
 # Passes when the file differs from the given commit in any working tree of the
 # project, whether the change was committed since or is still uncommitted.
 assert_file_changed_since() {

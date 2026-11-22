@@ -57,7 +57,7 @@ Debugging and subagent-driven development are conditional — invoke them only w
 
 ## Unattended mode
 
-When the invocation carries `--unattended`, nobody can answer during the run: follow `references/unattended-mode.md`. Without it this skill is interactive, whatever the environment looks like. Every **AskUserQuestion** in this skill becomes a default (recorded in `beat/changes/<name>/decisions/assumed.md`), a decision brief (`references/decision-brief.md`, `blocked-on: decision`), or an environmental stop (`blocked-on: env`). The per-skill table in that reference says which. For apply specifically: an unclear scenario takes the reading the gherkin most plainly supports (assumed) unless the ambiguity changes behaviour (brief); a design issue that reverses a Key Decision is a brief, anything smaller updates `design.md` and is noted; e2e failures and blockers are `env`. TDD and the no-push rule do not change.
+When the invocation carries `--unattended`, nobody can answer during the run: follow `references/unattended-mode.md`. Without it this skill is interactive, whatever the environment looks like. Every **AskUserQuestion** in this skill becomes a default (recorded in `beat/changes/<name>/decisions/assumed.md`), a decision brief (`references/decision-brief.md`, `blocked-on: decision`), or an environmental stop (`blocked-on: env`). The per-skill table in that reference says which, and "What counts as a default" there says what may be assumed. For apply specifically: an unclear scenario takes the reading the gherkin most plainly supports (assumed) unless the ambiguity changes behaviour (brief); a design issue that reverses a Key Decision or does something on the brief list (a new dependency, a schema or public-interface change, changed behaviour) is a brief, anything smaller updates `design.md` and is noted; e2e failures and blockers are `env`. TDD and the no-push rule do not change.
 
 ## Rationalization Prevention
 
@@ -291,7 +291,7 @@ digraph apply {
 
    **Pause if:**
    - Task/scenario is unclear -> ask for clarification (unattended: brief if behaviour-changing, else assumed)
-   - Implementation reveals design issue -> suggest updating artifacts (unattended: brief if it reverses a Key Decision)
+   - Implementation reveals design issue -> suggest updating artifacts (unattended: brief if it reverses a Key Decision or does something on the brief list)
    - Error or blocker -> report and wait (unattended: `blocked-on: env`)
 
 7. **E2E regression check** (after all scenarios implemented)

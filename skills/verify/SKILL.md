@@ -46,7 +46,7 @@ do NOT record — a failed run is not a verification outcome.
 
 ## Unattended mode
 
-When the invocation carries `--unattended`, nobody can answer during the run: follow `references/unattended-mode.md`. Without it this skill is interactive, whatever the environment looks like. Every **AskUserQuestion** in this skill becomes a default (recorded in `beat/changes/<name>/decisions/assumed.md`), a decision brief (`references/decision-brief.md`, `blocked-on: decision`), or an environmental stop (`blocked-on: env`). The per-skill table in that reference says which. For verify specifically: nothing is asked in the first place; the only change is that "offer a full re-run" becomes a line in the report, never a question.
+When the invocation carries `--unattended`, nobody can answer during the run: follow `references/unattended-mode.md`. Without it this skill is interactive, whatever the environment looks like. Every **AskUserQuestion** in this skill becomes a default (recorded in `beat/changes/<name>/decisions/assumed.md`), a decision brief (`references/decision-brief.md`, `blocked-on: decision`), or an environmental stop (`blocked-on: env`). The per-skill table in that reference says which, and "What counts as a default" there says what may be assumed. For verify specifically: nothing is asked in the first place; the only change is that "offer a full re-run" becomes a line in the report, never a question.
 
 ## Rationalization Prevention
 
